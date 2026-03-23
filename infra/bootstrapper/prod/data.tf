@@ -1,5 +1,5 @@
 data "azuread_group" "admins" {
-  display_name = "io-p-adgroup-platform-admin"
+  display_name = "io-p-adgroup-platform-admins"
 }
 
 data "azuread_group" "developers" {
@@ -43,8 +43,8 @@ data "azurerm_api_management" "apim" {
 
 data "azurerm_key_vault" "common" {
   provider            = azurerm.PROD-IO
-  name                = "io-p-kv-common"
-  resource_group_name = data.azurerm_resource_group.common_weu.name
+  name                = "io-p-itn-common-kv-01"
+  resource_group_name = data.azurerm_resource_group.common_itn_01.name
 }
 
 data "azurerm_virtual_network" "common" {

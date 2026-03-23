@@ -3,9 +3,10 @@ module "github_repository" {
   version = "~> 1.0"
 
   repository = {
-    name                   = "io-platform-core"
-    description            = "The central monorepo for the IO platform ecosystem. Centralizing SDKs and shared packages to ensure developer productivity."
-    topics                 = []
-    reviewers_teams        = []
+    name            = "io-platform-core"
+    description     = "The central monorepo for the IO platform ecosystem. Centralizing SDKs and shared packages to ensure developer productivity."
+    topics          = ["io", "platform"]
+    jira_boards_ids = ["IOPLT"]
+    reviewers_teams = ["io-platform-admins", "io-platform-contributors", "io-platform-ext"]
   }
 }

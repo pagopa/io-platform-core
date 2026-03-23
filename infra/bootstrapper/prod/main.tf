@@ -33,6 +33,7 @@ module "azure-PROD-IO_bootstrap" {
     key_vault = {
       name                = data.azurerm_key_vault.common.name
       resource_group_name = data.azurerm_key_vault.common.resource_group_name
+      use_rbac            = true
     }
     use_github_app = true
   }
