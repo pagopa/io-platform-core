@@ -8,6 +8,15 @@
   "devDependencies": {
     "@changesets/cli": "^2.30.0",
     "@devcontainers/cli": "^0.84.1",
-    "turbo": "^2.8.20"
+    "@pagopa/eslint-config": "catalog:",
+    "@tsconfig/node22": "catalog:",
+    "eslint": "catalog:",
+    "turbo": "^2.8.20",
+    "typescript": "catalog:"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "lint": "eslint --fix .",
+    "lint:check": "eslint ."
   }
 }
