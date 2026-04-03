@@ -1,0 +1,38 @@
+{
+  "name": "io-example-func",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/main.js",
+  "files": [
+    "dist/*",
+    "host.json"
+  ],
+  "scripts": {
+    "clean": "shx rm -rf dist",
+    "build": "tsc",
+    "build:watch": "tsc -w",
+    "typecheck": "tsc --noEmit",
+    "lint": "pnpm lint:check --fix",
+    "lint:check": "eslint .",
+    "start": "func start",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@azure/functions": "catalog:",
+    "@pagopa/io-core-azure-functions-v4-adapter": "workspace:^",
+    "@pagopa/io-core-domain": "workspace:^",
+    "neverthrow": "catalog:",
+    "zod": "^3.25.1"
+  },
+  "devDependencies": {
+    "@pagopa/io-platform-typescript-config-node": "workspace:^",
+    "@types/node": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "shx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

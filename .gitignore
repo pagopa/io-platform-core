@@ -307,3 +307,7 @@ terraform.rc
 # Terraform lock files for modules
 **/modules/**/.terraform.lock.hcl
 **/_modules/**/.terraform.lock.hcl
+
+### AzureFunctions ###
+# Azure Functions localsettings file
+local.settings.json
