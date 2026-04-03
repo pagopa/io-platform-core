@@ -7,17 +7,17 @@ import type {
 import { Greeting } from "../../domain/entities/greeting.entity.js";
 import { IGreetingRepository } from "../../domain/ports/outbound/persistence/greeting.repository.js";
 
-export interface GetGreetingInput {
+export interface GreetingInput {
   readonly name: string;
 }
 
-export type GetGreetingUseCase = UseCase<
-  GetGreetingInput,
+export type GreetingUseCase = UseCase<
+  GreetingInput,
   Greeting,
   GenericError | NotFoundError
 >;
 
-export const makeGetGreetingUseCase =
-  (repository: IGreetingRepository): GetGreetingUseCase =>
+export const makeGreetingUseCase =
+  (repository: IGreetingRepository): GreetingUseCase =>
   async (input) =>
     repository.getByName(input.name);

@@ -9,29 +9,29 @@ import { GreetingUseCase } from "../../../application/use-cases/greeting.use-cas
 
 /**
  * Zod schema that validates HTTP request input.
- * Extracts `name` from route params.
+ * Extracts `name` from request body.
  */
-const GetGreetingSchema = z
+const PostGreetingSchema = z
   .object({
-    params: z.object({
+    body: z.object({
       name: z.string().min(1),
     }),
   })
   .transform((input) => ({
-    name: input.params.name,
+    name: input.body.name,
   }));
 
 /**
  *
  * @param useCase
  */
-export const mountGetGreetingHandler = (useCase: GreetingUseCase) => {
-  const inputValidator = createRequestValidator(GetGreetingSchema);
+export const mountPostGreetingHandler = (useCase: GreetingUseCase) => {
+  const inputValidator = createRequestValidator(PostGreetingSchema);
 
-  app.http("GetGreeting", {
+  app.http("PostGreeting", {
     authLevel: "function",
     handler: GetHttpHandler(useCase, inputValidator),
-    methods: ["GET"],
-    route: "greetings/{name}",
+    methods: ["POST"],
+    route: "greetings",
   });
 };
