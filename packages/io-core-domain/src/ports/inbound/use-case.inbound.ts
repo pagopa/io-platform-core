@@ -1,6 +1,6 @@
 import { Result } from "neverthrow";
 
-import { BaseError } from "../../errors";
+import { BaseError } from "../../errors/index.js";
 
 /**
  * A UseCase is a function that takes an object asinput and returns a Result of either an output or an error.

@@ -8,27 +8,26 @@ import { err, ok } from "neverthrow";
 export interface HttpRequestPayload {
   body?: unknown;
   headers?: unknown;
-  params?: unknown;
+  path?: unknown;
   query?: unknown;
 }
 
-/**
- *
- * @returns
- */
-export const emptyValidator: InputValidator<
-  HttpRequest,
-  Record<string, never>
-> = async () => ok({});
+type RestrictToPayloadKeys<T extends StandardSchemaV1<any, any>> =
+  Exclude<keyof SchemaInput<T>, keyof HttpRequestPayload> extends never
+    ? unknown
+    : "ERROR_TS:schema contains invalid parameters (use only body, headers, path or query)";
+
+type SchemaInput<T extends StandardSchemaV1<any, any>> =
+  StandardSchemaV1.InferInput<T>;
 
 /**
  *
  * @param schema
  * @returns
  */
-export const createRequestValidator =
-  <O, T extends StandardSchemaV1<HttpRequestPayload, O>>(
-    schema: T,
+export const createHttpRequestValidator =
+  <T extends StandardSchemaV1<any, any>>(
+    schema: RestrictToPayloadKeys<T> & T,
   ): InputValidator<HttpRequest, StandardSchemaV1.InferOutput<T>> =>
   async (request: HttpRequest) => {
     let parsedBody: unknown = {};
@@ -42,23 +41,23 @@ export const createRequestValidator =
       }
     }
 
-    const inputForZod = {
+    const inputForSchemaValidator = {
       body: parsedBody,
-      headers: request.headers,
-      params: request.params,
-      query: request.query,
+      headers: Object.fromEntries(request.headers.entries()),
+      path: request.params,
+      query: Object.fromEntries(request.query.entries()),
     };
 
-    const result = await schema["~standard"].validate(inputForZod);
+    const result = await schema["~standard"].validate(inputForSchemaValidator);
 
     if (result.issues) {
-      return err(validationErrorFromZodError(result.issues));
+      return err(validationErrorFromStandardIssues(result.issues));
     }
 
     return ok(result.value);
   };
 
-export const validationErrorFromZodError = (
+export const validationErrorFromStandardIssues = (
   input: readonly StandardSchemaV1.Issue[],
 ): ValidationError => new ValidationError(formatStandardIssues(input));
 
@@ -76,3 +75,12 @@ const formatStandardIssues = (
       return `[${pathString}]: ${issue.message}`;
     })
     .join(", ");
+
+/**
+ *
+ * @returns
+ */
+export const emptyValidator: InputValidator<
+  HttpRequest,
+  Record<string, never>
+> = async () => ok({});

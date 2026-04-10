@@ -3,9 +3,9 @@ export {
   mapErrorToProblemDetails,
   type ProblemDetails,
 } from "./errorMapper.js";
-export { GetHttpHandler } from "./httpHandlerBuilder.js";
+export { createHttpHandler } from "./httpHandlerBuilder.js";
 export {
-  createRequestValidator,
+  createHttpRequestValidator,
   emptyValidator,
   type HttpRequestPayload,
 } from "./validator/httpInputStandardSchemaValidator.js";

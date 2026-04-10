@@ -1,5 +1,5 @@
 {
-  "name": "@pagopa/io-core-azure-functions-v4-adapter",
+  "name": "@pagopa/io-core-adapter-azure-functions-v4",
   "version": "0.0.1",
   "license": "MIT",
   "type": "module",

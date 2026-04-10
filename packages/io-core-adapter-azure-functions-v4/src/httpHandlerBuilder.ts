@@ -5,7 +5,7 @@ import { BaseError } from "@pagopa/io-core-domain/errors";
 
 import { mapErrorToHttpResponse } from "./errorMapper.js";
 
-export const GetHttpHandler =
+export const createHttpHandler =
   <TUseCaseInput extends object, O, E extends BaseError>(
     useCase: UseCase<TUseCaseInput, O, E>,
     inputValidator: InputValidator<HttpRequest, TUseCaseInput>,
