@@ -1,21 +1,32 @@
 import {
-  mountGetGreetingHandler,
+  mountCreateUserProfileHandler,
+  mountGetUserProfileHandler,
   mountInfoHandler,
+  mountUpdateUserProfileHandler,
 } from "./adapters/inbound/azure-functions-v4/index.js";
-import { mountPostGreetingHandler } from "./adapters/inbound/azure-functions-v4/post-greeting.handler.js";
-import { InMemoryGreetingRepository } from "./adapters/outbound/persistence/in-memory-greeting.repository.js";
-import { makeGreetingUseCase } from "./application/use-cases/greeting.use-case.js";
+import { InMemoryUserProfileRepository } from "./adapters/outbound/persistence/in-memory-user-profile.repository.js";
+import { makeCreateUserProfileUseCase } from "./application/use-cases/create-user-profile.use-case.js";
+import { makeGetUserProfileUseCase } from "./application/use-cases/get-user-profile.use-case.js";
 import { getInfoUseCase } from "./application/use-cases/info.use-case.js";
+import { makeUpdateUserProfileUseCase } from "./application/use-cases/update-user-profile.use-case.js";
 
 // --- Dependency wiring ---
 
-const greetingRepository = new InMemoryGreetingRepository();
-const greetingUseCase = makeGreetingUseCase(greetingRepository);
+const userProfileRepository = new InMemoryUserProfileRepository();
+const getUserProfileUseCase = makeGetUserProfileUseCase(userProfileRepository);
+const createUserProfileUseCase = makeCreateUserProfileUseCase(
+  userProfileRepository,
+);
+const updateUserProfileUseCase = makeUpdateUserProfileUseCase(
+  userProfileRepository,
+);
 
 // --- HTTP function registrations ---
 
 mountInfoHandler(getInfoUseCase);
 
-mountGetGreetingHandler(greetingUseCase);
+mountGetUserProfileHandler(getUserProfileUseCase);
 
-mountPostGreetingHandler(greetingUseCase);
+mountCreateUserProfileHandler(createUserProfileUseCase);
+
+mountUpdateUserProfileHandler(updateUserProfileUseCase);

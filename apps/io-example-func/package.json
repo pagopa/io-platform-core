@@ -18,16 +18,18 @@
     "lint:check": "eslint .",
     "start": "func start",
     "test": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "openapi-ts": "openapi-ts"
   },
   "dependencies": {
     "@azure/functions": "catalog:",
-    "@pagopa/io-core-azure-functions-v4-adapter": "workspace:^",
+    "@pagopa/io-core-adapter-azure-functions-v4": "workspace:^",
     "@pagopa/io-core-domain": "workspace:^",
     "neverthrow": "catalog:",
     "zod": "^3.25.1"
   },
   "devDependencies": {
+    "@hey-api/openapi-ts": "^0.95.0",
     "@pagopa/io-platform-typescript-config-node": "workspace:^",
     "@types/node": "catalog:",
     "@vitest/coverage-v8": "catalog:",
