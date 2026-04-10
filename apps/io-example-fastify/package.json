@@ -1,0 +1,40 @@
+{
+  "name": "io-example-fastify",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/main.js",
+  "files": [
+    "dist/*",
+    "host.json"
+  ],
+  "scripts": {
+    "clean": "shx rm -rf dist",
+    "build": "tsc",
+    "build:watch": "tsc -w",
+    "typecheck": "tsc --noEmit",
+    "lint": "pnpm lint:check --fix",
+    "lint:check": "eslint .",
+    "start": "node dist/main.js",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "openapi-ts": "openapi-ts"
+  },
+  "dependencies": {
+    "@pagopa/io-core-domain": "workspace:^",
+    "@pagopa/io-core-adapter-fastify": "workspace:^",
+    "fastify": "catalog:",
+    "neverthrow": "catalog:",
+    "zod": "^3.25.1"
+  },
+  "devDependencies": {
+    "@hey-api/openapi-ts": "^0.95.0",
+    "@pagopa/io-platform-typescript-config-node": "workspace:^",
+    "@types/node": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "shx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}
