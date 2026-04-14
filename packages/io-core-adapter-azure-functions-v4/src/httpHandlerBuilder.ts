@@ -9,6 +9,9 @@ export const createHttpHandler =
   <TUseCaseInput extends object, O, E extends BaseError>(
     useCase: UseCase<TUseCaseInput, O, E>,
     inputValidator: InputValidator<HttpRequest, TUseCaseInput>,
+    options: {
+      successCode: 200 | 201 | 202 | 204;
+    } = { successCode: 200 },
   ) =>
   async (request: HttpRequest): Promise<HttpResponseInit> => {
     // Validate input using the provided input validator
@@ -26,5 +29,7 @@ export const createHttpHandler =
       return mapErrorToHttpResponse(result.error);
     }
 
-    return { jsonBody: result.value };
+    // TODO-1: Add support for security headers and other common response headers
+    // TODO-2: Add support for different success codes and response bodies
+    return { jsonBody: result.value, status: options.successCode };
   };

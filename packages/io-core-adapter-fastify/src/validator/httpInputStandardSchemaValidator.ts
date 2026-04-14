@@ -12,13 +12,13 @@ export interface HttpRequestPayload {
   query?: unknown;
 }
 
-type RestrictToPayloadKeys<T extends StandardSchemaV1<any, any>> =
-  Exclude<keyof SchemaInput<T>, keyof HttpRequestPayload> extends never
+type RestrictToPayloadKeys<T extends StandardSchemaV1<unknown, unknown>> =
+  Exclude<
+    keyof StandardSchemaV1.InferInput<T>,
+    keyof HttpRequestPayload
+  > extends never
     ? unknown
     : "ERROR_TS:schema contains invalid parameters (use only body, headers, path or query)";
-
-type SchemaInput<T extends StandardSchemaV1<any, any>> =
-  StandardSchemaV1.InferInput<T>;
 
 /**
  *
@@ -26,7 +26,7 @@ type SchemaInput<T extends StandardSchemaV1<any, any>> =
  * @returns
  */
 export const createHttpRequestValidator =
-  <T extends StandardSchemaV1<any, any>>(
+  <T extends StandardSchemaV1<unknown, unknown>>(
     schema: RestrictToPayloadKeys<T> & T,
   ): InputValidator<FastifyRequest, StandardSchemaV1.InferOutput<T>> =>
   async (request: FastifyRequest) => {

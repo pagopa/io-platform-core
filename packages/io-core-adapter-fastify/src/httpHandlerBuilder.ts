@@ -9,6 +9,9 @@ export const createHttpHandler =
   <TUseCaseInput extends object, O, E extends BaseError>(
     useCase: UseCase<TUseCaseInput, O, E>,
     inputValidator: InputValidator<FastifyRequest, TUseCaseInput>,
+    options: {
+      successCode: 200 | 201 | 202 | 204;
+    } = { successCode: 200 },
   ) =>
   async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
     // Validate input using the provided input validator
@@ -26,5 +29,7 @@ export const createHttpHandler =
       return sendErrorResponse(reply, result.error);
     }
 
-    return reply.code(200).send(result.value);
+    // TODO-1: Add support for security headers and other common response headers
+    // TODO-2: Add support for different success codes and response bodies
+    return reply.code(options.successCode).send(result.value);
   };
