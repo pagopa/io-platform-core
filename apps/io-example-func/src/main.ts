@@ -1,11 +1,13 @@
 import {
   mountCreateUserProfileHandler,
+  mountDeleteUserProfileHandler,
   mountGetUserProfileHandler,
   mountInfoHandler,
   mountUpdateUserProfileHandler,
 } from "./adapters/inbound/azure-functions-v4/index.js";
 import { InMemoryUserProfileRepository } from "./adapters/outbound/persistence/in-memory-user-profile.repository.js";
 import { makeCreateUserProfileUseCase } from "./application/use-cases/create-user-profile.use-case.js";
+import { makeDeleteUserProfileUseCase } from "./application/use-cases/delete-user-profile.use-case.js";
 import { makeGetUserProfileUseCase } from "./application/use-cases/get-user-profile.use-case.js";
 import { getInfoUseCase } from "./application/use-cases/info.use-case.js";
 import { makeUpdateUserProfileUseCase } from "./application/use-cases/update-user-profile.use-case.js";
@@ -20,6 +22,9 @@ const createUserProfileUseCase = makeCreateUserProfileUseCase(
 const updateUserProfileUseCase = makeUpdateUserProfileUseCase(
   userProfileRepository,
 );
+const deleteUserProfileUseCase = makeDeleteUserProfileUseCase(
+  userProfileRepository,
+);
 
 // --- HTTP function registrations ---
 
@@ -30,3 +35,5 @@ mountGetUserProfileHandler(getUserProfileUseCase);
 mountCreateUserProfileHandler(createUserProfileUseCase);
 
 mountUpdateUserProfileHandler(updateUserProfileUseCase);
+
+mountDeleteUserProfileHandler(deleteUserProfileUseCase);

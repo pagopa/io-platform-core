@@ -128,6 +128,45 @@ export type GetInfoResponses = {
 
 export type GetInfoResponse = GetInfoResponses[keyof GetInfoResponses];
 
+export type DeleteUserProfileData = {
+    body?: never;
+    headers: {
+        /**
+         * The fiscal code of the user whose profile to delete.
+         */
+        'x-fiscal-code': FiscalCode;
+    };
+    path?: never;
+    query?: never;
+    url: '/user-profiles';
+};
+
+export type DeleteUserProfileErrors = {
+    /**
+     * The request input failed validation.
+     */
+    400: ProblemDetails;
+    /**
+     * The requested resource was not found.
+     */
+    404: ProblemDetails;
+    /**
+     * An unexpected server-side error occurred.
+     */
+    500: ProblemDetails;
+};
+
+export type DeleteUserProfileError = DeleteUserProfileErrors[keyof DeleteUserProfileErrors];
+
+export type DeleteUserProfileResponses = {
+    /**
+     * User profile deleted successfully.
+     */
+    201: UserProfile;
+};
+
+export type DeleteUserProfileResponse = DeleteUserProfileResponses[keyof DeleteUserProfileResponses];
+
 export type GetUserProfileData = {
     body?: never;
     headers: {

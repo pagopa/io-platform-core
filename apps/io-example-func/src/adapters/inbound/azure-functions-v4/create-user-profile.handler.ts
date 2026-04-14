@@ -20,7 +20,7 @@ const CreateUserProfileSchema = (
       fiscalCode: FiscalCodeSchema,
       name: z.string().min(1),
     }),
-  }) satisfies z.ZodType<InputDTO, any, unknown>
+  }) satisfies z.ZodType<InputDTO, z.ZodTypeDef, unknown>
 ).transform((input) => ({
   email: input.body.email,
   fiscalCode: input.body.fiscalCode,
@@ -34,7 +34,7 @@ export const mountCreateUserProfileHandler = (
 
   app.http("CreateUserProfile", {
     authLevel: "function",
-    handler: createHttpHandler(useCase, inputValidator),
+    handler: createHttpHandler(useCase, inputValidator, { successCode: 201 }),
     methods: ["POST"],
     route: "user-profiles",
   });
