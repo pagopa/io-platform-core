@@ -20,7 +20,7 @@ const CreateUserProfileSchema = (
       fiscalCode: FiscalCodeSchema,
       name: z.string().min(1),
     }),
-  }) satisfies z.ZodType<InputDTO, any, unknown>
+  }) satisfies z.ZodType<InputDTO, z.ZodTypeDef, unknown>
 ).transform((input) => ({
   email: input.body.email,
   fiscalCode: input.body.fiscalCode,
@@ -35,6 +35,6 @@ export const mountCreateUserProfileHandler = (
 
   fastifyServer.post(
     "/api/user-profiles",
-    createHttpHandler(useCase, inputValidator),
+    createHttpHandler(useCase, inputValidator, { successCode: 201 }),
   );
 };

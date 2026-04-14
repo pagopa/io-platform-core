@@ -78,7 +78,7 @@ paths:
             schema:
               $ref: "#/components/schemas/CreateUserProfileRequest"
       responses:
-        "200":
+        "201":
           description: User profile created successfully.
           content:
             application/json:
@@ -115,6 +115,35 @@ paths:
       responses:
         "200":
           description: User profile updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    delete:
+      operationId: deleteUserProfile
+      summary: Delete a user profile by fiscal code
+      description: Deletes the user profile associated with the given fiscal code and returns the deleted profile.
+      security:
+        - functionKey: []
+      tags:
+        - UserProfiles
+      parameters:
+        - name: x-fiscal-code
+          in: header
+          required: true
+          description: The fiscal code of the user whose profile to delete.
+          schema:
+            $ref: "#/components/schemas/FiscalCode"
+      responses:
+        "200":
+          description: User profile deleted successfully.
           content:
             application/json:
               schema:

@@ -13,6 +13,10 @@ export interface IUserProfileRepository {
     profile: NewUserProfile,
   ) => Promise<Result<UserProfile, ConflictError | GenericError>>;
 
+  readonly delete: (
+    fiscalCode: FiscalCode,
+  ) => Promise<Result<UserProfile, GenericError | NotFoundError>>;
+
   readonly findByFiscalCode: (
     fiscalCode: FiscalCode,
   ) => Promise<Result<UserProfile, GenericError | NotFoundError>>;

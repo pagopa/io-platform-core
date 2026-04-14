@@ -50,6 +50,16 @@ export class InMemoryUserProfileRepository implements IUserProfileRepository {
     return ok(newProfile);
   }
 
+  async delete(fiscalCode: FiscalCode) {
+    const key = fiscalCode as string;
+    const existing = this.store.get(key);
+    if (!existing) {
+      return err(new NotFoundError("UserProfile", key));
+    }
+    this.store.delete(key);
+    return ok(existing);
+  }
+
   async findByFiscalCode(fiscalCode: FiscalCode) {
     const profile = this.store.get(fiscalCode as string);
     if (!profile) {
