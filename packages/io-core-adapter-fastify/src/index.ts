@@ -1,4 +1,9 @@
 export {
+  type EndpointConfig,
+  type HttpMethod,
+  mountEndpoint,
+} from "./endpointMounter.js";
+export {
   mapErrorToProblemDetails,
   type ProblemDetails,
   sendErrorResponse,

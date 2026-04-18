@@ -12,7 +12,9 @@ export interface HttpRequestPayload {
   query?: unknown;
 }
 
-type RestrictToPayloadKeys<T extends StandardSchemaV1<unknown, unknown>> =
+export type RestrictToPayloadKeys<
+  T extends StandardSchemaV1<unknown, unknown>,
+> =
   Exclude<
     keyof StandardSchemaV1.InferInput<T>,
     keyof HttpRequestPayload
