@@ -1,8 +1,5 @@
 import { app } from "@azure/functions";
-import {
-  createHttpHandler,
-  createHttpRequestValidator,
-} from "@pagopa/io-core-adapter-azure-functions-v4";
+import { mountEndpoint } from "@pagopa/io-core-adapter-azure-functions-v4";
 import { z } from "zod";
 
 import type { UpdateUserProfileUseCase } from "../../../application/use-cases/update-user-profile.use-case.js";
@@ -22,7 +19,7 @@ const UpdateUserProfileSchema = (
     headers: z.object({
       "x-fiscal-code": FiscalCodeSchema,
     }),
-  }) satisfies z.ZodType<InputDTO, any, unknown>
+  }) satisfies z.ZodType<InputDTO, z.ZodTypeDef, unknown>
 ).transform((input) => ({
   email: input.body.email,
   fiscalCode: input.headers["x-fiscal-code"],
@@ -32,12 +29,11 @@ const UpdateUserProfileSchema = (
 export const mountUpdateUserProfileHandler = (
   useCase: UpdateUserProfileUseCase,
 ) => {
-  const inputValidator = createHttpRequestValidator(UpdateUserProfileSchema);
-
-  app.http("UpdateUserProfile", {
-    authLevel: "function",
-    handler: createHttpHandler(useCase, inputValidator),
-    methods: ["PUT"],
-    route: "user-profiles",
+  mountEndpoint(app, {
+    method: "PUT",
+    name: "UpdateUserProfile",
+    path: "user-profiles",
+    schema: UpdateUserProfileSchema,
+    useCase,
   });
 };

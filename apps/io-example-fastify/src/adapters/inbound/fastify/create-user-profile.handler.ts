@@ -1,7 +1,4 @@
-import {
-  createHttpHandler,
-  createHttpRequestValidator,
-} from "@pagopa/io-core-adapter-fastify";
+import { mountEndpoint } from "@pagopa/io-core-adapter-fastify";
 import { FastifyInstance } from "fastify";
 import { z } from "zod";
 
@@ -31,10 +28,11 @@ export const mountCreateUserProfileHandler = (
   fastifyServer: FastifyInstance,
   useCase: CreateUserProfileUseCase,
 ) => {
-  const inputValidator = createHttpRequestValidator(CreateUserProfileSchema);
-
-  fastifyServer.post(
-    "/api/user-profiles",
-    createHttpHandler(useCase, inputValidator, { successCode: 201 }),
-  );
+  mountEndpoint(fastifyServer, {
+    method: "POST",
+    path: "/api/user-profiles",
+    schema: CreateUserProfileSchema,
+    successCode: 201,
+    useCase,
+  });
 };

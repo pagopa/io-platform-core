@@ -1,7 +1,4 @@
-import {
-  createHttpHandler,
-  createHttpRequestValidator,
-} from "@pagopa/io-core-adapter-fastify";
+import { mountEndpoint } from "@pagopa/io-core-adapter-fastify";
 import { FastifyInstance } from "fastify";
 import { z } from "zod";
 
@@ -26,9 +23,10 @@ export const mountDeleteUserProfileHandler = (
   fastifyServer: FastifyInstance,
   useCase: DeleteUserProfileUseCase,
 ) => {
-  const inputValidator = createHttpRequestValidator(DeleteUserProfileSchema);
-  fastifyServer.delete(
-    "/api/user-profiles",
-    createHttpHandler(useCase, inputValidator),
-  );
+  mountEndpoint(fastifyServer, {
+    method: "DELETE",
+    path: "/api/user-profiles",
+    schema: DeleteUserProfileSchema,
+    useCase,
+  });
 };

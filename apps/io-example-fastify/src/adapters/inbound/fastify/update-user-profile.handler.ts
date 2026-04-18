@@ -1,7 +1,4 @@
-import {
-  createHttpHandler,
-  createHttpRequestValidator,
-} from "@pagopa/io-core-adapter-fastify";
+import { mountEndpoint } from "@pagopa/io-core-adapter-fastify";
 import { FastifyInstance } from "fastify";
 import { z } from "zod";
 
@@ -22,7 +19,7 @@ const UpdateUserProfileSchema = (
     headers: z.object({
       "x-fiscal-code": FiscalCodeSchema,
     }),
-  }) satisfies z.ZodType<InputDTO, any, unknown>
+  }) satisfies z.ZodType<InputDTO, z.ZodTypeDef, unknown>
 ).transform((input) => ({
   email: input.body.email,
   fiscalCode: input.headers["x-fiscal-code"],
@@ -33,10 +30,10 @@ export const mountUpdateUserProfileHandler = (
   fastifyServer: FastifyInstance,
   useCase: UpdateUserProfileUseCase,
 ) => {
-  const inputValidator = createHttpRequestValidator(UpdateUserProfileSchema);
-
-  fastifyServer.put(
-    "/api/user-profiles",
-    createHttpHandler(useCase, inputValidator),
-  );
+  mountEndpoint(fastifyServer, {
+    method: "PUT",
+    path: "/api/user-profiles",
+    schema: UpdateUserProfileSchema,
+    useCase,
+  });
 };

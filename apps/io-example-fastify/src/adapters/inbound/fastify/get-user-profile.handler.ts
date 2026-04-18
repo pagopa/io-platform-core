@@ -1,7 +1,4 @@
-import {
-  createHttpHandler,
-  createHttpRequestValidator,
-} from "@pagopa/io-core-adapter-fastify";
+import { mountEndpoint } from "@pagopa/io-core-adapter-fastify";
 import { FastifyInstance } from "fastify";
 import { z } from "zod";
 
@@ -17,7 +14,7 @@ const GetUserProfileSchema = (
     headers: z.object({
       "x-fiscal-code": FiscalCodeSchema,
     }),
-  }) satisfies z.ZodType<InputDTO, any, unknown>
+  }) satisfies z.ZodType<InputDTO, z.ZodTypeDef, unknown>
 ).transform((input) => ({
   fiscalCode: input.headers["x-fiscal-code"],
 }));
@@ -26,10 +23,10 @@ export const mountGetUserProfileHandler = (
   fastifyServer: FastifyInstance,
   useCase: GetUserProfileUseCase,
 ) => {
-  const inputValidator = createHttpRequestValidator(GetUserProfileSchema);
-
-  fastifyServer.get(
-    "/api/user-profiles",
-    createHttpHandler(useCase, inputValidator),
-  );
+  mountEndpoint(fastifyServer, {
+    method: "GET",
+    path: "/api/user-profiles",
+    schema: GetUserProfileSchema,
+    useCase,
+  });
 };
