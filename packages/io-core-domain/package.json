@@ -18,6 +18,10 @@
     "./value-objects": {
       "import": "./dist/value-objects/index.js",
       "types": "./dist/value-objects/index.d.ts"
+    },
+    "./zod-entities": {
+      "import": "./dist/zod-entities/index.js",
+      "types": "./dist/zod-entities/index.d.ts"
     }
   },
   "scripts": {
@@ -30,6 +34,14 @@
   },
   "dependencies": {
     "neverthrow": "catalog:"
+  },
+  "peerDependencies": {
+    "zod": "^3.25.0"
+  },
+  "peerDependenciesMeta": {
+    "zod": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@pagopa/io-platform-typescript-config-node": "workspace:^",

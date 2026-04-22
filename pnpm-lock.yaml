@@ -219,6 +219,9 @@ importers:
       neverthrow:
         specifier: 'catalog:'
         version: 8.2.0
+      zod:
+        specifier: ^3.25.0
+        version: 3.25.76
     devDependencies:
       '@pagopa/io-platform-typescript-config-node':
         specifier: workspace:^
