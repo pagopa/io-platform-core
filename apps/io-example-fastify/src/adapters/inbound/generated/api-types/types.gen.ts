@@ -43,6 +43,10 @@ export type UserProfile = {
      */
     name: string;
     /**
+     * The user's date of birth (YYYY-MM-DD).
+     */
+    birthDate: string;
+    /**
      * ISO 8601 timestamp of when the profile was created.
      */
     createdAt: string;
@@ -62,6 +66,10 @@ export type CreateUserProfileRequest = {
      * The user's full name.
      */
     name: string;
+    /**
+     * The user's date of birth (YYYY-MM-DD).
+     */
+    birthDate: string;
 };
 
 /**
@@ -222,6 +230,10 @@ export type CreateUserProfileErrors = {
      * The resource already exists.
      */
     409: ProblemDetails;
+    /**
+     * The request was well-formed but contains semantic errors.
+     */
+    422: ProblemDetails;
     /**
      * An unexpected server-side error occurred.
      */

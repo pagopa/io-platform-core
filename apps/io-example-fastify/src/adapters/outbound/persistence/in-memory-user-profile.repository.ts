@@ -13,6 +13,7 @@ const seedData = new Map<string, UserProfile>([
   [
     "RSSMRA85M01H501U",
     {
+      birthDate: new Date("1985-08-01"),
       createdAt: "2026-01-15T10:00:00.000Z",
       email: "mario.rossi@example.com" as EmailAddress,
       fiscalCode: "RSSMRA85M01H501U" as FiscalCode,
@@ -22,6 +23,7 @@ const seedData = new Map<string, UserProfile>([
   [
     "VRDLGI90A01F205X",
     {
+      birthDate: new Date("1990-01-01"),
       createdAt: "2026-02-20T14:30:00.000Z",
       email: "luigi.verdi@example.com" as EmailAddress,
       fiscalCode: "VRDLGI90A01F205X" as FiscalCode,

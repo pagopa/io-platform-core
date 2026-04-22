@@ -16,12 +16,14 @@ type InputDTO = Omit<CreateUserProfileData, "url">;
 const CreateUserProfileSchema = (
   z.object({
     body: z.object({
+      birthDate: z.string().date(),
       email: EmailAddressSchema,
       fiscalCode: FiscalCodeSchema,
       name: z.string().min(1),
     }),
   }) satisfies z.ZodType<InputDTO, z.ZodTypeDef, unknown>
 ).transform((input) => ({
+  birthDate: new Date(input.body.birthDate),
   email: input.body.email,
   fiscalCode: input.body.fiscalCode,
   name: input.body.name,
