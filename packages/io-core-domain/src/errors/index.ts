@@ -57,6 +57,15 @@ export class PreconditionFailedError extends BaseError {
   }
 }
 
+export class UnprocessableEntityError extends BaseError {
+  override readonly kind = "UnprocessableEntityError" as const;
+  override tag = "unprocessable-entity";
+
+  constructor(message: string) {
+    super("Unprocessable entity: " + message);
+  }
+}
+
 export class ValidationError extends BaseError {
   override readonly kind = "ValidationError" as const;
   override tag = "validation-error";
