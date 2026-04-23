@@ -1,5 +1,4 @@
-import type { EmailAddress, FiscalCode } from "@pagopa/io-core-domain";
-
+import { EmailAddressSchema, FiscalCodeSchema } from "@pagopa/io-core-domain";
 import { GenericError, NotFoundError } from "@pagopa/io-core-domain/errors";
 import { err, ok } from "neverthrow";
 import { describe, expect, it, vi } from "vitest";
@@ -10,9 +9,10 @@ import type { IUserProfileRepository } from "../../../domain/ports/outbound/pers
 import { makeGetUserProfileUseCase } from "../get-user-profile.use-case.js";
 
 const mockProfile: UserProfile = {
-  createdAt: "2026-01-15T10:00:00.000Z",
-  email: "mario.rossi@example.com" as EmailAddress,
-  fiscalCode: "RSSMRA85M01H501U" as FiscalCode,
+  birthDate: new Date("1985-08-01"),
+  createdAt: new Date("2026-01-15T10:00:00.000Z"),
+  email: EmailAddressSchema.parse("mario.rossi@example.com"),
+  fiscalCode: FiscalCodeSchema.parse("RSSMRA85M01H501U"),
   name: "Mario Rossi",
 };
 
@@ -20,6 +20,7 @@ const makeMockRepository = (
   overrides: Partial<IUserProfileRepository> = {},
 ): IUserProfileRepository => ({
   create: vi.fn().mockResolvedValue(ok(mockProfile)),
+  delete: vi.fn(),
   findByFiscalCode: vi.fn().mockResolvedValue(ok(mockProfile)),
   update: vi.fn().mockResolvedValue(ok(mockProfile)),
   ...overrides,
@@ -31,7 +32,7 @@ describe("makeGetUserProfileUseCase", () => {
     const useCase = makeGetUserProfileUseCase(repository);
 
     const result = await useCase({
-      fiscalCode: "RSSMRA85M01H501U" as FiscalCode,
+      fiscalCode: FiscalCodeSchema.parse("RSSMRA85M01H501U"),
     });
 
     expect(result.isOk()).toBe(true);
@@ -52,7 +53,7 @@ describe("makeGetUserProfileUseCase", () => {
     const useCase = makeGetUserProfileUseCase(repository);
 
     const result = await useCase({
-      fiscalCode: "AAAAAA00A00A000A" as FiscalCode,
+      fiscalCode: FiscalCodeSchema.parse("AAAAAA00A00A000A"),
     });
 
     expect(result.isErr()).toBe(true);
@@ -68,7 +69,7 @@ describe("makeGetUserProfileUseCase", () => {
     const useCase = makeGetUserProfileUseCase(repository);
 
     const result = await useCase({
-      fiscalCode: "RSSMRA85M01H501U" as FiscalCode,
+      fiscalCode: FiscalCodeSchema.parse("RSSMRA85M01H501U"),
     });
 
     expect(result.isErr()).toBe(true);

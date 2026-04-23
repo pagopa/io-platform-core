@@ -1,42 +1,30 @@
-import type { EmailAddress, FiscalCode } from "@pagopa/io-core-domain";
-
+import { EmailAddressSchema, FiscalCodeSchema } from "@pagopa/io-core-domain";
 import { UnprocessableEntityError } from "@pagopa/io-core-domain/errors";
 import { err, ok, type Result } from "neverthrow";
+import { z } from "zod";
 
-export interface UserProfile {
-  readonly birthDate: Date;
-  readonly createdAt: Date;
-  readonly email: EmailAddress;
-  readonly fiscalCode: FiscalCode;
-  readonly name: string;
-  readonly updatedAt?: Date;
-}
+export const NewUserProfileSchema = z.object({
+  birthDate: z.date(),
+  email: EmailAddressSchema,
+  fiscalCode: FiscalCodeSchema,
+  name: z.string().min(1),
+});
 
-export const UserProfile = {
-  create: (data: {
-    readonly birthDate: Date;
-    readonly email: EmailAddress;
-    readonly fiscalCode: FiscalCode;
-    readonly name: string;
-  }): Result<UserProfile, UnprocessableEntityError> => {
-    const ageValidation = validateAdultAge(data.birthDate);
-    if (ageValidation.isErr()) {
-      return err(ageValidation.error);
-    }
-    return ok({
-      ...data,
-      createdAt: new Date(),
-    });
-  },
-};
+export const UserProfileSchema = NewUserProfileSchema.extend({
+  createdAt: z.date(),
+  updatedAt: z.date().optional(),
+});
 
-const validateAdultAge = (
+export type NewUserProfile = z.infer<typeof NewUserProfileSchema>;
+
+export type UserProfile = z.infer<typeof UserProfileSchema>;
+
+export const validateAdultAge = (
   birthDate: Date,
 ): Result<void, UnprocessableEntityError> => {
-  const dataLimite = new Date();
-  dataLimite.setFullYear(dataLimite.getFullYear() - 18);
-
-  if (birthDate > dataLimite) {
+  const limit = new Date();
+  limit.setFullYear(limit.getFullYear() - 18);
+  if (birthDate > limit) {
     return err(
       new UnprocessableEntityError("User must be at least 18 years old"),
     );

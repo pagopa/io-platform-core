@@ -1,4 +1,4 @@
-import type { EmailAddress, FiscalCode, UseCase } from "@pagopa/io-core-domain";
+import type { UseCase } from "@pagopa/io-core-domain";
 import type {
   ConflictError,
   GenericError,
@@ -9,14 +9,13 @@ import { err } from "neverthrow";
 
 import type { IUserProfileRepository } from "../../domain/ports/outbound/persistence/user-profile.repository.js";
 
-import { UserProfile } from "../../domain/entities/user-profile.entity.js";
+import {
+  type NewUserProfile,
+  type UserProfile,
+  validateAdultAge,
+} from "../../domain/entities/user-profile.entity.js";
 
-export interface CreateUserProfileInput {
-  birthDate: Date;
-  email: EmailAddress;
-  fiscalCode: FiscalCode;
-  name: string;
-}
+export type CreateUserProfileInput = NewUserProfile;
 
 export type CreateUserProfileUseCase = UseCase<
   CreateUserProfileInput,
@@ -27,10 +26,8 @@ export type CreateUserProfileUseCase = UseCase<
 export const makeCreateUserProfileUseCase =
   (repository: IUserProfileRepository): CreateUserProfileUseCase =>
   async (input) => {
-    const user = UserProfile.create(input);
+    const ageCheck = validateAdultAge(input.birthDate);
+    if (ageCheck.isErr()) return err(ageCheck.error);
 
-    if (user.isErr()) {
-      return err(user.error);
-    }
-    return repository.create(user.value);
+    return repository.create(input);
   };

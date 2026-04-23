@@ -3,21 +3,18 @@ import {
   createHttpRequestValidator,
   createHttpResponseFormatter,
 } from "@pagopa/io-core-adapter-fastify";
+import { FiscalCodeSchema } from "@pagopa/io-core-domain";
 import { FastifyInstance } from "fastify";
 import { z } from "zod";
 
 import type { UpdateUserProfileUseCase } from "../../../application/use-cases/update-user-profile.use-case.js";
 
-import { EmailAddressSchema } from "./zod-entities/emailAddress.zod-entity.js";
-import { FiscalCodeSchema } from "./zod-entities/fiscalCode.zod-entity.js";
+import { UserProfileSchema } from "../../../domain/entities/user-profile.entity.js";
 import { UserProfileResponseSchema } from "./zod-entities/userProfileResponse.zod-entity.js";
 
 const UpdateUserProfileSchema = z
   .object({
-    body: z.object({
-      email: EmailAddressSchema.optional(),
-      name: z.string().min(1).optional(),
-    }),
+    body: UserProfileSchema.pick({ email: true, name: true }).partial(),
     headers: z.object({
       "x-fiscal-code": FiscalCodeSchema,
     }),

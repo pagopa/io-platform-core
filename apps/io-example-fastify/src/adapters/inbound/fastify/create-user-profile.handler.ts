@@ -8,31 +8,26 @@ import { z } from "zod";
 
 import type { CreateUserProfileUseCase } from "../../../application/use-cases/create-user-profile.use-case.js";
 
-import { EmailAddressSchema } from "./zod-entities/emailAddress.zod-entity.js";
-import { FiscalCodeSchema } from "./zod-entities/fiscalCode.zod-entity.js";
+import { NewUserProfileSchema } from "../../../domain/entities/user-profile.entity.js";
 import { UserProfileResponseSchema } from "./zod-entities/userProfileResponse.zod-entity.js";
 
-const CreateUserProfileSchema = z
+const CreateUserProfileInputSchema = z
+  // Extract input from headers
   .object({
-    body: z.object({
+    body: NewUserProfileSchema.extend({
       birthDate: z.string().pipe(z.coerce.date()),
-      email: EmailAddressSchema,
-      fiscalCode: FiscalCodeSchema,
-      name: z.string().min(1),
     }),
   })
-  .transform((input) => ({
-    birthDate: input.body.birthDate,
-    email: input.body.email,
-    fiscalCode: input.body.fiscalCode,
-    name: input.body.name,
-  }));
+  // Transform the input to match the use case's expected input
+  .transform((input) => input.body);
 
 export const mountCreateUserProfileHandler = (
   fastifyServer: FastifyInstance,
   useCase: CreateUserProfileUseCase,
 ) => {
-  const inputValidator = createHttpRequestValidator(CreateUserProfileSchema);
+  const inputValidator = createHttpRequestValidator(
+    CreateUserProfileInputSchema,
+  );
   const outputFormatter = createHttpResponseFormatter(
     UserProfileResponseSchema,
   );

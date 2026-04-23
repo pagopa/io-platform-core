@@ -1,13 +1,17 @@
-import type { EmailAddress, FiscalCode } from "@pagopa/io-core-domain";
-
+import {
+  type EmailAddress,
+  EmailAddressSchema,
+  type FiscalCode,
+  FiscalCodeSchema,
+} from "@pagopa/io-core-domain";
 import { ConflictError, NotFoundError } from "@pagopa/io-core-domain/errors";
 import { err, ok } from "neverthrow";
 
-import type { UserProfile } from "../../../domain/entities/user-profile.entity.js";
 import type {
-  IUserProfileRepository,
   NewUserProfile,
-} from "../../../domain/ports/outbound/persistence/user-profile.repository.js";
+  UserProfile,
+} from "../../../domain/entities/user-profile.entity.js";
+import type { IUserProfileRepository } from "../../../domain/ports/outbound/persistence/user-profile.repository.js";
 
 const seedData = new Map<string, UserProfile>([
   [
@@ -15,8 +19,8 @@ const seedData = new Map<string, UserProfile>([
     {
       birthDate: new Date("1985-08-01"),
       createdAt: new Date("2026-01-15"),
-      email: "mario.rossi@example.com" as EmailAddress,
-      fiscalCode: "RSSMRA85M01H501U" as FiscalCode,
+      email: EmailAddressSchema.parse("mario.rossi@example.com"),
+      fiscalCode: FiscalCodeSchema.parse("RSSMRA85M01H501U"),
       name: "Mario Rossi",
     },
   ],
@@ -25,8 +29,8 @@ const seedData = new Map<string, UserProfile>([
     {
       birthDate: new Date("1990-01-01"),
       createdAt: new Date("2026-02-20"),
-      email: "luigi.verdi@example.com" as EmailAddress,
-      fiscalCode: "VRDLGI90A01F205X" as FiscalCode,
+      email: EmailAddressSchema.parse("luigi.verdi@example.com"),
+      fiscalCode: FiscalCodeSchema.parse("VRDLGI90A01F205X"),
       name: "Luigi Verdi",
     },
   ],
@@ -46,8 +50,13 @@ export class InMemoryUserProfileRepository implements IUserProfileRepository {
       );
     }
 
-    this.store.set(key, newProfile);
-    return ok(newProfile);
+    const profileToStore: UserProfile = {
+      ...newProfile,
+      createdAt: new Date(),
+    };
+
+    this.store.set(key, profileToStore);
+    return ok(profileToStore);
   }
 
   async delete(fiscalCode: FiscalCode) {

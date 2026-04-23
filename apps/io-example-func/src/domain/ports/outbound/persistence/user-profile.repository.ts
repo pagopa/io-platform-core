@@ -6,7 +6,10 @@ import type {
 } from "@pagopa/io-core-domain/errors";
 import type { Result } from "neverthrow";
 
-import type { UserProfile } from "../../../entities/user-profile.entity.js";
+import type {
+  NewUserProfile,
+  UserProfile,
+} from "../../../entities/user-profile.entity.js";
 
 export interface IUserProfileRepository {
   readonly create: (
@@ -26,5 +29,3 @@ export interface IUserProfileRepository {
     data: { email?: EmailAddress; name?: string },
   ) => Promise<Result<UserProfile, GenericError | NotFoundError>>;
 }
-
-export type NewUserProfile = Omit<UserProfile, "updatedAt">;

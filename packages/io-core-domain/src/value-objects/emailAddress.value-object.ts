@@ -1,16 +1,9 @@
-import { err, ok, Result } from "neverthrow";
+import { z } from "zod";
 
-import { ValidationError } from "../errors/index.js";
-import { Brand } from "./brandedType.value-object.js";
+export const EmailAddressSchema = z
+  .string()
+  .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Invalid email address")
+  .transform((v) => v.toLowerCase())
+  .brand<"EmailAddress">();
 
-export type EmailAddress = Brand<string>;
-
-export const EmailAddress = {
-  create: (value: string): Result<EmailAddress, ValidationError> => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(value)) {
-      return err(new ValidationError(`Invalid email address '${value}'.`));
-    }
-    return ok(value.toLowerCase() as EmailAddress);
-  },
-};
+export type EmailAddress = z.infer<typeof EmailAddressSchema>;

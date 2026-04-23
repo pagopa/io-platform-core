@@ -1,12 +1,14 @@
 import { z } from "zod";
+const dateToTimestampSchema = z
+  .date()
+  .transform((date) => date.toISOString().split("T")[0]);
 
+/**
+ * Response schema for the UserProfile entity, used to validate and format the output.
+ */
 export const UserProfileResponseSchema = z.object({
-  birthDate: z.date().transform((date) => date.getTime()),
-  createdAt: z.date().transform((date) => date.getTime()),
+  birthDate: dateToTimestampSchema,
   email: z.string(),
   fiscalCode: z.string(),
-  updatedAt: z
-    .date()
-    .optional()
-    .transform((date) => date?.getTime()),
+  name: z.string(),
 });

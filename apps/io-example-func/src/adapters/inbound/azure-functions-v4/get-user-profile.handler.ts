@@ -4,11 +4,11 @@ import {
   createHttpRequestValidator,
   createHttpResponseFormatter,
 } from "@pagopa/io-core-adapter-azure-functions-v4";
+import { FiscalCodeSchema } from "@pagopa/io-core-domain";
 import { z } from "zod";
 
 import type { GetUserProfileUseCase } from "../../../application/use-cases/get-user-profile.use-case.js";
 
-import { FiscalCodeSchema } from "./zod-entities/fiscalCode.zod-entity.js";
 import { UserProfileResponseSchema } from "./zod-entities/userProfileResponse.zod-entity.js";
 
 const GetUserProfileSchema = z

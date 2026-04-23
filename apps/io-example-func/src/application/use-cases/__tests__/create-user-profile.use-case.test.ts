@@ -1,20 +1,22 @@
-import type { EmailAddress, FiscalCode } from "@pagopa/io-core-domain";
-
+import { EmailAddressSchema, FiscalCodeSchema } from "@pagopa/io-core-domain";
 import { ConflictError, GenericError } from "@pagopa/io-core-domain/errors";
 import { err, ok } from "neverthrow";
 import { describe, expect, it, vi } from "vitest";
 
-import type { UserProfile } from "../../../domain/entities/user-profile.entity.js";
 import type { IUserProfileRepository } from "../../../domain/ports/outbound/persistence/user-profile.repository.js";
 
 import { makeCreateUserProfileUseCase } from "../create-user-profile.use-case.js";
+import { NewUserProfile } from "../../../domain/entities/user-profile.entity.js";
 
 const makeMockRepository = (
   overrides: Partial<IUserProfileRepository> = {},
 ): IUserProfileRepository => ({
   create: vi
     .fn()
-    .mockImplementation(async (profile: UserProfile) => ok(profile)),
+    .mockImplementation(async (profile: NewUserProfile) =>
+      ok({ ...profile, createdAt: new Date() }),
+    ),
+  delete: vi.fn(),
   findByFiscalCode: vi.fn(),
   update: vi.fn(),
   ...overrides,
@@ -26,8 +28,9 @@ describe("makeCreateUserProfileUseCase", () => {
     const useCase = makeCreateUserProfileUseCase(repository);
 
     const result = await useCase({
-      email: "mario.rossi@example.com" as EmailAddress,
-      fiscalCode: "RSSMRA85M01H501U" as FiscalCode,
+      birthDate: new Date("1985-08-01"),
+      email: EmailAddressSchema.parse("mario.rossi@example.com"),
+      fiscalCode: FiscalCodeSchema.parse("RSSMRA85M01H501U"),
       name: "Mario Rossi",
     });
 
@@ -50,8 +53,9 @@ describe("makeCreateUserProfileUseCase", () => {
     const useCase = makeCreateUserProfileUseCase(repository);
 
     const result = await useCase({
-      email: "mario.rossi@example.com" as EmailAddress,
-      fiscalCode: "RSSMRA85M01H501U" as FiscalCode,
+      birthDate: new Date("1985-08-01"),
+      email: EmailAddressSchema.parse("mario.rossi@example.com"),
+      fiscalCode: FiscalCodeSchema.parse("RSSMRA85M01H501U"),
       name: "Mario Rossi",
     });
 
@@ -66,8 +70,9 @@ describe("makeCreateUserProfileUseCase", () => {
     const useCase = makeCreateUserProfileUseCase(repository);
 
     const result = await useCase({
-      email: "mario.rossi@example.com" as EmailAddress,
-      fiscalCode: "RSSMRA85M01H501U" as FiscalCode,
+      birthDate: new Date("1985-08-01"),
+      email: EmailAddressSchema.parse("mario.rossi@example.com"),
+      fiscalCode: FiscalCodeSchema.parse("RSSMRA85M01H501U"),
       name: "Mario Rossi",
     });
 
