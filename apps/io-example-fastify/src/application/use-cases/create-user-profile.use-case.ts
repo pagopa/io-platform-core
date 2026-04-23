@@ -4,12 +4,12 @@ import type {
   GenericError,
   UnprocessableEntityError,
 } from "@pagopa/io-core-domain/errors";
+
 import { err } from "neverthrow";
 
-import type { UserProfile } from "../../domain/entities/user-profile.entity.js";
 import type { IUserProfileRepository } from "../../domain/ports/outbound/persistence/user-profile.repository.js";
 
-import { validateAdultAge } from "../../domain/entities/user-profile.entity.js";
+import { UserProfile } from "../../domain/entities/user-profile.entity.js";
 
 export interface CreateUserProfileInput {
   birthDate: Date;
@@ -27,9 +27,10 @@ export type CreateUserProfileUseCase = UseCase<
 export const makeCreateUserProfileUseCase =
   (repository: IUserProfileRepository): CreateUserProfileUseCase =>
   async (input) => {
-    const ageValidation = validateAdultAge(input.birthDate);
-    if (ageValidation.isErr()) {
-      return err(ageValidation.error);
+    const user = UserProfile.create(input);
+
+    if (user.isErr()) {
+      return err(user.error);
     }
-    return repository.create(input);
+    return repository.create(user.value);
   };

@@ -5,6 +5,7 @@ import { app } from "@azure/functions";
 import {
   createHttpHandler,
   emptyValidator,
+  identityFormatter,
 } from "@pagopa/io-core-adapter-azure-functions-v4";
 
 export const mountInfoHandler = <O>(
@@ -12,7 +13,7 @@ export const mountInfoHandler = <O>(
 ) => {
   app.http("Info", {
     authLevel: "anonymous",
-    handler: createHttpHandler(useCase, emptyValidator),
+    handler: createHttpHandler(useCase, emptyValidator, identityFormatter),
     methods: ["GET"],
     route: "info",
   });

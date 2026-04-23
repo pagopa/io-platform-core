@@ -2,12 +2,17 @@ import type { EmailAddress, FiscalCode, UseCase } from "@pagopa/io-core-domain";
 import type {
   ConflictError,
   GenericError,
+  UnprocessableEntityError,
 } from "@pagopa/io-core-domain/errors";
 
-import type { UserProfile } from "../../domain/entities/user-profile.entity.js";
+import { err } from "neverthrow";
+
 import type { IUserProfileRepository } from "../../domain/ports/outbound/persistence/user-profile.repository.js";
 
+import { UserProfile } from "../../domain/entities/user-profile.entity.js";
+
 export interface CreateUserProfileInput {
+  birthDate: Date;
   email: EmailAddress;
   fiscalCode: FiscalCode;
   name: string;
@@ -16,17 +21,16 @@ export interface CreateUserProfileInput {
 export type CreateUserProfileUseCase = UseCase<
   CreateUserProfileInput,
   UserProfile,
-  ConflictError | GenericError
+  ConflictError | GenericError | UnprocessableEntityError
 >;
 
 export const makeCreateUserProfileUseCase =
   (repository: IUserProfileRepository): CreateUserProfileUseCase =>
   async (input) => {
-    const profile: UserProfile = {
-      createdAt: new Date().toISOString(),
-      email: input.email,
-      fiscalCode: input.fiscalCode,
-      name: input.name,
-    };
-    return repository.create(profile);
+    const user = UserProfile.create(input);
+
+    if (user.isErr()) {
+      return err(user.error);
+    }
+    return repository.create(user.value);
   };

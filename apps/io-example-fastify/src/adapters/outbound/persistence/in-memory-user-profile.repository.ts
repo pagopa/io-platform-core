@@ -14,7 +14,7 @@ const seedData = new Map<string, UserProfile>([
     "RSSMRA85M01H501U",
     {
       birthDate: new Date("1985-08-01"),
-      createdAt: "2026-01-15T10:00:00.000Z",
+      createdAt: new Date("2026-01-15"),
       email: "mario.rossi@example.com" as EmailAddress,
       fiscalCode: "RSSMRA85M01H501U" as FiscalCode,
       name: "Mario Rossi",
@@ -24,7 +24,7 @@ const seedData = new Map<string, UserProfile>([
     "VRDLGI90A01F205X",
     {
       birthDate: new Date("1990-01-01"),
-      createdAt: "2026-02-20T14:30:00.000Z",
+      createdAt: new Date("2026-02-20"),
       email: "luigi.verdi@example.com" as EmailAddress,
       fiscalCode: "VRDLGI90A01F205X" as FiscalCode,
       name: "Luigi Verdi",
@@ -35,8 +35,9 @@ const seedData = new Map<string, UserProfile>([
 export class InMemoryUserProfileRepository implements IUserProfileRepository {
   private readonly store = new Map<string, UserProfile>(seedData);
 
-  async create(profile: NewUserProfile) {
-    const key = profile.fiscalCode as string;
+  async create(newProfile: NewUserProfile) {
+    const key = newProfile.fiscalCode;
+
     if (this.store.has(key)) {
       return err(
         new ConflictError(
@@ -44,16 +45,13 @@ export class InMemoryUserProfileRepository implements IUserProfileRepository {
         ),
       );
     }
-    const newProfile: UserProfile = {
-      ...profile,
-      createdAt: new Date().toISOString(),
-    };
+
     this.store.set(key, newProfile);
     return ok(newProfile);
   }
 
   async delete(fiscalCode: FiscalCode) {
-    const key = fiscalCode as string;
+    const key = fiscalCode;
     const existing = this.store.get(key);
     if (!existing) {
       return err(new NotFoundError("UserProfile", key));
@@ -63,9 +61,9 @@ export class InMemoryUserProfileRepository implements IUserProfileRepository {
   }
 
   async findByFiscalCode(fiscalCode: FiscalCode) {
-    const profile = this.store.get(fiscalCode as string);
+    const profile = this.store.get(fiscalCode);
     if (!profile) {
-      return err(new NotFoundError("UserProfile", fiscalCode as string));
+      return err(new NotFoundError("UserProfile", fiscalCode));
     }
     return ok(profile);
   }
@@ -74,7 +72,7 @@ export class InMemoryUserProfileRepository implements IUserProfileRepository {
     fiscalCode: FiscalCode,
     data: { email?: EmailAddress; name?: string },
   ) {
-    const key = fiscalCode as string;
+    const key = fiscalCode;
     const existing = this.store.get(key);
     if (!existing) {
       return err(new NotFoundError("UserProfile", key));
@@ -83,7 +81,7 @@ export class InMemoryUserProfileRepository implements IUserProfileRepository {
       ...existing,
       ...(data.email !== undefined && { email: data.email }),
       ...(data.name !== undefined && { name: data.name }),
-      updatedAt: new Date().toISOString(),
+      updatedAt: new Date(),
     };
     this.store.set(key, updated);
     return ok(updated);

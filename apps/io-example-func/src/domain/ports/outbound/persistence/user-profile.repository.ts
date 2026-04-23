@@ -27,4 +27,4 @@ export interface IUserProfileRepository {
   ) => Promise<Result<UserProfile, GenericError | NotFoundError>>;
 }
 
-export type NewUserProfile = Omit<UserProfile, "createdAt" | "updatedAt">;
+export type NewUserProfile = Omit<UserProfile, "updatedAt">;

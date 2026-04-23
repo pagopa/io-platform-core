@@ -5,14 +5,32 @@ import { err, ok, type Result } from "neverthrow";
 
 export interface UserProfile {
   readonly birthDate: Date;
-  readonly createdAt: string;
+  readonly createdAt: Date;
   readonly email: EmailAddress;
   readonly fiscalCode: FiscalCode;
   readonly name: string;
-  readonly updatedAt?: string;
+  readonly updatedAt?: Date;
 }
 
-export const validateAdultAge = (
+export const UserProfile = {
+  create: (data: {
+    readonly birthDate: Date;
+    readonly email: EmailAddress;
+    readonly fiscalCode: FiscalCode;
+    readonly name: string;
+  }): Result<UserProfile, UnprocessableEntityError> => {
+    const ageValidation = validateAdultAge(data.birthDate);
+    if (ageValidation.isErr()) {
+      return err(ageValidation.error);
+    }
+    return ok({
+      ...data,
+      createdAt: new Date(),
+    });
+  },
+};
+
+const validateAdultAge = (
   birthDate: Date,
 ): Result<void, UnprocessableEntityError> => {
   const dataLimite = new Date();

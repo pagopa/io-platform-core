@@ -1,4 +1,8 @@
-import type { InputValidator, UseCase } from "@pagopa/io-core-domain";
+import type {
+  InputValidator,
+  OutputFormatter,
+  UseCase,
+} from "@pagopa/io-core-domain";
 
 import { BaseError } from "@pagopa/io-core-domain/errors";
 import { FastifyReply, FastifyRequest } from "fastify";
@@ -6,9 +10,10 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import { sendErrorResponse } from "./errorMapper.js";
 
 export const createHttpHandler =
-  <TUseCaseInput extends object, O, E extends BaseError>(
+  <TUseCaseInput extends object, O, E extends BaseError, R>(
     useCase: UseCase<TUseCaseInput, O, E>,
     inputValidator: InputValidator<FastifyRequest, TUseCaseInput>,
+    outputFormatter: OutputFormatter<O, R>,
     options: {
       successCode: 200 | 201 | 202 | 204;
     } = { successCode: 200 },
@@ -29,7 +34,13 @@ export const createHttpHandler =
       return sendErrorResponse(reply, result.error);
     }
 
-    // TODO-1: Add support for security headers and other common response headers
-    // TODO-2: Add support for different success codes and response bodies
-    return reply.code(options.successCode).send(result.value);
+    // Format the output using the provided output formatter
+    const formatted = await outputFormatter(result.value);
+
+    if (formatted.isErr()) {
+      return sendErrorResponse(reply, formatted.error);
+    }
+
+    // TODO: Add support for security headers and other common response headers
+    return reply.code(options.successCode).send(formatted.value);
   };

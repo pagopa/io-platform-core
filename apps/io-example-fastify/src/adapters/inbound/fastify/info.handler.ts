@@ -4,6 +4,7 @@ import type { BaseError } from "@pagopa/io-core-domain/errors";
 import {
   createHttpHandler,
   emptyValidator,
+  identityFormatter,
 } from "@pagopa/io-core-adapter-fastify";
 import { FastifyInstance } from "fastify";
 
@@ -11,5 +12,8 @@ export const mountInfoHandler = <O>(
   fastifyServer: FastifyInstance,
   useCase: UseCase<Record<string, never>, O, BaseError>,
 ) => {
-  fastifyServer.get("/api/info", createHttpHandler(useCase, emptyValidator));
+  fastifyServer.get(
+    "/api/info",
+    createHttpHandler(useCase, emptyValidator, identityFormatter),
+  );
 };

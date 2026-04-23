@@ -3,6 +3,10 @@ export {
   type ProblemDetails,
   sendErrorResponse,
 } from "./errorMapper.js";
+export {
+  createHttpResponseFormatter,
+  identityFormatter,
+} from "./formatter/httpOutputStandardSchemaFormatter.js";
 export { createHttpHandler } from "./httpHandlerBuilder.js";
 export {
   createHttpRequestValidator,
