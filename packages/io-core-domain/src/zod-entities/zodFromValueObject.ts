@@ -1,17 +1,17 @@
 import { Result } from "neverthrow";
-import z from "zod";
+import { z } from "zod";
 
 import { ValidationError } from "../errors/index.js";
 
 export const fromValueObject = <TInput, TOutput>(
   create: (value: TInput) => Result<TOutput, ValidationError>,
   fallbackMessage: string,
-): z.ZodType<TOutput, z.ZodTypeDef, TInput> =>
+): z.ZodType<TOutput, TInput> =>
   z.any().transform((val: TInput, ctx) => {
     const result = create(val);
     if (result.isErr()) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message:
           result.error instanceof ValidationError
             ? result.error.message
@@ -20,4 +20,4 @@ export const fromValueObject = <TInput, TOutput>(
       return z.NEVER;
     }
     return result.value;
-  }) as z.ZodType<TOutput, z.ZodTypeDef, TInput>;
+  }) as z.ZodType<TOutput, TInput>;
