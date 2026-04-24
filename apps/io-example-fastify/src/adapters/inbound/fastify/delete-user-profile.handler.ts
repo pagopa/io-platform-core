@@ -9,7 +9,7 @@ import { z } from "zod";
 
 import type { DeleteUserProfileUseCase } from "../../../application/use-cases/delete-user-profile.use-case.js";
 
-import { UserProfileResponseSchema } from "./zod-entities/userProfileResponse.zod-entity.js";
+import { UserProfileResponseSchema } from "./dto/userProfileResponse.zod-entity.js";
 
 const DeleteUserProfileInputSchema = z
   // Extract input from headers
@@ -23,16 +23,13 @@ const DeleteUserProfileInputSchema = z
     fiscalCode: input.headers["x-fiscal-code"],
   }));
 
+const inputValidator = createHttpRequestValidator(DeleteUserProfileInputSchema);
+const outputFormatter = createHttpResponseFormatter(UserProfileResponseSchema);
+
 export const mountDeleteUserProfileHandler = (
   fastifyServer: FastifyInstance,
   useCase: DeleteUserProfileUseCase,
 ) => {
-  const inputValidator = createHttpRequestValidator(
-    DeleteUserProfileInputSchema,
-  );
-  const outputFormatter = createHttpResponseFormatter(
-    UserProfileResponseSchema,
-  );
   fastifyServer.delete(
     "/api/user-profiles",
     createHttpHandler(useCase, inputValidator, outputFormatter),

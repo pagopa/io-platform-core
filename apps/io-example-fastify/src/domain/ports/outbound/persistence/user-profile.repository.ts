@@ -1,4 +1,4 @@
-import type { EmailAddress, FiscalCode } from "@pagopa/io-core-domain";
+import type { FiscalCode } from "@pagopa/io-core-domain";
 import type {
   ConflictError,
   GenericError,
@@ -26,6 +26,6 @@ export interface IUserProfileRepository {
 
   readonly update: (
     fiscalCode: FiscalCode,
-    data: { email?: EmailAddress; name?: string },
+    data: Partial<Pick<UserProfile, "email" | "name">>,
   ) => Promise<Result<UserProfile, GenericError | NotFoundError>>;
 }

@@ -1,4 +1,9 @@
-import type { EmailAddress, FiscalCode, UseCase } from "@pagopa/io-core-domain";
+import type {
+  EmailAddress,
+  FiscalCode,
+  NonEmptyString,
+  UseCase,
+} from "@pagopa/io-core-domain";
 import type {
   GenericError,
   NotFoundError,
@@ -10,7 +15,7 @@ import type { IUserProfileRepository } from "../../domain/ports/outbound/persist
 export interface UpdateUserProfileInput {
   email?: EmailAddress;
   fiscalCode: FiscalCode;
-  name?: string;
+  name?: NonEmptyString;
 }
 
 export type UpdateUserProfileUseCase = UseCase<

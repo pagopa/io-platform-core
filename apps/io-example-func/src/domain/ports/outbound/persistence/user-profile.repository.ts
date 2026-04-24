@@ -26,6 +26,6 @@ export interface IUserProfileRepository {
 
   readonly update: (
     fiscalCode: FiscalCode,
-    data: { email?: EmailAddress; name?: string },
+    data: Partial<Pick<UserProfile, "email" | "name">>,
   ) => Promise<Result<UserProfile, GenericError | NotFoundError>>;
 }

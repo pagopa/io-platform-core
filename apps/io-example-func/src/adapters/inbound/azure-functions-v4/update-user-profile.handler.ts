@@ -10,7 +10,7 @@ import { z } from "zod";
 import type { UpdateUserProfileUseCase } from "../../../application/use-cases/update-user-profile.use-case.js";
 
 import { UserProfileSchema } from "../../../domain/entities/user-profile.entity.js";
-import { UserProfileResponseSchema } from "./zod-entities/userProfileResponse.zod-entity.js";
+import { UserProfileResponseSchema } from "./dto/userProfileResponse.zod-entity.js";
 
 const UpdateUserProfileSchema = z
   .object({
@@ -25,14 +25,12 @@ const UpdateUserProfileSchema = z
     name: input.body.name,
   }));
 
+const inputValidator = createHttpRequestValidator(UpdateUserProfileSchema);
+const outputFormatter = createHttpResponseFormatter(UserProfileResponseSchema);
+
 export const mountUpdateUserProfileHandler = (
   useCase: UpdateUserProfileUseCase,
 ) => {
-  const inputValidator = createHttpRequestValidator(UpdateUserProfileSchema);
-  const outputFormatter = createHttpResponseFormatter(
-    UserProfileResponseSchema,
-  );
-
   app.http("UpdateUserProfile", {
     authLevel: "function",
     handler: createHttpHandler(useCase, inputValidator, outputFormatter),

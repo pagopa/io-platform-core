@@ -4,33 +4,38 @@ import {
   createHttpRequestValidator,
   createHttpResponseFormatter,
 } from "@pagopa/io-core-adapter-azure-functions-v4";
+import {
+  EmailAddressSchema,
+  FiscalCodeSchema,
+  NonEmptyStringSchema,
+} from "@pagopa/io-core-domain";
 import { z } from "zod";
 
 import type { CreateUserProfileUseCase } from "../../../application/use-cases/create-user-profile.use-case.js";
 
-import { NewUserProfileSchema } from "../../../domain/entities/user-profile.entity.js";
-import { UserProfileResponseSchema } from "./zod-entities/userProfileResponse.zod-entity.js";
+import { UserProfileResponseSchema } from "./dto/userProfileResponse.zod-entity.js";
+
+const DateFromStringSchema = z.coerce.date();
 
 const CreateUserProfileInputSchema = z
   // Extract input from headers
   .object({
-    body: NewUserProfileSchema.extend({
-      birthDate: z.string().pipe(z.coerce.date()),
+    body: z.object({
+      birthDate: DateFromStringSchema,
+      email: EmailAddressSchema,
+      fiscalCode: FiscalCodeSchema,
+      name: NonEmptyStringSchema,
     }),
   })
   // Transform the input to match the use case's expected input
   .transform((input) => input.body);
 
+const inputValidator = createHttpRequestValidator(CreateUserProfileInputSchema);
+const outputFormatter = createHttpResponseFormatter(UserProfileResponseSchema);
+
 export const mountCreateUserProfileHandler = (
   useCase: CreateUserProfileUseCase,
 ) => {
-  const inputValidator = createHttpRequestValidator(
-    CreateUserProfileInputSchema,
-  );
-  const outputFormatter = createHttpResponseFormatter(
-    UserProfileResponseSchema,
-  );
-
   app.http("CreateUserProfile", {
     authLevel: "function",
     handler: createHttpHandler(useCase, inputValidator, outputFormatter, {

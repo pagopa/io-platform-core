@@ -1,8 +1,8 @@
 import {
-  type EmailAddress,
   EmailAddressSchema,
   type FiscalCode,
   FiscalCodeSchema,
+  NonEmptyStringSchema,
 } from "@pagopa/io-core-domain";
 import { ConflictError, NotFoundError } from "@pagopa/io-core-domain/errors";
 import { err, ok } from "neverthrow";
@@ -21,7 +21,7 @@ const seedData = new Map<string, UserProfile>([
       createdAt: new Date("2026-01-15"),
       email: EmailAddressSchema.parse("mario.rossi@example.com"),
       fiscalCode: FiscalCodeSchema.parse("RSSMRA85M01H501U"),
-      name: "Mario Rossi",
+      name: NonEmptyStringSchema.parse("Mario Rossi"),
     },
   ],
   [
@@ -31,7 +31,7 @@ const seedData = new Map<string, UserProfile>([
       createdAt: new Date("2026-02-20"),
       email: EmailAddressSchema.parse("luigi.verdi@example.com"),
       fiscalCode: FiscalCodeSchema.parse("VRDLGI90A01F205X"),
-      name: "Luigi Verdi",
+      name: NonEmptyStringSchema.parse("Luigi Verdi"),
     },
   ],
 ]);
@@ -79,7 +79,7 @@ export class InMemoryUserProfileRepository implements IUserProfileRepository {
 
   async update(
     fiscalCode: FiscalCode,
-    data: { email?: EmailAddress; name?: string },
+    data: Partial<Pick<UserProfile, "email" | "name">>,
   ) {
     const key = fiscalCode;
     const existing = this.store.get(key);
