@@ -1,34 +1,51 @@
-import { app } from "@azure/functions";
+import type { RouteRegistry } from "@pagopa/io-core-openapi";
+
 import {
-  createHttpHandler,
-  createHttpRequestValidator,
-  createHttpResponseFormatter,
+  mountFunctionsRoute,
+  ProblemJson,
 } from "@pagopa/io-core-adapter-azure-functions-v4";
-import { FiscalCodeSchema } from "@pagopa/io-core-domain";
-import { z } from "zod";
+import { defineRoute } from "@pagopa/io-core-openapi";
 
 import type { GetUserProfileUseCase } from "../../../application/use-cases/get-user-profile.use-case.js";
 
-import { UserProfileResponseSchema } from "./dto/userProfileResponse.zod-entity.js";
+import {
+  FiscalCodeHeaderSchema,
+  UserProfileResponseSchema,
+} from "./dto/openapi-schemas.js";
 
-const GetUserProfileSchema = z
-  .object({
-    headers: z.object({
-      "x-fiscal-code": FiscalCodeSchema,
+const getUserProfileContract = defineRoute({
+  description:
+    "Returns the user profile associated with the given fiscal code.",
+  method: "get",
+  operationId: "getUserProfile",
+  path: "/api/user-profiles",
+  request: {
+    headers: FiscalCodeHeaderSchema,
+  },
+  response: {
+    200: {
+      description: "User profile returned successfully.",
+      schema: UserProfileResponseSchema,
+    },
+    400: ProblemJson,
+    404: ProblemJson,
+    500: ProblemJson,
+  },
+  security: [{ functionKey: [] }],
+  summary: "Get a user profile by fiscal code",
+  tags: ["UserProfiles"],
+});
+
+export const mountGetUserProfileHandler = (
+  useCase: GetUserProfileUseCase,
+  registry?: RouteRegistry,
+): void => {
+  mountFunctionsRoute({
+    contract: getUserProfileContract,
+    registry,
+    transformInput: ({ headers }) => ({
+      fiscalCode: headers["x-fiscal-code"],
     }),
-  })
-  .transform((input) => ({
-    fiscalCode: input.headers["x-fiscal-code"],
-  }));
-
-const inputValidator = createHttpRequestValidator(GetUserProfileSchema);
-const outputFormatter = createHttpResponseFormatter(UserProfileResponseSchema);
-
-export const mountGetUserProfileHandler = (useCase: GetUserProfileUseCase) => {
-  app.http("GetUserProfile", {
-    authLevel: "function",
-    handler: createHttpHandler(useCase, inputValidator, outputFormatter),
-    methods: ["GET"],
-    route: "user-profiles",
+    useCase,
   });
 };

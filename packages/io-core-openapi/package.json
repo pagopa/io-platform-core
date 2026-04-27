@@ -1,32 +1,31 @@
 {
-  "name": "io-example-func",
+  "name": "@pagopa/io-core-openapi",
   "version": "0.0.1",
-  "private": true,
   "license": "MIT",
   "type": "module",
-  "main": "dist/main.js",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "files": [
-    "dist/*",
-    "host.json"
+    "dist"
   ],
   "scripts": {
     "clean": "shx rm -rf dist",
     "build": "tsc",
-    "build:watch": "tsc -w",
     "typecheck": "tsc --noEmit",
     "lint": "pnpm lint:check --fix",
-    "lint:check": "eslint .",
-    "start": "func start",
+    "lint:check": "eslint . --ext .ts --cache",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "catalog:",
-    "@azure/functions": "catalog:",
-    "@pagopa/io-core-adapter-azure-functions-v4": "workspace:^",
     "@pagopa/io-core-domain": "workspace:^",
-    "@pagopa/io-core-openapi": "workspace:^",
     "neverthrow": "catalog:",
+    "yaml": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

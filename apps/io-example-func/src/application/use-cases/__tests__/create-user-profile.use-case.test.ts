@@ -5,8 +5,8 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { IUserProfileRepository } from "../../../domain/ports/outbound/persistence/user-profile.repository.js";
 
-import { makeCreateUserProfileUseCase } from "../create-user-profile.use-case.js";
 import { NewUserProfile } from "../../../domain/entities/user-profile.entity.js";
+import { makeCreateUserProfileUseCase } from "../create-user-profile.use-case.js";
 
 const makeMockRepository = (
   overrides: Partial<IUserProfileRepository> = {},

@@ -1,5 +1,4 @@
 import type { UseCase } from "@pagopa/io-core-domain";
-import type { BaseError } from "@pagopa/io-core-domain/errors";
 
 import { ok } from "neverthrow";
 
@@ -12,7 +11,7 @@ interface InfoOutput {
 export const getInfoUseCase: UseCase<
   Record<string, never>,
   InfoOutput,
-  BaseError
+  never
 > = async () =>
   ok({
     name: "io-example-fastify",

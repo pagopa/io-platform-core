@@ -1,41 +1,56 @@
+import type { RouteRegistry } from "@pagopa/io-core-openapi";
+import type { FastifyInstance } from "fastify";
+
 import {
-  createHttpHandler,
-  createHttpRequestValidator,
-  createHttpResponseFormatter,
+  mountFastifyRoute,
+  ProblemJson,
 } from "@pagopa/io-core-adapter-fastify";
-import { FiscalCodeSchema } from "@pagopa/io-core-domain";
-import { FastifyInstance } from "fastify";
-import { z } from "zod";
+import { defineRoute } from "@pagopa/io-core-openapi";
 
 import type { UpdateUserProfileUseCase } from "../../../application/use-cases/update-user-profile.use-case.js";
 
-import { UserProfileSchema } from "../../../domain/entities/user-profile.entity.js";
-import { UserProfileResponseSchema } from "./dto/userProfileResponse.zod-entity.js";
+import {
+  FiscalCodeHeaderSchema,
+  UpdateUserProfileBodySchema,
+  UserProfileResponseSchema,
+} from "./dto/openapi-schemas.js";
 
-const UpdateUserProfileSchema = z
-  // Extract input from headers
-  .object({
-    body: UserProfileSchema.pick({ email: true, name: true }).partial(),
-    headers: z.object({
-      "x-fiscal-code": FiscalCodeSchema,
-    }),
-  })
-  // Transform the input to match the use case's expected input
-  .transform((input) => ({
-    email: input.body.email,
-    fiscalCode: input.headers["x-fiscal-code"],
-    name: input.body.name,
-  }));
-
-const inputValidator = createHttpRequestValidator(UpdateUserProfileSchema);
-const outputFormatter = createHttpResponseFormatter(UserProfileResponseSchema);
+const updateUserProfileContract = defineRoute({
+  description: "Updates the user profile identified by the fiscal code header.",
+  method: "put",
+  operationId: "updateUserProfile",
+  path: "/api/user-profiles",
+  request: {
+    body: UpdateUserProfileBodySchema,
+    headers: FiscalCodeHeaderSchema,
+  },
+  response: {
+    200: {
+      description: "User profile updated successfully.",
+      schema: UserProfileResponseSchema,
+    },
+    400: ProblemJson,
+    404: ProblemJson,
+    500: ProblemJson,
+  },
+  security: [{ functionKey: [] }],
+  summary: "Update an existing user profile",
+  tags: ["UserProfiles"],
+});
 
 export const mountUpdateUserProfileHandler = (
-  fastifyServer: FastifyInstance,
+  server: FastifyInstance,
   useCase: UpdateUserProfileUseCase,
-) => {
-  fastifyServer.put(
-    "/api/user-profiles",
-    createHttpHandler(useCase, inputValidator, outputFormatter),
-  );
+  registry?: RouteRegistry,
+): void => {
+  mountFastifyRoute(server, {
+    contract: updateUserProfileContract,
+    registry,
+    transformInput: ({ body, headers }) => ({
+      email: body.email,
+      fiscalCode: headers["x-fiscal-code"],
+      name: body.name,
+    }),
+    useCase,
+  });
 };

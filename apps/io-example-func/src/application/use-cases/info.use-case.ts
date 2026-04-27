@@ -1,5 +1,4 @@
 import type { UseCase } from "@pagopa/io-core-domain";
-import type { BaseError } from "@pagopa/io-core-domain/errors";
 
 import { ok } from "neverthrow";
 
@@ -9,11 +8,9 @@ interface InfoOutput {
   readonly version: string;
 }
 
-export const getInfoUseCase: UseCase<
-  Record<string, never>,
-  InfoOutput,
-  BaseError
-> = async () =>
+export type InfoUseCase = UseCase<Record<string, never>, InfoOutput, never>;
+
+export const getInfoUseCase: InfoUseCase = async () =>
   ok({
     name: "io-example-func",
     ok: true,

@@ -1,20 +1,37 @@
-import type { UseCase } from "@pagopa/io-core-domain";
-import type { BaseError } from "@pagopa/io-core-domain/errors";
+import type { RouteRegistry } from "@pagopa/io-core-openapi";
 
-import { app } from "@azure/functions";
-import {
-  createHttpHandler,
-  emptyValidator,
-  identityFormatter,
-} from "@pagopa/io-core-adapter-azure-functions-v4";
+import { mountFunctionsRoute } from "@pagopa/io-core-adapter-azure-functions-v4";
+import { defineRoute } from "@pagopa/io-core-openapi";
 
-export const mountInfoHandler = <O>(
-  useCase: UseCase<Record<string, never>, O, BaseError>,
-) => {
-  app.http("Info", {
+import type { InfoUseCase } from "../../../application/use-cases/info.use-case.js";
+
+import { InfoOutputSchema } from "./dto/openapi-schemas.js";
+
+const infoContract = defineRoute({
+  description: "Returns the application name, version, and health status.",
+  method: "get",
+  operationId: "getInfo",
+  path: "/api/info",
+  request: {},
+  response: {
+    200: {
+      description: "Application info returned successfully.",
+      schema: InfoOutputSchema,
+    },
+  },
+  summary: "Health check / application info",
+  tags: ["Info"],
+});
+
+export const mountInfoHandler = (
+  useCase: InfoUseCase,
+  registry?: RouteRegistry,
+): void => {
+  mountFunctionsRoute({
     authLevel: "anonymous",
-    handler: createHttpHandler(useCase, emptyValidator, identityFormatter),
-    methods: ["GET"],
-    route: "info",
+    contract: infoContract,
+    registry,
+    transformInput: () => ({}),
+    useCase,
   });
 };

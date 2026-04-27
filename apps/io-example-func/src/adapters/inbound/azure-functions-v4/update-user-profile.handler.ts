@@ -1,40 +1,54 @@
-import { app } from "@azure/functions";
+import type { RouteRegistry } from "@pagopa/io-core-openapi";
+
 import {
-  createHttpHandler,
-  createHttpRequestValidator,
-  createHttpResponseFormatter,
+  mountFunctionsRoute,
+  ProblemJson,
 } from "@pagopa/io-core-adapter-azure-functions-v4";
-import { FiscalCodeSchema } from "@pagopa/io-core-domain";
-import { z } from "zod";
+import { defineRoute } from "@pagopa/io-core-openapi";
 
 import type { UpdateUserProfileUseCase } from "../../../application/use-cases/update-user-profile.use-case.js";
 
-import { UserProfileSchema } from "../../../domain/entities/user-profile.entity.js";
-import { UserProfileResponseSchema } from "./dto/userProfileResponse.zod-entity.js";
+import {
+  FiscalCodeHeaderSchema,
+  UpdateUserProfileBodySchema,
+  UserProfileResponseSchema,
+} from "./dto/openapi-schemas.js";
 
-const UpdateUserProfileSchema = z
-  .object({
-    body: UserProfileSchema.pick({ email: true, name: true }).partial(),
-    headers: z.object({
-      "x-fiscal-code": FiscalCodeSchema,
-    }),
-  })
-  .transform((input) => ({
-    email: input.body.email,
-    fiscalCode: input.headers["x-fiscal-code"],
-    name: input.body.name,
-  }));
-
-const inputValidator = createHttpRequestValidator(UpdateUserProfileSchema);
-const outputFormatter = createHttpResponseFormatter(UserProfileResponseSchema);
+const updateUserProfileContract = defineRoute({
+  description: "Updates the user profile identified by the fiscal code header.",
+  method: "put",
+  operationId: "updateUserProfile",
+  path: "/api/user-profiles",
+  request: {
+    body: UpdateUserProfileBodySchema,
+    headers: FiscalCodeHeaderSchema,
+  },
+  response: {
+    200: {
+      description: "User profile updated successfully.",
+      schema: UserProfileResponseSchema,
+    },
+    400: ProblemJson,
+    404: ProblemJson,
+    500: ProblemJson,
+  },
+  security: [{ functionKey: [] }],
+  summary: "Update an existing user profile",
+  tags: ["UserProfiles"],
+});
 
 export const mountUpdateUserProfileHandler = (
   useCase: UpdateUserProfileUseCase,
-) => {
-  app.http("UpdateUserProfile", {
-    authLevel: "function",
-    handler: createHttpHandler(useCase, inputValidator, outputFormatter),
-    methods: ["PUT"],
-    route: "user-profiles",
+  registry?: RouteRegistry,
+): void => {
+  mountFunctionsRoute({
+    contract: updateUserProfileContract,
+    registry,
+    transformInput: ({ body, headers }) => ({
+      email: body.email,
+      fiscalCode: headers["x-fiscal-code"],
+      name: body.name,
+    }),
+    useCase,
   });
 };

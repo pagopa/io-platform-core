@@ -24,8 +24,10 @@
   "dependencies": {
     "@azure/functions": "catalog:",
     "@pagopa/io-core-domain": "workspace:^",
+    "@pagopa/io-core-openapi": "workspace:^",
     "@standard-schema/spec": "^1.1.0",
-    "neverthrow": "catalog:"
+    "neverthrow": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@pagopa/io-platform-typescript-config-node": "workspace:^",

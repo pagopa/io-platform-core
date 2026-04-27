@@ -1,37 +1,53 @@
+import type { RouteRegistry } from "@pagopa/io-core-openapi";
+import type { FastifyInstance } from "fastify";
+
 import {
-  createHttpHandler,
-  createHttpRequestValidator,
-  createHttpResponseFormatter,
+  mountFastifyRoute,
+  ProblemJson,
 } from "@pagopa/io-core-adapter-fastify";
-import { FiscalCodeSchema } from "@pagopa/io-core-domain";
-import { FastifyInstance } from "fastify";
-import { z } from "zod";
+import { defineRoute } from "@pagopa/io-core-openapi";
 
 import type { DeleteUserProfileUseCase } from "../../../application/use-cases/delete-user-profile.use-case.js";
 
-import { UserProfileResponseSchema } from "./dto/userProfileResponse.zod-entity.js";
+import {
+  FiscalCodeHeaderSchema,
+  UserProfileResponseSchema,
+} from "./dto/openapi-schemas.js";
 
-const DeleteUserProfileInputSchema = z
-  // Extract input from headers
-  .object({
-    headers: z.object({
-      "x-fiscal-code": FiscalCodeSchema,
-    }),
-  })
-  // Transform the input to match the use case's expected input
-  .transform((input) => ({
-    fiscalCode: input.headers["x-fiscal-code"],
-  }));
-
-const inputValidator = createHttpRequestValidator(DeleteUserProfileInputSchema);
-const outputFormatter = createHttpResponseFormatter(UserProfileResponseSchema);
+const deleteUserProfileContract = defineRoute({
+  description:
+    "Deletes the user profile associated with the given fiscal code and returns the deleted profile.",
+  method: "delete",
+  operationId: "deleteUserProfile",
+  path: "/api/user-profiles",
+  request: {
+    headers: FiscalCodeHeaderSchema,
+  },
+  response: {
+    200: {
+      description: "User profile deleted successfully.",
+      schema: UserProfileResponseSchema,
+    },
+    400: ProblemJson,
+    404: ProblemJson,
+    500: ProblemJson,
+  },
+  security: [{ functionKey: [] }],
+  summary: "Delete a user profile by fiscal code",
+  tags: ["UserProfiles"],
+});
 
 export const mountDeleteUserProfileHandler = (
-  fastifyServer: FastifyInstance,
+  server: FastifyInstance,
   useCase: DeleteUserProfileUseCase,
-) => {
-  fastifyServer.delete(
-    "/api/user-profiles",
-    createHttpHandler(useCase, inputValidator, outputFormatter),
-  );
+  registry?: RouteRegistry,
+): void => {
+  mountFastifyRoute(server, {
+    contract: deleteUserProfileContract,
+    registry,
+    transformInput: ({ headers }) => ({
+      fiscalCode: headers["x-fiscal-code"],
+    }),
+    useCase,
+  });
 };
