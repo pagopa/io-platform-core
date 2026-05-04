@@ -1,8 +1,8 @@
 openapi: 3.1.0
 info:
-  title: io-example-func
+  title: io-example-fastify
   version: 0.0.1
-  description: Example Azure Functions app following the hexagonal architecture pattern.
+  description: Example Fastify app following the hexagonal architecture pattern.
   license:
     name: MIT
     identifier: MIT

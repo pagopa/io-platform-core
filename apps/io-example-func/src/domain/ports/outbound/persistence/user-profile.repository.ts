@@ -1,4 +1,4 @@
-import type { EmailAddress, FiscalCode } from "@pagopa/io-core-domain";
+import type { FiscalCode } from "@pagopa/io-core-domain";
 import type {
   ConflictError,
   GenericError,

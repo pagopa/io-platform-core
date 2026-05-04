@@ -1,4 +1,8 @@
-import { EmailAddressSchema, FiscalCodeSchema } from "@pagopa/io-core-domain";
+import {
+  EmailAddressSchema,
+  FiscalCodeSchema,
+  NonEmptyStringSchema,
+} from "@pagopa/io-core-domain";
 import { ConflictError, GenericError } from "@pagopa/io-core-domain/errors";
 import { err, ok } from "neverthrow";
 import { describe, expect, it, vi } from "vitest";
@@ -31,7 +35,7 @@ describe("makeCreateUserProfileUseCase", () => {
       birthDate: new Date("1985-08-01"),
       email: EmailAddressSchema.parse("mario.rossi@example.com"),
       fiscalCode: FiscalCodeSchema.parse("RSSMRA85M01H501U"),
-      name: "Mario Rossi",
+      name: NonEmptyStringSchema.parse("Mario Rossi"),
     });
 
     expect(result.isOk()).toBe(true);
@@ -56,7 +60,7 @@ describe("makeCreateUserProfileUseCase", () => {
       birthDate: new Date("1985-08-01"),
       email: EmailAddressSchema.parse("mario.rossi@example.com"),
       fiscalCode: FiscalCodeSchema.parse("RSSMRA85M01H501U"),
-      name: "Mario Rossi",
+      name: NonEmptyStringSchema.parse("Mario Rossi"),
     });
 
     expect(result.isErr()).toBe(true);
@@ -73,7 +77,7 @@ describe("makeCreateUserProfileUseCase", () => {
       birthDate: new Date("1985-08-01"),
       email: EmailAddressSchema.parse("mario.rossi@example.com"),
       fiscalCode: FiscalCodeSchema.parse("RSSMRA85M01H501U"),
-      name: "Mario Rossi",
+      name: NonEmptyStringSchema.parse("Mario Rossi"),
     });
 
     expect(result.isErr()).toBe(true);
