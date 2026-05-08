@@ -1,0 +1,323 @@
+info:
+  description: Example Hono app following the hexagonal architecture pattern.
+  license:
+    name: MIT
+  title: io-example-hono
+  version: 0.0.1
+openapi: 3.1.0
+security: []
+servers:
+  - description: Local development server
+    url: http://localhost:3000
+components:
+  schemas:
+    InfoOutput:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The application name.
+          example: io-example-hono
+        ok:
+          type: boolean
+          description: Whether the application is healthy.
+          example: true
+        version:
+          type: string
+          description: The application version.
+          example: 0.0.1
+      required:
+        - name
+        - ok
+        - version
+      description: Application health and version information.
+    UserProfile:
+      type: object
+      properties:
+        birthDate:
+          type: string
+          description: ISO 8601 date (YYYY-MM-DD).
+          format: date
+        createdAt:
+          type: string
+          description: ISO 8601 date-time.
+          format: date-time
+        email:
+          $ref: "#/components/schemas/EmailAddress"
+        fiscalCode:
+          $ref: "#/components/schemas/FiscalCode"
+        name:
+          type: string
+          minLength: 1
+          description: A non-empty string.
+          example: Mario Rossi
+        updatedAt:
+          type: string
+          description: ISO 8601 date-time.
+          format: date-time
+      required:
+        - birthDate
+        - createdAt
+        - email
+        - fiscalCode
+        - name
+      description: A user profile with personal information.
+    EmailAddress:
+      type: string
+      format: email
+      pattern: ^[^\s@]+@[^\s@]+\.[^\s@]+$
+      description: A valid email address.
+      example: mario.rossi@example.com
+    FiscalCode:
+      type: string
+      pattern: ^[A-Z]{6}[0-9LMNPQRSTUV]{2}[ABCDEHLMPRST][0-9LMNPQRSTUV]{2}[A-Z][0-9LMNPQRSTUV]{3}[A-Z]$/i
+      description: The Italian fiscal code (Codice Fiscale).
+      example: RSSMRA85M01H501U
+    ProblemDetails:
+      type: object
+      properties:
+        detail:
+          type: string
+          description: Human-readable explanation.
+          example: Resource not found.
+        status:
+          type: integer
+          description: HTTP status code.
+          example: 404
+        title:
+          type: string
+          description: Short, human-readable summary.
+          example: Not Found
+        type:
+          type: string
+          format: uri
+          description: URI reference identifying the problem type.
+          example: https://ioapp.it/problems/not-found
+      required:
+        - detail
+        - status
+        - title
+        - type
+      description: RFC 7807 Problem Details.
+    CreateUserProfileRequest:
+      type: object
+      properties:
+        birthDate:
+          type: string
+          description: The user's date of birth (YYYY-MM-DD).
+          example: 1985-08-01
+          format: date
+        email:
+          $ref: "#/components/schemas/EmailAddress"
+        fiscalCode:
+          $ref: "#/components/schemas/FiscalCode"
+        name:
+          type: string
+          minLength: 1
+          description: A non-empty string.
+          example: Mario Rossi
+      required:
+        - birthDate
+        - email
+        - fiscalCode
+        - name
+      description: Request body for creating a user profile.
+    UpdateUserProfileRequest:
+      type: object
+      properties:
+        email:
+          $ref: "#/components/schemas/EmailAddress"
+        name:
+          type: string
+          minLength: 1
+          description: A non-empty string.
+          example: Mario Rossi
+      description: Request body for updating a user profile. At least one field should be provided.
+  parameters: {}
+paths:
+  /api/info:
+    get:
+      description: Returns the application name, version, and health status.
+      operationId: getInfo
+      summary: Health check / application info
+      tags:
+        - Info
+      responses:
+        "200":
+          description: Application info returned successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InfoOutput"
+  /api/user-profiles:
+    get:
+      description: Returns the user profile associated with the given fiscal code.
+      operationId: getUserProfile
+      security:
+        - functionKey: []
+      summary: Get a user profile by fiscal code
+      tags:
+        - UserProfiles
+      parameters:
+        - schema:
+            $ref: "#/components/schemas/FiscalCode"
+          required: true
+          description: The Italian fiscal code (Codice Fiscale).
+          name: x-fiscal-code
+          in: header
+      responses:
+        "200":
+          description: User profile returned successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "400":
+          description: Validation error.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "404":
+          description: User profile not found.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "500":
+          description: Internal server error.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+    post:
+      description: Creates a new user profile with the provided data.
+      operationId: createUserProfile
+      security:
+        - functionKey: []
+      summary: Create a new user profile
+      tags:
+        - UserProfiles
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserProfileRequest"
+      responses:
+        "201":
+          description: User profile created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "400":
+          description: Validation error.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "409":
+          description: User profile already exists.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "422":
+          description: User must be at least 18 years old.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "500":
+          description: Internal server error.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+    put:
+      description: Updates the user profile identified by the fiscal code header.
+      operationId: updateUserProfile
+      security:
+        - functionKey: []
+      summary: Update an existing user profile
+      tags:
+        - UserProfiles
+      parameters:
+        - schema:
+            $ref: "#/components/schemas/FiscalCode"
+          required: true
+          description: The Italian fiscal code (Codice Fiscale).
+          name: x-fiscal-code
+          in: header
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserProfileRequest"
+      responses:
+        "200":
+          description: User profile updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "400":
+          description: Validation error.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "404":
+          description: User profile not found.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "500":
+          description: Internal server error.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+    delete:
+      description: Deletes the user profile associated with the given fiscal code and returns the deleted profile.
+      operationId: deleteUserProfile
+      security:
+        - functionKey: []
+      summary: Delete a user profile by fiscal code
+      tags:
+        - UserProfiles
+      parameters:
+        - schema:
+            $ref: "#/components/schemas/FiscalCode"
+          required: true
+          description: The Italian fiscal code (Codice Fiscale).
+          name: x-fiscal-code
+          in: header
+      responses:
+        "200":
+          description: User profile deleted successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "400":
+          description: Validation error.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "404":
+          description: User profile not found.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "500":
+          description: Internal server error.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
