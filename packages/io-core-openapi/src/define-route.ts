@@ -16,11 +16,36 @@ export type HttpMethod = "delete" | "get" | "patch" | "post" | "put";
 export type ParamObjectSchema = ZodObject;
 
 /**
- * A single entry in a {@link ResponseMap}. Either a plain Zod schema (for
- * the simple case where no description override is needed) or a richer object
- * that adds an optional description.
+ * A redirect response entry (3xx). Carries no body; only a description and
+ * optional response headers (e.g. `Location`). Use `redirect: true` as the
+ * discriminant so the type system can distinguish it from schema-bearing entries.
+ * Headers are expressed as raw OpenAPI schema objects.
  */
-export type ResponseEntry = ZodType | { description?: string; schema: ZodType };
+export type RedirectEntry = {
+  description: string;
+  headers?: Record<
+    string,
+    { description?: string; schema: Record<string, unknown> }
+  >;
+  redirect: true;
+};
+
+/**
+ * A single entry in a {@link ResponseMap}. Either a plain Zod schema (for
+ * the simple case where no description override is needed), a richer object
+ * that adds an optional description, or a redirect entry (no body).
+ */
+export type ResponseEntry =
+  | ZodType
+  | { description?: string; schema: ZodType }
+  | RedirectEntry;
+
+/** Returns true when the entry is a 3xx redirect (no body). */
+export const isRedirectEntry = (entry: ResponseEntry): entry is RedirectEntry =>
+  typeof entry === "object" &&
+  !("~standard" in entry) &&
+  "redirect" in entry &&
+  (entry as Record<string, unknown>)["redirect"] === true;
 
 /**
  * Maps HTTP status codes to response entries. The map is the single source of
@@ -42,8 +67,9 @@ export type ResponseMap = { [K: number]: ResponseEntry };
  * Narrows a {@link ResponseEntry} to the underlying Zod schema.
  * A plain `ZodType` is returned as-is; a wrapper object exposes `.schema`.
  */
-export const getEntrySchema = (entry: ResponseEntry): ZodType =>
-  isZodTypeEntry(entry) ? entry : entry.schema;
+export const getEntrySchema = (
+  entry: Exclude<ResponseEntry, RedirectEntry>,
+): ZodType => (isZodTypeEntry(entry) ? entry : entry.schema);
 
 /** Returns the optional description override for a response entry. */
 export const getEntryDescription = (
@@ -80,7 +106,7 @@ export type SuccessSchemaFromMap<R extends ResponseMap> = SchemaOf<
  * excluded from the backward coverage check so that routes can document them
  * without forcing the use case to declare a corresponding error.
  */
-type AdapterOnlyStatuses = 400;
+type AdapterOnlyStatuses = 301 | 302 | 303 | 307 | 308 | 400;
 
 /**
  * Extracts non-success, non-adapter-only numeric status keys from a response

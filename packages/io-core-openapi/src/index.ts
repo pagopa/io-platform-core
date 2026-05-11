@@ -5,6 +5,8 @@ export {
   getEntryDescription,
   getEntrySchema,
   type HttpMethod,
+  isRedirectEntry,
+  type RedirectEntry,
   type ResponseEntry,
   type ResponseMap,
   type RouteContract,

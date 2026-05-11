@@ -1,4 +1,5 @@
 import {
+  AuthenticationError,
   type BaseError,
   ConflictError,
   ForbiddenError,
@@ -19,6 +20,7 @@ export type ErrorKind = keyof KindToError;
  * `errorMetadata` below).
  */
 export interface KindToError {
+  AuthenticationError: AuthenticationError;
   ConflictError: ConflictError;
   ForbiddenError: ForbiddenError;
   GenericError: GenericError;
@@ -41,6 +43,7 @@ export type { BaseError };
  * require this map to be updated.
  */
 export const errorMetadata = {
+  AuthenticationError: { status: 401, title: "Unauthorized" },
   ConflictError: { status: 409, title: "Conflict" },
   ForbiddenError: { status: 403, title: "Forbidden" },
   GenericError: { status: 500, title: "Internal Server Error" },

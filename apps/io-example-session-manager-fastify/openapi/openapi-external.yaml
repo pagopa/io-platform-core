@@ -1,0 +1,734 @@
+openapi: 3.1.0
+info:
+  description: Collection of exposed endpoints to interact with user's auth session.
+  license:
+    identifier: MIT
+    name: MIT
+  title: io-example-session-manager-fastify
+  version: 0.0.1
+security:
+  - Bearer: []
+servers:
+  - description: Production API Gateway
+    url: https://api-app.io.pagopa.it/api/auth/v1
+components:
+  securitySchemes:
+    Bearer:
+      description: "Session Bearer token passed as `Authorization: Bearer <token>`."
+      in: header
+      name: Authorization
+      type: apiKey
+  schemas:
+    ProblemDetails:
+      type: object
+      properties:
+        detail:
+          type: string
+        status:
+          type: integer
+        title:
+          type: string
+        type:
+          type: string
+          format: uri
+      required:
+        - detail
+        - status
+        - title
+        - type
+      description: "RFC 7807 Problem Details for HTTP APIs. See https://tools.ietf.org/html/rfc7807. Base URL: https://ioapp.it/problems/"
+    FastLoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          minLength: 1
+          description: 48 bytes token (hex encoded).
+          example: c77de47586c841adbd1a1caeb90dce25dcecebed620488a4f932a6280b10ee99a77b6c494a8a6e6884ccbeb6d3fe736b
+      required:
+        - token
+    GenerateNonceResponse:
+      type: object
+      properties:
+        nonce:
+          $ref: "#/components/schemas/Nonce"
+      required:
+        - nonce
+    Nonce:
+      type: string
+      pattern: ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$
+      description: UUID v4 formatted nonce as per RFC 4122.
+      example: 870c6d89-a3c4-48b1-a796-cdacddaf94b4
+    PublicSession:
+      type: object
+      properties:
+        bpdToken:
+          type: string
+        expirationDate:
+          type: string
+          format: date-time
+        fimsToken:
+          type: string
+        lollipopAssertionRef:
+          $ref: "#/components/schemas/AssertionRef"
+        myPortalToken:
+          type: string
+        spidLevel:
+          $ref: "#/components/schemas/SpidLevel"
+        walletToken:
+          type: string
+        zendeskToken:
+          type: string
+      description: Describe the current session of an authenticated user.
+    AssertionRef:
+      oneOf:
+        - $ref: "#/components/schemas/AssertionRefSha512"
+        - $ref: "#/components/schemas/AssertionRefSha384"
+        - $ref: "#/components/schemas/AssertionRefSha256"
+    AssertionRefSha512:
+      type: string
+      pattern: ^(sha512-[A-Za-z0-9-_=]{1,88})$
+    AssertionRefSha384:
+      type: string
+      pattern: ^(sha384-[A-Za-z0-9-_=]{1,66})$
+    AssertionRefSha256:
+      type: string
+      pattern: ^(sha256-[A-Za-z0-9-_=]{1,44})$
+    SpidLevel:
+      type: string
+      enum:
+        - https://www.spid.gov.it/SpidL1
+        - https://www.spid.gov.it/SpidL2
+        - https://www.spid.gov.it/SpidL3
+      description: A SPID level.
+    SuccessResponse:
+      type: object
+      properties:
+        message:
+          type: string
+    AccessToken:
+      type: object
+      properties:
+        token:
+          type: string
+          minLength: 1
+      required:
+        - token
+    PasswordLogin:
+      type: object
+      properties:
+        password:
+          type: string
+          minLength: 1
+          example: secret
+        username:
+          $ref: "#/components/schemas/FiscalCode"
+      required:
+        - password
+        - username
+    FiscalCode:
+      type: string
+      pattern: ^[A-Z]{6}[0-9LMNPQRSTUV]{2}[ABCDEHLMPRST][0-9LMNPQRSTUV]{2}[A-Z][0-9LMNPQRSTUV]{3}[A-Z]$/i
+      description: The Italian fiscal code (Codice Fiscale).
+      example: RSSMRA85M01H501U
+    BackendVersion:
+      type: object
+      properties:
+        version:
+          type: string
+      description: The App version
+    SAMLResponse:
+      type: string
+      minLength: 1
+      description: A string representation of a signed SPID/CIE response.
+    UserIdentityWithTtl:
+      type: object
+      properties:
+        assertion_ref:
+          $ref: "#/components/schemas/AssertionRef"
+        date_of_birth:
+          type: string
+        family_name:
+          type: string
+        fiscal_code:
+          $ref: "#/components/schemas/FiscalCode"
+        name:
+          type: string
+        session_tracking_id:
+          type: string
+        spid_email:
+          $ref: "#/components/schemas/EmailAddress"
+        spid_idp:
+          type: string
+        spid_level:
+          $ref: "#/components/schemas/SpidLevel"
+        created_at:
+          type: number
+        token_remaining_ttl:
+          type: integer
+      required:
+        - date_of_birth
+        - family_name
+        - fiscal_code
+        - name
+        - spid_level
+        - created_at
+        - token_remaining_ttl
+      description: User identity enriched with session TTL information.
+    EmailAddress:
+      type: string
+      format: email
+      pattern: ^[^\s@]+@[^\s@]+\.[^\s@]+$
+      description: A valid email address.
+      example: mario.rossi@example.com
+    LollipopSignature:
+      type: string
+      pattern: ^((sig[0-9]+)=:[A-Za-z0-9+/=]*:(, ?)?)+$
+      description: The signature of the HTTP request, signed by the client with its private key.
+    LollipopSignatureInput:
+      type: string
+      pattern: ^(?:sig\d+=[^,]*)(?:,\s*(?:sig\d+=[^,]*))*$
+      description: The signature input, needed to verify the `signature` header.
+    LollipopMethod:
+      type: string
+      enum:
+        - GET
+        - POST
+        - PUT
+        - PATCH
+        - DELETE
+      description: The method of the endpoint called by IO app.
+    LollipopOriginalURL:
+      type: string
+      format: uri
+      pattern: ^https:\/\/
+      description: The url of the endpoint called by IO app.
+  parameters: {}
+paths:
+  /api/auth/v1/fast-login:
+    post:
+      description: POST a session refresh request with Lollipop. Requires a valid Lollipop signature.
+      operationId: fastLogin
+      security: []
+      summary: POST a session refresh request with Lollipop
+      tags:
+        - FastLogin
+      parameters:
+        - schema:
+            $ref: "#/components/schemas/LollipopSignature"
+          required: true
+          description: The signature of the HTTP request, signed by the client with its private key.
+          name: signature
+          in: header
+        - schema:
+            $ref: "#/components/schemas/LollipopSignatureInput"
+          required: true
+          description: The signature input, needed to verify the `signature` header.
+          name: signature-input
+          in: header
+        - schema:
+            $ref: "#/components/schemas/LollipopMethod"
+          required: true
+          description: The method of the endpoint called by IO app.
+          name: x-pagopa-lollipop-original-method
+          in: header
+        - schema:
+            $ref: "#/components/schemas/LollipopOriginalURL"
+          required: true
+          description: The url of the endpoint called by IO app.
+          name: x-pagopa-lollipop-original-url
+          in: header
+      responses:
+        "200":
+          description: Session token issued successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FastLoginResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "500":
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "502":
+          description: Bad gateway.
+        "503":
+          description: Service unavailable.
+        "504":
+          description: Gateway timeout.
+  /api/auth/v1/fast-login/nonce/generate:
+    post:
+      description: Generate a Nonce for a session refresh flow.
+      operationId: lvGenerateNonce
+      security: []
+      summary: Generate a Nonce for a session refresh flow
+      tags:
+        - FastLogin
+      responses:
+        "200":
+          description: Nonce generated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GenerateNonceResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "502":
+          description: Bad gateway.
+        "503":
+          description: Service unavailable.
+        "504":
+          description: Gateway timeout.
+  /api/auth/v1/session:
+    get:
+      description: Return the session state for the current authenticated user.
+      operationId: getSessionState
+      security:
+        - Bearer: []
+      summary: Get the user current session
+      tags:
+        - Session
+      parameters:
+        - schema:
+            type: string
+            description: "Comma-separated list of fields to return. Example: ?fields=(spidLevel,walletToken)"
+            example: (spidLevel,walletToken)
+          required: false
+          description: "Comma-separated list of fields to return. Example: ?fields=(spidLevel,walletToken)"
+          name: fields
+          in: query
+        - schema:
+            type: string
+            minLength: 1
+            description: "Bearer token as `Authorization: Bearer <token>`."
+            example: Bearer c77de47586c841adbd1a1caeb90dce25dce
+          required: true
+          description: "Bearer token as `Authorization: Bearer <token>`."
+          name: authorization
+          in: header
+      responses:
+        "200":
+          description: Session state returned successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicSession"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "500":
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "502":
+          description: Bad gateway.
+        "503":
+          description: Service unavailable.
+        "504":
+          description: Gateway timeout.
+  /api/auth/v1/logout:
+    post:
+      description: Delete user's active session and tokens.
+      operationId: logout
+      security:
+        - Bearer: []
+      summary: Execute the logout
+      tags:
+        - Session
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+            description: "Bearer token as `Authorization: Bearer <token>`."
+            example: Bearer c77de47586c841adbd1a1caeb90dce25dce
+          required: true
+          description: "Bearer token as `Authorization: Bearer <token>`."
+          name: authorization
+          in: header
+      responses:
+        "200":
+          description: Logout succeeded.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "500":
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "502":
+          description: Bad gateway.
+        "503":
+          description: Service unavailable.
+        "504":
+          description: Gateway timeout.
+  /api/auth/v1/login:
+    get:
+      description: Initiates the SPID/CIE login flow. In production responds with a 302 redirect to the identity provider.
+      operationId: login
+      security: []
+      summary: Login SPID/CIE
+      tags:
+        - Auth
+      parameters:
+        - schema:
+            type: string
+            enum:
+              - SpidL2
+              - SpidL3
+            description: SPID AuthLevel.
+            example: SpidL2
+          required: true
+          description: SPID AuthLevel.
+          name: authLevel
+          in: query
+        - schema:
+            type: string
+            enum:
+              - lepidaid
+              - infocertid
+              - sielteid
+              - namirialid
+              - timid
+              - arubaid
+              - posteid
+              - spiditalia
+              - teamsystemid
+              - ehtid
+              - infocamereid
+              - intesiid
+              - xx_servizicie_coll
+              - xx_servizicie
+              - xx_servizicie_test
+            description: An ID that refers to a specific IDP.
+          required: true
+          description: An ID that refers to a specific IDP.
+          name: entityID
+          in: query
+        - schema:
+            type: string
+            enum:
+              - LV
+              - LEGACY
+            description: Login type.
+          required: false
+          description: Login type.
+          name: loginType
+          in: header
+        - schema:
+            type: string
+            description: Currently logged-in user's FiscalCode hashed with sha256.
+          required: false
+          description: Currently logged-in user's FiscalCode hashed with sha256.
+          name: x-pagopa-current-user
+          in: header
+        - schema:
+            type: string
+            format: JwkPublicKeyFromToken
+            description: Base64url encoded JWK Public Key.
+          required: false
+          description: Base64url encoded JWK Public Key.
+          name: x-pagopa-lollipop-pub-key
+          in: header
+        - schema:
+            type: string
+            enum:
+              - sha256
+              - sha384
+              - sha512
+            description: Selected hashing algorithm for jwk thumbprint.
+          required: false
+          description: Selected hashing algorithm for jwk thumbprint.
+          name: x-pagopa-lollipop-pub-key-hash-algo
+          in: header
+      responses:
+        "200":
+          description: Dummy response for generator.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+                description: Dummy response for generator (see 302 in external spec).
+        "302":
+          description: Redirect to IDP login page
+          headers:
+            Location:
+              schema:
+                type: string
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "500":
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "502":
+          description: Bad gateway.
+        "503":
+          description: Service unavailable.
+        "504":
+          description: Gateway timeout.
+  /api/auth/v1/test-login:
+    post:
+      description: Login test user with password and Fiscal Code.
+      operationId: testLogin
+      security: []
+      summary: Login Test User with password
+      tags:
+        - Auth
+      parameters:
+        - schema:
+            type: string
+            enum:
+              - LV
+              - LEGACY
+            description: Login type.
+          required: false
+          description: Login type.
+          name: loginType
+          in: header
+        - schema:
+            type: string
+            format: JwkPublicKeyFromToken
+            description: Base64url encoded JWK Public Key.
+          required: false
+          description: Base64url encoded JWK Public Key.
+          name: x-pagopa-lollipop-pub-key
+          in: header
+        - schema:
+            type: string
+            enum:
+              - sha256
+              - sha384
+              - sha512
+            description: Selected hashing algorithm for jwk thumbprint.
+          required: false
+          description: Selected hashing algorithm for jwk thumbprint.
+          name: x-pagopa-lollipop-pub-key-hash-algo
+          in: header
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PasswordLogin"
+      responses:
+        "200":
+          description: Access token issued successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccessToken"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "500":
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "502":
+          description: Bad gateway.
+        "503":
+          description: Service unavailable.
+        "504":
+          description: Gateway timeout.
+  /api/auth/v1/healthcheck:
+    get:
+      description: Responds with the app version if running.
+      operationId: healthcheck
+      security: []
+      summary: The healthcheck endpoint
+      tags:
+        - Info
+      responses:
+        "200":
+          description: Service is healthy.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BackendVersion"
+        "500":
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "502":
+          description: Bad gateway.
+        "503":
+          description: Service unavailable.
+        "504":
+          description: Gateway timeout.
+  /api/auth/v1/assertionConsumerService:
+    post:
+      description: ACS step of Login SPID/CIE. In production responds with a 301 redirect.
+      operationId: acs
+      security: []
+      summary: ACS step of Login SPID/CIE
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SAMLResponse"
+      responses:
+        "200":
+          description: Adapter placeholder (production responds with 301).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+                description: Adapter placeholder (production responds with 301).
+        "301":
+          description: Redirect to home page
+          headers:
+            Location:
+              schema:
+                type: string
+        "500":
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "502":
+          description: Bad gateway.
+        "503":
+          description: Service unavailable.
+        "504":
+          description: Gateway timeout.
+  /api/auth/v1/metadata:
+    get:
+      description: Returns the SPID Service Provider metadata.
+      operationId: getMetadata
+      security: []
+      summary: Get SPID metadata
+      tags:
+        - Auth
+      responses:
+        "200":
+          description: SPID metadata returned successfully.
+          content:
+            application/xml:
+              schema:
+                type: string
+                description: SPID SP metadata (XML document).
+        "502":
+          description: Bad gateway.
+        "503":
+          description: Service unavailable.
+        "504":
+          description: Gateway timeout.
+  /api/auth/v1/user-identity:
+    get:
+      description: Introspect the session token and returns the related user identity.
+      operationId: getUserIdentity
+      security:
+        - Bearer: []
+      summary: Session token introspection
+      tags:
+        - Session
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+            description: "Bearer token as `Authorization: Bearer <token>`."
+            example: Bearer c77de47586c841adbd1a1caeb90dce25dce
+          required: true
+          description: "Bearer token as `Authorization: Bearer <token>`."
+          name: authorization
+          in: header
+      responses:
+        "200":
+          description: User identity returned successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserIdentityWithTtl"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "500":
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "502":
+          description: Bad gateway.
+        "503":
+          description: Service unavailable.
+        "504":
+          description: Gateway timeout.
+webhooks: {}

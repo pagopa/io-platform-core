@@ -18,7 +18,11 @@ import type {
   RouteRequestSchemas,
 } from "./define-route.js";
 
-import { getEntryDescription, getEntrySchema } from "./define-route.js";
+import {
+  getEntryDescription,
+  getEntrySchema,
+  isRedirectEntry,
+} from "./define-route.js";
 import { ProblemDetailsSchema } from "./problem-details.schema.js";
 
 // Enable the `.openapi()` extension on every Zod schema. Idempotent.
@@ -83,7 +87,9 @@ export const buildOpenApiDocument = (
     registry.registerPath(toRouteConfig(contract));
   }
 
-  return new OpenApiGeneratorV31(registry.definitions).generateDocument({
+  return new OpenApiGeneratorV31(registry.definitions, {
+    unionPreferredType: "oneOf",
+  }).generateDocument({
     openapi: "3.1.0",
     ...options.document,
   });
@@ -194,10 +200,33 @@ const toRouteConfig = (contract: AnyRouteContract): RouteConfig => {
 
   for (const [statusStr, entry] of Object.entries(contract.response)) {
     const status = Number(statusStr);
-    const schema = getEntrySchema(entry as ResponseEntry);
+    const typedEntry = entry as ResponseEntry;
+
+    if (isRedirectEntry(typedEntry)) {
+      const redirectHeaders = typedEntry.headers
+        ? Object.fromEntries(
+            Object.entries(typedEntry.headers).map(([name, def]) => [
+              name,
+              {
+                schema: def.schema,
+                ...(def.description !== undefined
+                  ? { description: def.description }
+                  : {}),
+              },
+            ]),
+          )
+        : undefined;
+      (responses as Record<string, unknown>)[statusStr] = {
+        description: typedEntry.description,
+        ...(redirectHeaders !== undefined ? { headers: redirectHeaders } : {}),
+      };
+      continue;
+    }
+
+    const schema = getEntrySchema(typedEntry);
     const description = responseDescription(
       status,
-      entry as ResponseEntry,
+      typedEntry,
       contract.operationId,
     );
 

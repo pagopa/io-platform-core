@@ -19,6 +19,7 @@ interface HttpErrorConfig {
 }
 
 const errorKindToHttpConfig: Record<string, HttpErrorConfig> = {
+  AuthenticationError: { status: 401, title: "Unauthorized" },
   ConflictError: { status: 409, title: "Conflict" },
   ForbiddenError: { status: 403, title: "Forbidden" },
   GenericError: { status: 500, title: "Internal Server Error" },

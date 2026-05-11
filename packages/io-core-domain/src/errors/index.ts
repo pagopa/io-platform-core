@@ -10,6 +10,15 @@ export class BaseError extends Error {
   }
 }
 
+export class AuthenticationError extends BaseError {
+  override readonly kind = "AuthenticationError" as const;
+  override tag = "authentication-error";
+
+  constructor() {
+    super("Unauthorized: authentication required");
+  }
+}
+
 export class ConflictError extends BaseError {
   override readonly kind = "ConflictError" as const;
   override tag = "conflict";

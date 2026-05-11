@@ -18,7 +18,11 @@ import {
 } from "@azure/functions";
 import { z as zod } from "zod";
 
-import { collectNamedSchemas, getEntrySchema } from "@pagopa/io-core-openapi";
+import {
+  collectNamedSchemas,
+  getEntrySchema,
+  isRedirectEntry,
+} from "@pagopa/io-core-openapi";
 
 import { createHttpResponseFormatter } from "./formatter/httpOutputStandardSchemaFormatter.js";
 import { createHttpHandler } from "./httpHandlerBuilder.js";
@@ -49,7 +53,7 @@ const getSuccessEntry = (
 ): { schema: ZodType; status: SuccessStatusCode } => {
   for (const [key, entry] of Object.entries(response)) {
     const status = Number(key);
-    if (SUCCESS_STATUSES.has(status)) {
+    if (SUCCESS_STATUSES.has(status) && !isRedirectEntry(entry)) {
       return {
         schema: getEntrySchema(entry),
         status: status as SuccessStatusCode,
@@ -69,7 +73,9 @@ const registerContractSchemas = (
   const schemasToScan: ZodType[] = [];
 
   for (const entry of Object.values(contract.response)) {
-    schemasToScan.push(getEntrySchema(entry));
+    if (!isRedirectEntry(entry)) {
+      schemasToScan.push(getEntrySchema(entry));
+    }
   }
 
   for (const schema of [
