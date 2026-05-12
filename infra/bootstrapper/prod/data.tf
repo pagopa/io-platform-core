@@ -10,10 +10,6 @@ data "azuread_group" "externals" {
   display_name = "io-p-adgroup-platform-externals"
 }
 
-data "azurerm_subscription" "PROD_IO" {
-  provider = azurerm.PROD-IO
-}
-
 data "azurerm_resource_group" "common_itn_01" {
   provider = azurerm.PROD-IO
   name     = "io-p-itn-common-rg-01"
@@ -35,20 +31,8 @@ data "azurerm_container_app_environment" "runner" {
   resource_group_name = "io-p-itn-github-runner-rg-01"
 }
 
-data "azurerm_api_management" "apim" {
-  provider            = azurerm.PROD-IO
-  name                = "io-p-itn-apim-01"
-  resource_group_name = data.azurerm_resource_group.common_itn_01.name
-}
-
 data "azurerm_key_vault" "common" {
   provider            = azurerm.PROD-IO
   name                = "io-p-itn-common-kv-01"
-  resource_group_name = data.azurerm_resource_group.common_itn_01.name
-}
-
-data "azurerm_virtual_network" "common" {
-  provider            = azurerm.PROD-IO
-  name                = "io-p-itn-common-vnet-01"
   resource_group_name = data.azurerm_resource_group.common_itn_01.name
 }
