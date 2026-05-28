@@ -15,6 +15,7 @@
     "node_modules",
     "**/__tests__/*",
     "vite.config.mts",
-    "openapi-ts.config.ts"
+    "openapi-ts.config.ts",
+    "src/adapters/inbound/generated/**"
   ]
 }

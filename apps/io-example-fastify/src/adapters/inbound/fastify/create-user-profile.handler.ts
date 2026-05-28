@@ -3,34 +3,29 @@ import {
   createHttpRequestValidator,
   createHttpResponseFormatter,
 } from "@pagopa/io-core-adapter-fastify";
-import {
-  EmailAddressSchema,
-  FiscalCodeSchema,
-  NonEmptyStringSchema,
-} from "@pagopa/io-core-domain";
 import { FastifyInstance } from "fastify";
 import { z } from "zod";
 
 import type { CreateUserProfileUseCase } from "../../../application/use-cases/create-user-profile.use-case.js";
 
+import { zCreateUserProfileBody } from "../generated/zod.gen.js";
 import { UserProfileResponseSchema } from "./dto/userProfileResponse.zod-entity.js";
 
-const DateFromStringSchema = z.coerce.date();
-
 const CreateUserProfileInputSchema = z
-  // Extract input from headers
   .object({
-    body: z.object({
-      birthDate: DateFromStringSchema,
-      email: EmailAddressSchema,
-      fiscalCode: FiscalCodeSchema,
-      name: NonEmptyStringSchema,
-    }),
+    body: zCreateUserProfileBody,
   })
   // Transform the input to match the use case's expected input
-  .transform((input) => input.body);
+  .transform((input) => ({
+    birthDate: new Date(input.body.birthDate),
+    email: input.body.email,
+    fiscalCode: input.body.fiscalCode,
+    name: input.body.name,
+  }));
 
 const inputValidator = createHttpRequestValidator(CreateUserProfileInputSchema);
+//TODO: use zCreateUserProfileResponse to validate the output of the use case,
+// and transform it to the expected output format (e.g. convert Date to string)
 const outputFormatter = createHttpResponseFormatter(UserProfileResponseSchema);
 
 export const mountCreateUserProfileHandler = (

@@ -18,7 +18,8 @@
     "lint:check": "eslint .",
     "start": "node dist/main.js",
     "test": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "generate": "openapi-ts"
   },
   "dependencies": {
     "@pagopa/io-core-domain": "workspace:^",
@@ -29,6 +30,7 @@
   },
   "devDependencies": {
     "@pagopa/io-platform-typescript-config-node": "workspace:^",
+    "@hey-api/openapi-ts": "catalog:",
     "@types/node": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "shx": "catalog:",
