@@ -1,0 +1,279 @@
+openapi: 3.1.0
+info:
+  description: Example Fastify app following the hexagonal architecture pattern.
+  license:
+    identifier: MIT
+    name: MIT
+  title: io-example-fastify
+  version: 0.0.1
+components:
+  schemas:
+    FiscalCode:
+      description: The Italian fiscal code (Codice Fiscale).
+      pattern: ^[A-Z]{6}[0-9LMNPQRSTUV]{2}[ABCDEHLMPRST][0-9LMNPQRSTUV]{2}[A-Z][0-9LMNPQRSTUV]{3}[A-Z]$
+      type: string
+    EmailAddress:
+      description: A valid email address.
+      format: email
+      type: string
+    UserProfile:
+      description: A user profile with personal information.
+      properties:
+        birthDate:
+          format: date
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+        email:
+          $ref: "#/components/schemas/EmailAddress"
+        fiscalCode:
+          $ref: "#/components/schemas/FiscalCode"
+        name:
+          type: string
+        updatedAt:
+          format: date-time
+          type: string
+      required:
+        - fiscalCode
+        - email
+        - name
+        - birthDate
+        - createdAt
+      type: object
+    CreateUserProfileRequest:
+      description: Request body for creating a user profile.
+      properties:
+        birthDate:
+          format: date
+          type: string
+        email:
+          $ref: "#/components/schemas/EmailAddress"
+        fiscalCode:
+          $ref: "#/components/schemas/FiscalCode"
+        name:
+          minLength: 1
+          type: string
+      required:
+        - fiscalCode
+        - email
+        - name
+        - birthDate
+      type: object
+    UpdateUserProfileRequest:
+      description: Request body for updating a user profile. At least one field should be provided.
+      properties:
+        email:
+          $ref: "#/components/schemas/EmailAddress"
+        name:
+          minLength: 1
+          type: string
+      type: object
+    ProblemDetails:
+      description: RFC 7807 Problem Details for HTTP APIs.
+      properties:
+        detail:
+          type: string
+        status:
+          type: integer
+        title:
+          type: string
+        type:
+          format: uri
+          type: string
+      required:
+        - type
+        - title
+        - status
+        - detail
+      type: object
+    InfoOutput:
+      additionalProperties: false
+      description: Application health and version information.
+      properties:
+        name:
+          type: string
+        ok:
+          type: boolean
+        version:
+          type: string
+      required:
+        - name
+        - ok
+        - version
+      type: object
+paths:
+  /info:
+    get:
+      tags:
+        - Info
+      description: Returns the application name, version, and health status.
+      responses:
+        "200":
+          description: Application info returned successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InfoOutput"
+        "500":
+          description: RFC 7807 Problem Details for HTTP APIs.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+  /user-profiles:
+    get:
+      tags:
+        - UserProfiles
+      description: Returns the user profile associated with the given fiscal code.
+      parameters:
+        - schema:
+            $ref: "#/components/schemas/FiscalCode"
+          in: header
+          name: x-fiscal-code
+          required: true
+      responses:
+        "200":
+          description: User profile returned successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "400":
+          description: RFC 7807 Problem Details for HTTP APIs.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "404":
+          description: RFC 7807 Problem Details for HTTP APIs.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "500":
+          description: RFC 7807 Problem Details for HTTP APIs.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+    post:
+      tags:
+        - UserProfiles
+      description: Creates a new user profile with the provided data.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserProfileRequest"
+      responses:
+        "201":
+          description: User profile created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "400":
+          description: RFC 7807 Problem Details for HTTP APIs.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "409":
+          description: RFC 7807 Problem Details for HTTP APIs.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "422":
+          description: RFC 7807 Problem Details for HTTP APIs.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "500":
+          description: RFC 7807 Problem Details for HTTP APIs.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+    put:
+      tags:
+        - UserProfiles
+      description: Updates the user profile identified by the fiscal code header.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserProfileRequest"
+      parameters:
+        - schema:
+            $ref: "#/components/schemas/FiscalCode"
+          in: header
+          name: x-fiscal-code
+          required: true
+      responses:
+        "200":
+          description: User profile updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "400":
+          description: RFC 7807 Problem Details for HTTP APIs.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "404":
+          description: RFC 7807 Problem Details for HTTP APIs.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "500":
+          description: RFC 7807 Problem Details for HTTP APIs.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+    delete:
+      tags:
+        - UserProfiles
+      description: Deletes the user profile associated with the given fiscal code and returns the deleted profile.
+      parameters:
+        - schema:
+            $ref: "#/components/schemas/FiscalCode"
+          in: header
+          name: x-fiscal-code
+          required: true
+      responses:
+        "200":
+          description: User profile deleted successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserProfile"
+        "400":
+          description: RFC 7807 Problem Details for HTTP APIs.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "404":
+          description: RFC 7807 Problem Details for HTTP APIs.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "500":
+          description: RFC 7807 Problem Details for HTTP APIs.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+servers:
+  - description: Local development server
+    url: http://localhost:7071/api

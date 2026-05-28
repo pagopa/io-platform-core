@@ -1,3 +1,5 @@
+import fastifySwagger from "@fastify/swagger";
+import { JsonSchemaToTsProvider } from "@fastify/type-provider-json-schema-to-ts";
 import fastify from "fastify";
 
 import {
@@ -7,6 +9,10 @@ import {
   mountInfoHandler,
   mountUpdateUserProfileHandler,
 } from "./adapters/inbound/fastify/index.js";
+import {
+  registerSharedSchemas,
+  type SharedSchemaReferences,
+} from "./adapters/inbound/fastify/schemas/shared.schemas.js";
 import { InMemoryUserProfileRepository } from "./adapters/outbound/persistence/in-memory-user-profile.repository.js";
 import { makeCreateUserProfileUseCase } from "./application/use-cases/create-user-profile.use-case.js";
 import { makeDeleteUserProfileUseCase } from "./application/use-cases/delete-user-profile.use-case.js";
@@ -30,7 +36,44 @@ const deleteUserProfileUseCase = makeDeleteUserProfileUseCase(
 
 // --- HTTP function registrations ---
 
-const server = fastify();
+const server = fastify().withTypeProvider<
+  JsonSchemaToTsProvider<{
+    ValidatorSchemaOptions: { references: SharedSchemaReferences };
+    SerializerSchemaOptions: {
+      references: SharedSchemaReferences;
+      deserialize: [
+        { pattern: { type: "string"; format: "date-time" }; output: Date },
+        { pattern: { type: "string"; format: "date" }; output: Date },
+      ];
+    };
+  }>
+>();
+
+// Register OpenAPI generation plugin
+await server.register(fastifySwagger, {
+  openapi: {
+    info: {
+      description:
+        "Example Fastify app following the hexagonal architecture pattern.",
+      license: { identifier: "MIT", name: "MIT" },
+      title: "io-example-fastify",
+      version: "0.0.1",
+    },
+    openapi: "3.1.0",
+    servers: [
+      {
+        description: "Local development server",
+        url: "http://localhost:7071/api",
+      },
+    ],
+  },
+  refResolver: {
+    buildLocalReference: (json) => json.$id as string,
+  },
+});
+
+// Register shared JSON schemas (used for validation, serialization, and OpenAPI)
+registerSharedSchemas(server);
 
 mountInfoHandler(server, getInfoUseCase);
 

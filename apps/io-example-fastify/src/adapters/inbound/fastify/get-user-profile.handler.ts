@@ -1,37 +1,47 @@
-import {
-  createHttpHandler,
-  createHttpRequestValidator,
-  createHttpResponseFormatter,
-} from "@pagopa/io-core-adapter-fastify";
-import { FiscalCodeSchema } from "@pagopa/io-core-domain";
-import { FastifyInstance } from "fastify";
-import { z } from "zod";
+import { sendErrorResponse } from "@pagopa/io-core-adapter-fastify";
 
 import type { GetUserProfileUseCase } from "../../../application/use-cases/get-user-profile.use-case.js";
-
-import { UserProfileResponseSchema } from "./dto/userProfileResponse.zod-entity.js";
-
-const GetUserProfileSchema = z
-  // Extract input from headers
-  .object({
-    headers: z.object({
-      "x-fiscal-code": FiscalCodeSchema,
-    }),
-  })
-  // Transform the input to match the use case's expected input
-  .transform((input) => ({
-    fiscalCode: input.headers["x-fiscal-code"],
-  }));
-
-const inputValidator = createHttpRequestValidator(GetUserProfileSchema);
-const outputFormatter = createHttpResponseFormatter(UserProfileResponseSchema);
+import type { TypedFastifyInstance } from "./schemas/shared.schemas.js";
 
 export const mountGetUserProfileHandler = (
-  fastifyServer: FastifyInstance,
+  fastifyServer: TypedFastifyInstance,
   useCase: GetUserProfileUseCase,
 ) => {
   fastifyServer.get(
     "/api/user-profiles",
-    createHttpHandler(useCase, inputValidator, outputFormatter),
+    {
+      schema: {
+        description:
+          "Returns the user profile associated with the given fiscal code.",
+        headers: {
+          properties: {
+            "x-fiscal-code": { $ref: "FiscalCode#" },
+          },
+          required: ["x-fiscal-code"],
+          type: "object",
+        },
+        response: {
+          200: {
+            $ref: "UserProfile#",
+            description: "User profile returned successfully.",
+          },
+          400: { $ref: "ProblemDetails#" },
+          404: { $ref: "ProblemDetails#" },
+          500: { $ref: "ProblemDetails#" },
+        },
+        tags: ["UserProfiles"],
+      },
+    },
+    async (request, reply) => {
+      const result = await useCase({
+        fiscalCode: request.headers["x-fiscal-code"],
+      });
+
+      if (result.isErr()) {
+        return sendErrorResponse(reply, result.error);
+      }
+
+      return reply.send(result.value);
+    },
   );
 };

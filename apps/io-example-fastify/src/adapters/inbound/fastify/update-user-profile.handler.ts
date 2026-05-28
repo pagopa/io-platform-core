@@ -1,41 +1,50 @@
-import {
-  createHttpHandler,
-  createHttpRequestValidator,
-  createHttpResponseFormatter,
-} from "@pagopa/io-core-adapter-fastify";
-import { FiscalCodeSchema } from "@pagopa/io-core-domain";
-import { FastifyInstance } from "fastify";
-import { z } from "zod";
+import { sendErrorResponse } from "@pagopa/io-core-adapter-fastify";
 
 import type { UpdateUserProfileUseCase } from "../../../application/use-cases/update-user-profile.use-case.js";
-
-import { UserProfileSchema } from "../../../domain/entities/user-profile.entity.js";
-import { UserProfileResponseSchema } from "./dto/userProfileResponse.zod-entity.js";
-
-const UpdateUserProfileSchema = z
-  // Extract input from headers
-  .object({
-    body: UserProfileSchema.pick({ email: true, name: true }).partial(),
-    headers: z.object({
-      "x-fiscal-code": FiscalCodeSchema,
-    }),
-  })
-  // Transform the input to match the use case's expected input
-  .transform((input) => ({
-    email: input.body.email,
-    fiscalCode: input.headers["x-fiscal-code"],
-    name: input.body.name,
-  }));
-
-const inputValidator = createHttpRequestValidator(UpdateUserProfileSchema);
-const outputFormatter = createHttpResponseFormatter(UserProfileResponseSchema);
+import type { TypedFastifyInstance } from "./schemas/shared.schemas.js";
 
 export const mountUpdateUserProfileHandler = (
-  fastifyServer: FastifyInstance,
+  fastifyServer: TypedFastifyInstance,
   useCase: UpdateUserProfileUseCase,
 ) => {
   fastifyServer.put(
     "/api/user-profiles",
-    createHttpHandler(useCase, inputValidator, outputFormatter),
+    {
+      schema: {
+        body: { $ref: "UpdateUserProfileRequest#" },
+        description:
+          "Updates the user profile identified by the fiscal code header.",
+        headers: {
+          properties: {
+            "x-fiscal-code": { $ref: "FiscalCode#" },
+          },
+          required: ["x-fiscal-code"],
+          type: "object",
+        },
+        response: {
+          200: {
+            $ref: "UserProfile#",
+            description: "User profile updated successfully.",
+          },
+          400: { $ref: "ProblemDetails#" },
+          404: { $ref: "ProblemDetails#" },
+          500: { $ref: "ProblemDetails#" },
+        },
+        tags: ["UserProfiles"],
+      },
+    },
+    async (request, reply) => {
+      const result = await useCase({
+        email: request.body.email,
+        fiscalCode: request.headers["x-fiscal-code"],
+        name: request.body.name,
+      });
+
+      if (result.isErr()) {
+        return sendErrorResponse(reply, result.error);
+      }
+
+      return reply.send(result.value);
+    },
   );
 };

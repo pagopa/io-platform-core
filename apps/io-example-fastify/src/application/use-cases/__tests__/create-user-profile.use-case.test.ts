@@ -1,15 +1,14 @@
 import {
-  EmailAddressSchema,
-  FiscalCodeSchema,
-  NonEmptyStringSchema,
-} from "@pagopa/io-core-domain";
-import { ConflictError, GenericError } from "@pagopa/io-core-domain/errors";
+  ConflictError,
+  GenericError,
+  ValidationError,
+} from "@pagopa/io-core-domain/errors";
 import { err, ok } from "neverthrow";
 import { describe, expect, it, vi } from "vitest";
 
+import type { NewUserProfile } from "../../../domain/entities/user-profile.entity.js";
 import type { IUserProfileRepository } from "../../../domain/ports/outbound/persistence/user-profile.repository.js";
 
-import { NewUserProfile } from "../../../domain/entities/user-profile.entity.js";
 import { makeCreateUserProfileUseCase } from "../create-user-profile.use-case.js";
 
 const makeMockRepository = (
@@ -33,9 +32,9 @@ describe("makeCreateUserProfileUseCase", () => {
 
     const result = await useCase({
       birthDate: new Date("1985-08-01"),
-      email: EmailAddressSchema.parse("mario.rossi@example.com"),
-      fiscalCode: FiscalCodeSchema.parse("RSSMRA85M01H501U"),
-      name: NonEmptyStringSchema.parse("Mario Rossi"),
+      email: "mario.rossi@example.com",
+      fiscalCode: "RSSMRA85M01H501U",
+      name: "Mario Rossi",
     });
 
     expect(result.isOk()).toBe(true);
@@ -44,6 +43,21 @@ describe("makeCreateUserProfileUseCase", () => {
     expect(profile.email).toBe("mario.rossi@example.com");
     expect(profile.name).toBe("Mario Rossi");
     expect(profile.createdAt).toBeDefined();
+  });
+
+  it("should return ValidationError for invalid input", async () => {
+    const repository = makeMockRepository();
+    const useCase = makeCreateUserProfileUseCase(repository);
+
+    const result = await useCase({
+      birthDate: new Date("1985-08-01"),
+      email: "not-an-email",
+      fiscalCode: "INVALID",
+      name: "Mario Rossi",
+    });
+
+    expect(result.isErr()).toBe(true);
+    expect(result._unsafeUnwrapErr()).toBeInstanceOf(ValidationError);
   });
 
   it("should return ConflictError when profile already exists", async () => {
@@ -58,9 +72,9 @@ describe("makeCreateUserProfileUseCase", () => {
 
     const result = await useCase({
       birthDate: new Date("1985-08-01"),
-      email: EmailAddressSchema.parse("mario.rossi@example.com"),
-      fiscalCode: FiscalCodeSchema.parse("RSSMRA85M01H501U"),
-      name: NonEmptyStringSchema.parse("Mario Rossi"),
+      email: "mario.rossi@example.com",
+      fiscalCode: "RSSMRA85M01H501U",
+      name: "Mario Rossi",
     });
 
     expect(result.isErr()).toBe(true);
@@ -75,9 +89,9 @@ describe("makeCreateUserProfileUseCase", () => {
 
     const result = await useCase({
       birthDate: new Date("1985-08-01"),
-      email: EmailAddressSchema.parse("mario.rossi@example.com"),
-      fiscalCode: FiscalCodeSchema.parse("RSSMRA85M01H501U"),
-      name: NonEmptyStringSchema.parse("Mario Rossi"),
+      email: "mario.rossi@example.com",
+      fiscalCode: "RSSMRA85M01H501U",
+      name: "Mario Rossi",
     });
 
     expect(result.isErr()).toBe(true);

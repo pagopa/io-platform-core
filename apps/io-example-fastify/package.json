@@ -12,6 +12,7 @@
   "scripts": {
     "clean": "shx rm -rf dist",
     "build": "tsc",
+    "postbuild": "node dist/scripts/export-openapi.js",
     "build:watch": "tsc -w",
     "typecheck": "tsc --noEmit",
     "lint": "pnpm lint:check --fix",
@@ -21,10 +22,12 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@pagopa/io-core-domain": "workspace:^",
+    "@fastify/swagger": "catalog:",
     "@pagopa/io-core-adapter-fastify": "workspace:^",
+    "@pagopa/io-core-domain": "workspace:^",
     "fastify": "catalog:",
     "neverthrow": "catalog:",
+    "yaml": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

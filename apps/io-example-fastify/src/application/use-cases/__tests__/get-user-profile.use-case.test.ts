@@ -1,5 +1,13 @@
-import { EmailAddressSchema, FiscalCodeSchema } from "@pagopa/io-core-domain";
-import { GenericError, NotFoundError } from "@pagopa/io-core-domain/errors";
+import {
+  EmailAddressSchema,
+  FiscalCodeSchema,
+  NonEmptyStringSchema,
+} from "@pagopa/io-core-domain";
+import {
+  GenericError,
+  NotFoundError,
+  ValidationError,
+} from "@pagopa/io-core-domain/errors";
 import { err, ok } from "neverthrow";
 import { describe, expect, it, vi } from "vitest";
 
@@ -13,7 +21,7 @@ const mockProfile: UserProfile = {
   createdAt: new Date("2026-01-15T10:00:00.000Z"),
   email: EmailAddressSchema.parse("mario.rossi@example.com"),
   fiscalCode: FiscalCodeSchema.parse("RSSMRA85M01H501U"),
-  name: "Mario Rossi",
+  name: NonEmptyStringSchema.parse("Mario Rossi"),
 };
 
 const makeMockRepository = (
@@ -32,7 +40,7 @@ describe("makeGetUserProfileUseCase", () => {
     const useCase = makeGetUserProfileUseCase(repository);
 
     const result = await useCase({
-      fiscalCode: FiscalCodeSchema.parse("RSSMRA85M01H501U"),
+      fiscalCode: "RSSMRA85M01H501U",
     });
 
     expect(result.isOk()).toBe(true);
@@ -40,6 +48,18 @@ describe("makeGetUserProfileUseCase", () => {
     expect(repository.findByFiscalCode).toHaveBeenCalledWith(
       "RSSMRA85M01H501U",
     );
+  });
+
+  it("should return ValidationError for invalid fiscal code", async () => {
+    const repository = makeMockRepository();
+    const useCase = makeGetUserProfileUseCase(repository);
+
+    const result = await useCase({
+      fiscalCode: "INVALID",
+    });
+
+    expect(result.isErr()).toBe(true);
+    expect(result._unsafeUnwrapErr()).toBeInstanceOf(ValidationError);
   });
 
   it("should return NotFoundError when profile does not exist", async () => {
@@ -53,7 +73,7 @@ describe("makeGetUserProfileUseCase", () => {
     const useCase = makeGetUserProfileUseCase(repository);
 
     const result = await useCase({
-      fiscalCode: FiscalCodeSchema.parse("AAAAAA00A00A000A"),
+      fiscalCode: "AAAAAA00A00A000A",
     });
 
     expect(result.isErr()).toBe(true);
@@ -69,7 +89,7 @@ describe("makeGetUserProfileUseCase", () => {
     const useCase = makeGetUserProfileUseCase(repository);
 
     const result = await useCase({
-      fiscalCode: FiscalCodeSchema.parse("RSSMRA85M01H501U"),
+      fiscalCode: "RSSMRA85M01H501U",
     });
 
     expect(result.isErr()).toBe(true);

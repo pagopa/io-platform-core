@@ -1,10 +1,13 @@
 import {
   EmailAddressSchema,
   FiscalCodeSchema,
-  NonEmptyStringBrand,
   NonEmptyStringSchema,
 } from "@pagopa/io-core-domain";
-import { GenericError, NotFoundError } from "@pagopa/io-core-domain/errors";
+import {
+  GenericError,
+  NotFoundError,
+  ValidationError,
+} from "@pagopa/io-core-domain/errors";
 import { err, ok } from "neverthrow";
 import { describe, expect, it, vi } from "vitest";
 
@@ -43,8 +46,8 @@ describe("makeUpdateUserProfileUseCase", () => {
     const useCase = makeUpdateUserProfileUseCase(repository);
 
     const result = await useCase({
-      email: EmailAddressSchema.parse("mario.new@example.com"),
-      fiscalCode: FiscalCodeSchema.parse("RSSMRA85M01H501U"),
+      email: "mario.new@example.com",
+      fiscalCode: "RSSMRA85M01H501U",
     });
 
     expect(result.isOk()).toBe(true);
@@ -53,6 +56,19 @@ describe("makeUpdateUserProfileUseCase", () => {
       email: "mario.new@example.com",
       name: undefined,
     });
+  });
+
+  it("should return ValidationError for invalid input", async () => {
+    const repository = makeMockRepository();
+    const useCase = makeUpdateUserProfileUseCase(repository);
+
+    const result = await useCase({
+      fiscalCode: "INVALID",
+      name: "New Name",
+    });
+
+    expect(result.isErr()).toBe(true);
+    expect(result._unsafeUnwrapErr()).toBeInstanceOf(ValidationError);
   });
 
   it("should return NotFoundError when profile does not exist", async () => {
@@ -66,8 +82,8 @@ describe("makeUpdateUserProfileUseCase", () => {
     const useCase = makeUpdateUserProfileUseCase(repository);
 
     const result = await useCase({
-      fiscalCode: FiscalCodeSchema.parse("AAAAAA00A00A000A"),
-      name: NonEmptyStringSchema.parse("New Name"),
+      fiscalCode: "AAAAAA00A00A000A",
+      name: "New Name",
     });
 
     expect(result.isErr()).toBe(true);
@@ -81,8 +97,8 @@ describe("makeUpdateUserProfileUseCase", () => {
     const useCase = makeUpdateUserProfileUseCase(repository);
 
     const result = await useCase({
-      email: EmailAddressSchema.parse("mario.new@example.com"),
-      fiscalCode: FiscalCodeSchema.parse("RSSMRA85M01H501U"),
+      email: "mario.new@example.com",
+      fiscalCode: "RSSMRA85M01H501U",
     });
 
     expect(result.isErr()).toBe(true);

@@ -1,46 +1,44 @@
-import {
-  createHttpHandler,
-  createHttpRequestValidator,
-  createHttpResponseFormatter,
-} from "@pagopa/io-core-adapter-fastify";
-import {
-  EmailAddressSchema,
-  FiscalCodeSchema,
-  NonEmptyStringSchema,
-} from "@pagopa/io-core-domain";
-import { FastifyInstance } from "fastify";
-import { z } from "zod";
+import { sendErrorResponse } from "@pagopa/io-core-adapter-fastify";
 
 import type { CreateUserProfileUseCase } from "../../../application/use-cases/create-user-profile.use-case.js";
-
-import { UserProfileResponseSchema } from "./dto/userProfileResponse.zod-entity.js";
-
-const DateFromStringSchema = z.coerce.date();
-
-const CreateUserProfileInputSchema = z
-  // Extract input from headers
-  .object({
-    body: z.object({
-      birthDate: DateFromStringSchema,
-      email: EmailAddressSchema,
-      fiscalCode: FiscalCodeSchema,
-      name: NonEmptyStringSchema,
-    }),
-  })
-  // Transform the input to match the use case's expected input
-  .transform((input) => input.body);
-
-const inputValidator = createHttpRequestValidator(CreateUserProfileInputSchema);
-const outputFormatter = createHttpResponseFormatter(UserProfileResponseSchema);
+import type { TypedFastifyInstance } from "./schemas/shared.schemas.js";
 
 export const mountCreateUserProfileHandler = (
-  fastifyServer: FastifyInstance,
+  fastifyServer: TypedFastifyInstance,
   useCase: CreateUserProfileUseCase,
 ) => {
   fastifyServer.post(
     "/api/user-profiles",
-    createHttpHandler(useCase, inputValidator, outputFormatter, {
-      successCode: 201,
-    }),
+    {
+      schema: {
+        body: { $ref: "CreateUserProfileRequest#" },
+        description: "Creates a new user profile with the provided data.",
+        response: {
+          201: {
+            $ref: "UserProfile#",
+            description: "User profile created successfully.",
+          },
+          400: { $ref: "ProblemDetails#" },
+          409: { $ref: "ProblemDetails#" },
+          422: { $ref: "ProblemDetails#" },
+          500: { $ref: "ProblemDetails#" },
+        },
+        tags: ["UserProfiles"],
+      },
+    },
+    async (request, reply) => {
+      const result = await useCase({
+        birthDate: new Date(request.body.birthDate),
+        email: request.body.email,
+        fiscalCode: request.body.fiscalCode,
+        name: request.body.name,
+      });
+
+      if (result.isErr()) {
+        return sendErrorResponse(reply, result.error);
+      }
+
+      return reply.code(201).send({ ...result.value });
+    },
   );
 };
