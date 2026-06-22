@@ -35,7 +35,7 @@ export default defineConfig({
     format === "cjs"
       ? { dts: ".d.cts", js: ".cjs" }
       : { dts: ".d.ts", js: ".js" },
-  sourcemap: false,
+  sourcemap: true,
   // Drop dead code from the published bundles.
   treeshake: true,
 });

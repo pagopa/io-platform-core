@@ -20,34 +20,34 @@
         "default": "./dist/index.cjs"
       }
     },
-    "./errors": {
+    "./domain/errors": {
       "import": {
-        "types": "./dist/errors.d.ts",
-        "default": "./dist/errors.js"
+        "types": "./dist/domain/errors.d.ts",
+        "default": "./dist/domain/errors.js"
       },
       "require": {
-        "types": "./dist/errors.d.cts",
-        "default": "./dist/errors.cjs"
+        "types": "./dist/domain/errors.d.cts",
+        "default": "./dist/domain/errors.cjs"
       }
     },
-    "./value-objects": {
+    "./domain/value-objects": {
       "import": {
-        "types": "./dist/value-objects.d.ts",
-        "default": "./dist/value-objects.js"
+        "types": "./dist/domain/value-objects.d.ts",
+        "default": "./dist/domain/value-objects.js"
       },
       "require": {
-        "types": "./dist/value-objects.d.cts",
-        "default": "./dist/value-objects.cjs"
+        "types": "./dist/domain/value-objects.d.cts",
+        "default": "./dist/domain/value-objects.cjs"
       }
     },
-    "./ports": {
+    "./domain/ports": {
       "import": {
-        "types": "./dist/ports.d.ts",
-        "default": "./dist/ports.js"
+        "types": "./dist/domain/ports.d.ts",
+        "default": "./dist/domain/ports.js"
       },
       "require": {
-        "types": "./dist/ports.d.cts",
-        "default": "./dist/ports.cjs"
+        "types": "./dist/domain/ports.d.cts",
+        "default": "./dist/domain/ports.cjs"
       }
     },
     "./adapters": {
@@ -83,7 +83,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "dependencies": {
+  "peerDependencies": {
     "@standard-schema/spec": "catalog:",
     "neverthrow": "catalog:",
     "zod": "catalog:"
