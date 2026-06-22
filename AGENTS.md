@@ -11,7 +11,12 @@ For setup (devcontainer, `nodenv`, `tfenv`, `pre-commit`) and release flow, read
 
 - **Package manager: `pnpm`** (workspaces + [catalog](pnpm-workspace.yaml)). Never use `npm`/`yarn`.
 - **Task runner: `turbo`** ([turbo.json](turbo.json)). Run monorepo-wide tasks through it.
-- **Node 22** (`.node-version`), **TypeScript ~5.8** with `moduleResolution: nodenext`.
+- **Node 22** (`.node-version` pins the exact version). Use **`nodenv`** to install and activate it:
+  ```bash
+  nodenv install   # reads .node-version; installs the exact pinned version
+  ```
+  Never use a different Node version — mismatches cause subtle build/test failures.
+- **TypeScript ~5.8** with `moduleResolution: nodenext`.
 - **Versioning/release: Changesets.** Any change to a publishable package needs a changeset (`pnpm changeset`).
 
 ### Dependencies
@@ -46,7 +51,7 @@ and it owns formatting too.
 ## Repository layout
 
 - `apps/*` — deployable artifacts; **reference implementations** of the architecture or **production shared services**. Only reference imprementation will be declared `private: true` (not published).
-- `packages/*` — reusable modules. Publishable `io-core-*` packages plus or cross product shared packages without the `io-` prefix.
+- `packages/*` — reusable modules. Publishable `hexagonal-core` package plus or cross product shared packages without the `io-` prefix.
   `typescript-config-node` (shared `tsconfig`, internal/`private`).
 - `infra/*` — Terraform IaC (see below).
 - `docs/*` — architecture notes/ADRs. Link user docs from a package `README`, not here.
@@ -70,7 +75,7 @@ Tests live next to code in `__tests__/*.test.ts`.
 ### Required patterns
 
 - **Errors: `neverthrow` `Result<T, E>`** — never throw for business/domain errors.
-  Error types extend `BaseError` from `@pagopa/io-core-domain/errors`
+  Error types extend `BaseError` from `@pagopa/hexagonal-core/domain/errors`
   (`NotFoundError`, `ConflictError`, `GenericError`, `ValidationError`).
 - **Validation & types: `zod` v4.** Model value-objects/entities/DTOs as schemas;
   use **branded types** (`.brand<"EmailAddress">()`). Value objects go in
@@ -82,6 +87,7 @@ Tests live next to code in `__tests__/*.test.ts`.
 
 ### Core packages
 
+- `@pagopa/hexagonal-core` — framework-agnostic hexagonal building blocks (domain + adapters).
 - `@pagopa/io-platform-typescript-config-node` — shared base `tsconfig`.
 
 ## Publishing packages — dual ESM + CJS is mandatory

@@ -41,12 +41,18 @@ This project uses specific versions of `node`, `pnpm` and `terraform`. To make s
 - [tflint](https://github.com/terraform-linters/tflint) - A Pluggable Terraform Linter
 - [pre-commit](https://pre-commit.com/) - A framework for managing and maintaining multi-language pre-commit hooks
 
-2. Install `node` at the right version used by this project
+2. Install `node` at the exact version pinned by this project
+
+   The required version is stored in `.node-version` (currently `22.22.2`).
+   `nodenv` reads this file automatically — just run:
 
 ```bash
 cd io-platform-core
-nodenv install
+nodenv install        # installs the version from .node-version
 ```
+
+   After installation, `nodenv` activates the pinned version automatically
+   whenever you `cd` into the repo directory.
 
 3. Build all the workspaces contained by this repo
 ```bash
