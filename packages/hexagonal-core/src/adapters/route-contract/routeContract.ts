@@ -74,6 +74,9 @@ export const getEntryDescription = (entry: ResponseEntry): string | undefined =>
   isZodTypeEntry(entry) ? undefined : entry.description;
 
 const isZodTypeEntry = (entry: ResponseEntry): entry is ZodType =>
+  entry !== null &&
+  entry !== undefined &&
+  (typeof entry === "object" || typeof entry === "function") &&
   "~standard" in entry;
 
 /**
