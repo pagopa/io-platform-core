@@ -3,18 +3,21 @@ packages:
   - apps/*
 
 catalog:
+  "@asteasolutions/zod-to-openapi": ^8.5.0
   "@pagopa/eslint-config": ^6.0.2
   "@standard-schema/spec": ^1.1.0
   "@tsconfig/node22": ^22.0.5
   "@types/node": ^22.0.0
   "@vitest/coverage-v8": ^3.2.4
   eslint: ^10.0.0
+  fastify: ^5.8.4
   neverthrow: ^8.2.0
   prettier: ^3.6.2
   shx: ^0.3.4
   tsdown: ^0.22.3
   typescript: ^5.8.3
   vitest: ^3.2.4
+  yaml: ^2.6.0
   zod: ^4.0.0
 
 linkWorkspacePackages: true

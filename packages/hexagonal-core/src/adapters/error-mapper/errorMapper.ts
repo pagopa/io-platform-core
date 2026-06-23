@@ -1,4 +1,7 @@
 import type { BaseError } from "../../domain/errors/index.js";
+import type { ErrorKind } from "./errorHttpMetadata.js";
+
+import { errorMetadata } from "./errorHttpMetadata.js";
 
 /**
  * Framework-agnostic HTTP error response. Adapters (fastify, azure-functions, …)
@@ -31,39 +34,14 @@ export interface ProblemDetails {
   readonly type: string;
 }
 
-interface HttpErrorConfig {
-  readonly status: number;
-  readonly title: string;
-}
-
-/**
- * Maps every known domain error `kind` to the HTTP status + title to expose.
- * Unknown kinds fall back to {@link defaultHttpConfig}.
- */
-const errorKindToHttpConfig: Record<string, HttpErrorConfig> = {
-  AuthenticationError: { status: 401, title: "Unauthorized" },
-  BadGatewayError: { status: 502, title: "Bad Gateway" },
-  ConflictError: { status: 409, title: "Conflict" },
-  ForbiddenError: { status: 403, title: "Forbidden" },
-  GatewayTimeoutError: { status: 504, title: "Gateway Timeout" },
-  GenericError: { status: 500, title: "Internal Server Error" },
-  GoneError: { status: 410, title: "Gone" },
-  NotFoundError: { status: 404, title: "Not Found" },
-  PreconditionFailedError: { status: 412, title: "Precondition Failed" },
-  ServiceUnavailableError: { status: 503, title: "Service Unavailable" },
-  TooManyRequestsError: { status: 429, title: "Too Many Requests" },
-  UnprocessableEntityError: { status: 422, title: "Unprocessable Entity" },
-  ValidationError: { status: 400, title: "Validation Error" },
-};
-
 /** Base URI under which problem `type` slugs are published. */
 const DEFAULT_TYPE_BASE_URL = "https://example.pagopa.it/problems/";
 
 /** Fallback config used when an error `kind` is not recognised. */
-const defaultHttpError: HttpErrorConfig = {
+const defaultHttpError = {
   status: 500,
   title: "Internal Server Error",
-};
+} as const;
 
 /**
  * Optional configuration for mapping errors.
@@ -89,7 +67,8 @@ export interface ErrorMapperConfig {
 export const mapErrorToProblemDetails =
   (config?: ErrorMapperConfig) =>
   (error: BaseError): ProblemDetails => {
-    const errorConfig = errorKindToHttpConfig[error.kind] ?? defaultHttpError;
+    const errorConfig =
+      errorMetadata[error.kind as ErrorKind] ?? defaultHttpError;
 
     return {
       detail: error.message,
