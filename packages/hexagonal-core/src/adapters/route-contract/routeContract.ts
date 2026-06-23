@@ -39,7 +39,11 @@ export type ResponseEntry =
 
 /** Returns true when the entry is a 3xx redirect (no body). */
 export const isRedirectEntry = (entry: ResponseEntry): entry is RedirectEntry =>
-  typeof entry === "object" && !("~standard" in entry) && "redirect" in entry;
+  entry !== null &&
+  (typeof entry === "object" || typeof entry === "function") &&
+  !("~standard" in entry) &&
+  "redirect" in entry &&
+  (entry as RedirectEntry).redirect === true;
 
 /**
  * Maps HTTP status codes to response entries. The map is the single source of
