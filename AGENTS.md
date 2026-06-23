@@ -29,14 +29,13 @@ For setup (devcontainer, `nodenv`, `tfenv`, `pre-commit`) and release flow, read
 
 ```bash
 pnpm build                       # turbo run build (respects ^build deps)
-pnpm turbo test                  # run all tests (vitest); or: pnpm -r test
-pnpm turbo typecheck             # type-check every workspace
+pnpm test                        # run all tests (vitest); or: pnpm -r test
+pnpm typecheck                   # type-check every workspace
 pnpm --filter <workspace> <script>   # run one package's script
 ```
 
 Per-workspace scripts: `clean`, `build` (`tsc`), `typecheck`, `lint`, `lint:check`,
-`test` (`vitest run`), `test:coverage`. Apps also expose `start`,
-`generate:openapi` and `generate:openapi:check`.
+`test` (`vitest run`), `test:coverage`.
 
 ## Linting & formatting — ALWAYS autofix first
 
