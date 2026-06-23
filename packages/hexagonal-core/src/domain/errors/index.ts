@@ -44,6 +44,20 @@ export class AuthenticationError extends BaseError {
 }
 
 /**
+ * An upstream gateway returned an invalid response.
+ * Maps to HTTP `502 Bad Gateway`.
+ */
+export class BadGatewayError extends BaseError {
+  override readonly kind = "BadGatewayError" as const;
+  override tag = "bad-gateway";
+
+  /** @param message Detail describing the upstream failure. */
+  constructor(message: string) {
+    super("Bad gateway: " + message);
+  }
+}
+
+/**
  * The request conflicts with the current state of the resource
  * (e.g. a duplicate). Maps to HTTP `409 Conflict`.
  */
@@ -71,6 +85,20 @@ export class ForbiddenError extends BaseError {
 }
 
 /**
+ * An upstream gateway did not respond in time.
+ * Maps to HTTP `504 Gateway Timeout`.
+ */
+export class GatewayTimeoutError extends BaseError {
+  override readonly kind = "GatewayTimeoutError" as const;
+  override tag = "gateway-timeout";
+
+  /** @param message Detail describing the timeout. */
+  constructor(message: string) {
+    super("Gateway timeout: " + message);
+  }
+}
+
+/**
  * An unexpected, non-classified failure (the catch-all error).
  * Maps to HTTP `500 Internal Server Error`.
  */
@@ -81,6 +109,20 @@ export class GenericError extends BaseError {
   /** @param message Detail describing the failure. */
   constructor(message: string) {
     super("Generic error: " + message);
+  }
+}
+
+/**
+ * The requested resource no longer exists and no forwarding address is known.
+ * Maps to HTTP `410 Gone`.
+ */
+export class GoneError extends BaseError {
+  override readonly kind = "GoneError" as const;
+  override tag = "gone";
+
+  /** @param message Detail describing the gone resource. */
+  constructor(message: string) {
+    super("Gone: " + message);
   }
 }
 
@@ -114,6 +156,33 @@ export class PreconditionFailedError extends BaseError {
   /** @param message Detail describing the failed precondition. */
   constructor(message: string) {
     super("Precondition failed: " + message);
+  }
+}
+
+/**
+ * The service is temporarily unavailable (e.g. overloaded or under maintenance).
+ * Maps to HTTP `503 Service Unavailable`.
+ */
+export class ServiceUnavailableError extends BaseError {
+  override readonly kind = "ServiceUnavailableError" as const;
+  override tag = "service-unavailable";
+
+  /** @param message Detail describing why the service is unavailable. */
+  constructor(message: string) {
+    super("Service unavailable: " + message);
+  }
+}
+
+/**
+ * The caller has sent too many requests in a given time window (rate-limited).
+ * Maps to HTTP `429 Too Many Requests`.
+ */
+export class TooManyRequestsError extends BaseError {
+  override readonly kind = "TooManyRequestsError" as const;
+  override tag = "too-many-requests";
+
+  constructor() {
+    super("Too many requests");
   }
 }
 

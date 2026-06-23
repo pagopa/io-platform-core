@@ -42,11 +42,16 @@ interface HttpErrorConfig {
  */
 const errorKindToHttpConfig: Record<string, HttpErrorConfig> = {
   AuthenticationError: { status: 401, title: "Unauthorized" },
+  BadGatewayError: { status: 502, title: "Bad Gateway" },
   ConflictError: { status: 409, title: "Conflict" },
   ForbiddenError: { status: 403, title: "Forbidden" },
+  GatewayTimeoutError: { status: 504, title: "Gateway Timeout" },
   GenericError: { status: 500, title: "Internal Server Error" },
+  GoneError: { status: 410, title: "Gone" },
   NotFoundError: { status: 404, title: "Not Found" },
   PreconditionFailedError: { status: 412, title: "Precondition Failed" },
+  ServiceUnavailableError: { status: 503, title: "Service Unavailable" },
+  TooManyRequestsError: { status: 429, title: "Too Many Requests" },
   UnprocessableEntityError: { status: 422, title: "Unprocessable Entity" },
   ValidationError: { status: 400, title: "Validation Error" },
 };

@@ -1,12 +1,17 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  BadGatewayError,
   BaseError,
   ConflictError,
   ForbiddenError,
+  GatewayTimeoutError,
   GenericError,
+  GoneError,
   NotFoundError,
   PreconditionFailedError,
+  ServiceUnavailableError,
+  TooManyRequestsError,
   ValidationError,
 } from "../../../domain/errors/index.js";
 import {
@@ -163,5 +168,53 @@ describe("mapErrorToHttpResponse", () => {
 
     expect(response.status).toBe(412);
     expect(response.jsonBody.status).toBe(412);
+  });
+
+  it("maps GoneError to a 410 response", () => {
+    const response = mapErrorToHttpResponse()(
+      new GoneError("resource deleted")
+    );
+
+    expect(response.status).toBe(410);
+    expect(response.jsonBody.status).toBe(410);
+    expect(response.jsonBody.title).toBe("Gone");
+  });
+
+  it("maps TooManyRequestsError to a 429 response", () => {
+    const response = mapErrorToHttpResponse()(new TooManyRequestsError());
+
+    expect(response.status).toBe(429);
+    expect(response.jsonBody.status).toBe(429);
+    expect(response.jsonBody.title).toBe("Too Many Requests");
+  });
+
+  it("maps BadGatewayError to a 502 response", () => {
+    const response = mapErrorToHttpResponse()(
+      new BadGatewayError("upstream failure")
+    );
+
+    expect(response.status).toBe(502);
+    expect(response.jsonBody.status).toBe(502);
+    expect(response.jsonBody.title).toBe("Bad Gateway");
+  });
+
+  it("maps ServiceUnavailableError to a 503 response", () => {
+    const response = mapErrorToHttpResponse()(
+      new ServiceUnavailableError("under maintenance")
+    );
+
+    expect(response.status).toBe(503);
+    expect(response.jsonBody.status).toBe(503);
+    expect(response.jsonBody.title).toBe("Service Unavailable");
+  });
+
+  it("maps GatewayTimeoutError to a 504 response", () => {
+    const response = mapErrorToHttpResponse()(
+      new GatewayTimeoutError("upstream timed out")
+    );
+
+    expect(response.status).toBe(504);
+    expect(response.jsonBody.status).toBe(504);
+    expect(response.jsonBody.title).toBe("Gateway Timeout");
   });
 });

@@ -2,12 +2,17 @@ import { describe, expect, it } from "vitest";
 
 import {
   AuthenticationError,
+  BadGatewayError,
   BaseError,
   ConflictError,
   ForbiddenError,
+  GatewayTimeoutError,
   GenericError,
+  GoneError,
   NotFoundError,
   PreconditionFailedError,
+  ServiceUnavailableError,
+  TooManyRequestsError,
   UnprocessableEntityError,
   ValidationError,
 } from "../index.js";
@@ -72,14 +77,59 @@ describe("domain errors", () => {
     expect(e.message).toBe("Validation error: bad field");
   });
 
+  it("GoneError wraps the detail message", () => {
+    const e = new GoneError("resource deleted");
+    expect(e).toBeInstanceOf(BaseError);
+    expect(e.kind).toBe("GoneError");
+    expect(e.tag).toBe("gone");
+    expect(e.message).toBe("Gone: resource deleted");
+  });
+
+  it("TooManyRequestsError has a fixed message", () => {
+    const e = new TooManyRequestsError();
+    expect(e).toBeInstanceOf(BaseError);
+    expect(e.kind).toBe("TooManyRequestsError");
+    expect(e.tag).toBe("too-many-requests");
+    expect(e.message).toBe("Too many requests");
+  });
+
+  it("BadGatewayError wraps the detail message", () => {
+    const e = new BadGatewayError("upstream returned 503");
+    expect(e).toBeInstanceOf(BaseError);
+    expect(e.kind).toBe("BadGatewayError");
+    expect(e.tag).toBe("bad-gateway");
+    expect(e.message).toBe("Bad gateway: upstream returned 503");
+  });
+
+  it("ServiceUnavailableError wraps the detail message", () => {
+    const e = new ServiceUnavailableError("under maintenance");
+    expect(e).toBeInstanceOf(BaseError);
+    expect(e.kind).toBe("ServiceUnavailableError");
+    expect(e.tag).toBe("service-unavailable");
+    expect(e.message).toBe("Service unavailable: under maintenance");
+  });
+
+  it("GatewayTimeoutError wraps the detail message", () => {
+    const e = new GatewayTimeoutError("upstream timed out after 30s");
+    expect(e).toBeInstanceOf(BaseError);
+    expect(e.kind).toBe("GatewayTimeoutError");
+    expect(e.tag).toBe("gateway-timeout");
+    expect(e.message).toBe("Gateway timeout: upstream timed out after 30s");
+  });
+
   it("every concrete error is an instance of BaseError", () => {
     const errors = [
       new AuthenticationError(),
+      new BadGatewayError("x"),
       new ConflictError("x"),
       new ForbiddenError(),
+      new GatewayTimeoutError("x"),
       new GenericError("x"),
+      new GoneError("x"),
       new NotFoundError("E", "x"),
       new PreconditionFailedError("x"),
+      new ServiceUnavailableError("x"),
+      new TooManyRequestsError(),
       new UnprocessableEntityError("x"),
       new ValidationError("x"),
     ];
