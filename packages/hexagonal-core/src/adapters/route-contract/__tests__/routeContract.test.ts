@@ -46,13 +46,13 @@ describe("getEntryDescription", () => {
 
   it("returns the description of a wrapper object", () => {
     expect(
-      getEntryDescription({ description: "created", schema: z.string() })
+      getEntryDescription({ description: "created", schema: z.string() }),
     ).toBe("created");
   });
 
   it("returns the description of a redirect entry", () => {
     expect(getEntryDescription({ description: "moved", redirect: true })).toBe(
-      "moved"
+      "moved",
     );
   });
 });

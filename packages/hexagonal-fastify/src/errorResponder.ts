@@ -22,7 +22,7 @@ export type ErrorResponderConfig = Parameters<typeof mapErrorToHttpResponse>[0];
 export const sendErrorResponse = (
   reply: FastifyReply,
   error: BaseError,
-  config?: ErrorResponderConfig
+  config?: ErrorResponderConfig,
 ): FastifyReply => {
   const { headers, jsonBody, status } = mapErrorToHttpResponse(config)(error);
 

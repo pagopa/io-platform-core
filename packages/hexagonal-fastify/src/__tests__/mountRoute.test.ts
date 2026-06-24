@@ -159,7 +159,7 @@ describe("mountFastifyRoute", () => {
         }),
         inputMapper: () => ({}),
         useCase: async () => ok({ id: "1", name: "Alice" }),
-      })
+      }),
     ).toThrow(/multiple success entries/);
   });
 });

@@ -27,7 +27,7 @@ describe("createHttpHandler", () => {
       const handler = createHttpHandler(
         async () => ok({ ok: true }),
         emptyValidator,
-        sendBody(code)
+        sendBody(code),
       );
       app.get("/x", handler);
 
@@ -37,7 +37,7 @@ describe("createHttpHandler", () => {
       expect(res.json()).toEqual({ ok: true });
 
       await app.close();
-    }
+    },
   );
 
   it("lets onSuccess emit a body-less response", async () => {
@@ -45,7 +45,7 @@ describe("createHttpHandler", () => {
     const handler = createHttpHandler(
       async () => ok({}),
       emptyValidator,
-      async (_output, reply) => reply.code(204).send()
+      async (_output, reply) => reply.code(204).send(),
     );
     app.get("/x", handler);
 
@@ -61,9 +61,9 @@ describe("createHttpHandler", () => {
     const handler = createHttpHandler(
       async () => ok({}),
       createFastifyRequestValidator(
-        z.object({ query: z.object({ q: z.string() }) })
+        z.object({ query: z.object({ q: z.string() }) }),
       ),
-      sendBody(200)
+      sendBody(200),
     );
     app.get("/x", handler);
 
@@ -85,7 +85,7 @@ describe("createHttpHandler", () => {
       async (output, reply) => {
         called = true;
         return reply.code(200).send(output);
-      }
+      },
     );
     app.get("/x", handler);
 

@@ -56,7 +56,7 @@ interface ResolvedSuccessEntry {
  * `void`; otherwise it is the `z.input` of the success schema.
  */
 type SuccessBodyInput<Resp extends ResponseMap> = [
-  SuccessSchemaFromMap<Resp>
+  SuccessSchemaFromMap<Resp>,
 ] extends [never]
   ? undefined
   : z.input<SuccessSchemaFromMap<Resp>>;
@@ -103,14 +103,14 @@ const resolveSuccessEntry = (response: ResponseMap): ResolvedSuccessEntry => {
   if (matches.length === 0) {
     throw new Error(
       "mountFastifyRoute: no success entry found in response map. " +
-        "Add a 200/201/202/204/301/302 entry to the contract response."
+        "Add a 200/201/202/204/301/302 entry to the contract response.",
     );
   }
   if (matches.length > 1) {
     throw new Error(
       "mountFastifyRoute: multiple success entries found in response map " +
         `(${matches.map((m) => m.status).join(", ")}). ` +
-        "A contract must declare exactly one success response."
+        "A contract must declare exactly one success response.",
     );
   }
 
@@ -126,7 +126,7 @@ const resolveSuccessEntry = (response: ResponseMap): ResolvedSuccessEntry => {
  */
 const buildSuccessResponder = <O, R>(
   entry: ResolvedSuccessEntry,
-  outputMapper?: (output: O) => R
+  outputMapper?: (output: O) => R,
 ): SuccessResponder<O> => {
   const sendsBody =
     entry.schema !== undefined && !NO_BODY_STATUSES.has(entry.status);
@@ -143,7 +143,7 @@ const buildSuccessResponder = <O, R>(
     if (result.issues) {
       return sendErrorResponse(
         reply,
-        new GenericError("Output encoding failed.")
+        new GenericError("Output encoding failed."),
       );
     }
 
@@ -189,7 +189,7 @@ export function mountFastifyRoute<
   const Resp extends ResponseMap,
   UseCaseInput extends object,
   O,
-  E extends BaseError
+  E extends BaseError,
 >(
   server: FastifyInstance,
   spec: {
@@ -198,13 +198,13 @@ export function mountFastifyRoute<
     outputMapper: (output: O) => SuccessBodyInput<Resp>;
     useCase: NoInfer<EnsureResponseCoversErrors<E, Resp>> &
       UseCase<UseCaseInput, O, E>;
-  }
+  },
 ): void;
 export function mountFastifyRoute<
   Req extends RouteRequestSchemas,
   const Resp extends ResponseMap,
   UseCaseInput extends object,
-  E extends BaseError
+  E extends BaseError,
 >(
   server: FastifyInstance,
   spec: {
@@ -212,14 +212,14 @@ export function mountFastifyRoute<
     inputMapper: (req: WireRequest<Req>) => UseCaseInput;
     useCase: NoInfer<EnsureResponseCoversErrors<E, Resp>> &
       UseCase<UseCaseInput, SuccessBodyInput<Resp>, E>;
-  }
+  },
 ): void;
 export function mountFastifyRoute<
   Req extends RouteRequestSchemas,
   const Resp extends ResponseMap,
   UseCaseInput extends object,
   O,
-  E extends BaseError
+  E extends BaseError,
 >(
   server: FastifyInstance,
   spec: {
@@ -227,29 +227,29 @@ export function mountFastifyRoute<
     inputMapper: (req: WireRequest<Req>) => UseCaseInput;
     outputMapper?: (output: O) => SuccessBodyInput<Resp>;
     useCase: UseCase<UseCaseInput, O, E>;
-  }
+  },
 ): void {
   const successEntry = resolveSuccessEntry(spec.contract.response);
 
   const wire = buildWireSchema(spec.contract.request).transform((parts) =>
-    spec.inputMapper(parts as WireRequest<Req>)
+    spec.inputMapper(parts as WireRequest<Req>),
   );
 
   // The wire schema only contains body/headers/path/query keys, satisfying the
   // validator's structural constraint at runtime.
   const validator = createFastifyRequestValidator(
-    wire as unknown as Parameters<typeof createFastifyRequestValidator>[0]
+    wire as unknown as Parameters<typeof createFastifyRequestValidator>[0],
   ) as InputValidator<FastifyRequest, UseCaseInput>;
 
   const onSuccess = buildSuccessResponder<O, SuccessBodyInput<Resp>>(
     successEntry,
-    spec.outputMapper
+    spec.outputMapper,
   );
 
   const handler = createHttpHandler<UseCaseInput, O, E>(
     spec.useCase,
     validator,
-    onSuccess
+    onSuccess,
   );
 
   server.route({

@@ -8,7 +8,7 @@ describe("sendErrorResponse", () => {
   it("writes an RFC 7807 problem+json response for a domain error", async () => {
     const app = Fastify();
     app.get("/boom", (_req, reply) =>
-      sendErrorResponse(reply, new NotFoundError("User", "id-1"))
+      sendErrorResponse(reply, new NotFoundError("User", "id-1")),
     );
 
     const res = await app.inject({ method: "GET", url: "/boom" });
@@ -28,7 +28,7 @@ describe("sendErrorResponse", () => {
     app.get("/boom", (_req, reply) =>
       sendErrorResponse(reply, new NotFoundError("User", "id-1"), {
         typeBaseUrl: "https://errors.example/",
-      })
+      }),
     );
 
     const res = await app.inject({ method: "GET", url: "/boom" });

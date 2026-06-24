@@ -25,6 +25,8 @@
     "clean": "shx rm -rf dist",
     "build": "tsdown",
     "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "lint": "pnpm lint:check --fix",
     "lint:check": "eslint . --cache",
     "test": "vitest run",

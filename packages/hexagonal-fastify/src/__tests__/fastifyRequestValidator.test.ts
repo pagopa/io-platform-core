@@ -19,7 +19,7 @@ describe("fastifyExtractPayload", () => {
         headers: { h: "v" },
         params: { id: "123" },
         query: { q: "x" },
-      })
+      }),
     );
 
     expect(payload).toEqual({
@@ -32,7 +32,7 @@ describe("fastifyExtractPayload", () => {
 
   it("defaults a missing body to an empty object", () => {
     const payload = fastifyExtractPayload(
-      asRequest({ headers: {}, params: {}, query: {} })
+      asRequest({ headers: {}, params: {}, query: {} }),
     );
 
     expect(payload.body).toEqual({});
@@ -41,7 +41,7 @@ describe("fastifyExtractPayload", () => {
 
 describe("createFastifyRequestValidator", () => {
   const validator = createFastifyRequestValidator(
-    z.object({ path: z.object({ id: z.string() }) })
+    z.object({ path: z.object({ id: z.string() }) }),
   );
 
   it("returns the validated value on success", async () => {

@@ -66,11 +66,13 @@ export type ResponseMap = Record<number, ResponseEntry>;
  * `ZodType` is returned as-is; a wrapper object exposes `.schema`.
  */
 export const getEntrySchema = (
-  entry: Exclude<ResponseEntry, RedirectEntry>
+  entry: Exclude<ResponseEntry, RedirectEntry>,
 ): ZodType => (isZodTypeEntry(entry) ? entry : entry.schema);
 
 /** Returns the optional description override for a response entry. */
-export const getEntryDescription = (entry: ResponseEntry): string | undefined =>
+export const getEntryDescription = (
+  entry: ResponseEntry,
+): string | undefined =>
   isZodTypeEntry(entry) ? undefined : entry.description;
 
 const isZodTypeEntry = (entry: ResponseEntry): entry is ZodType =>
@@ -90,23 +92,22 @@ const isZodTypeEntry = (entry: ResponseEntry): entry is ZodType =>
  */
 export type EnsureResponseCoversErrors<
   E extends BaseError,
-  Resp extends ResponseMap
+  Resp extends ResponseMap,
 > = [E] extends [never]
   ? [ErrorResponseKeysOf<Resp>] extends [never]
     ? unknown
     : never
   : [ErrorKindToStatus<E["kind"]>] extends [keyof Resp]
-  ? [ErrorResponseKeysOf<Resp>] extends [ErrorKindToStatus<E["kind"]>]
-    ? unknown
-    : never
-  : never;
+    ? [ErrorResponseKeysOf<Resp>] extends [ErrorKindToStatus<E["kind"]>]
+      ? unknown
+      : never
+    : never;
 
 /** Invariant equality check between two types. */
-export type Equals<A, B> = (<T>() => T extends A ? 1 : 2) extends <
-  T
->() => T extends B ? 1 : 2
-  ? true
-  : false;
+export type Equals<A, B> =
+  (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2
+    ? true
+    : false;
 
 /**
  * A pure description of an HTTP route. Carries no runtime behavior; the single
@@ -115,7 +116,7 @@ export type Equals<A, B> = (<T>() => T extends A ? 1 : 2) extends <
  */
 export interface RouteContract<
   Req extends RouteRequestSchemas,
-  Resp extends ResponseMap
+  Resp extends ResponseMap,
 > {
   description?: string;
   method: HttpMethod;
@@ -179,8 +180,8 @@ type ErrorResponseKeysOf<R extends ResponseMap> = Exclude<
 type SchemaOf<E extends ResponseEntry> = E extends ZodType
   ? E
   : E extends { schema: infer S extends ZodType }
-  ? S
-  : never;
+    ? S
+    : never;
 
 /**
  * Identity helper that preserves the literal types of method, path and the
@@ -189,17 +190,18 @@ type SchemaOf<E extends ResponseEntry> = E extends ZodType
  */
 export const defineRoute = <
   Req extends RouteRequestSchemas,
-  const Resp extends ResponseMap
+  const Resp extends ResponseMap,
 >(
-  contract: RouteContract<Req, Resp>
+  contract: RouteContract<Req, Resp>,
 ): RouteContract<Req, Resp> => contract;
 
 /** Convenience: the type the use case must return for a given contract. */
 export type UseCaseOutputOf<
-  C extends RouteContract<RouteRequestSchemas, ResponseMap>
-> = C extends RouteContract<RouteRequestSchemas, infer R>
-  ? z.input<SuccessSchemaFromMap<R>>
-  : never;
+  C extends RouteContract<RouteRequestSchemas, ResponseMap>,
+> =
+  C extends RouteContract<RouteRequestSchemas, infer R>
+    ? z.input<SuccessSchemaFromMap<R>>
+    : never;
 
 /**
  * Type-level shape of the validated request, given a {@link RouteRequestSchemas}.
@@ -213,5 +215,5 @@ export type WireRequest<Req extends RouteRequestSchemas> = {
 
 /** Convenience: the wire request type for a given contract. */
 export type WireRequestOf<
-  C extends RouteContract<RouteRequestSchemas, ResponseMap>
+  C extends RouteContract<RouteRequestSchemas, ResponseMap>,
 > = C extends RouteContract<infer R, ResponseMap> ? WireRequest<R> : never;

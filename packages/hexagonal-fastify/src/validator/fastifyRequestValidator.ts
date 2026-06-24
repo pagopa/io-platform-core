@@ -16,7 +16,7 @@ import { createHttpRequestValidator } from "@pagopa/hexagonal-core/adapters";
  * @returns The request decomposed into `body` / `headers` / `path` / `query`.
  */
 export const fastifyExtractPayload = (
-  request: FastifyRequest
+  request: FastifyRequest,
 ): HttpRequestPayload => ({
   body: request.body ?? {},
   headers: request.headers,
@@ -36,9 +36,9 @@ export const fastifyExtractPayload = (
  * @returns An InputValidator from a `FastifyRequest` to the schema output.
  */
 export const createFastifyRequestValidator = <
-  T extends StandardSchemaV1<unknown, unknown>
+  T extends StandardSchemaV1<unknown, unknown>,
 >(
-  schema: Parameters<typeof createHttpRequestValidator<FastifyRequest, T>>[0]
+  schema: Parameters<typeof createHttpRequestValidator<FastifyRequest, T>>[0],
 ): InputValidator<FastifyRequest, StandardSchemaV1.InferOutput<T>> =>
   createHttpRequestValidator<FastifyRequest, T>(schema, fastifyExtractPayload);
 

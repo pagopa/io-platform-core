@@ -17,7 +17,7 @@ import { sendErrorResponse } from "./errorResponder.js";
  */
 export type SuccessResponder<O> = (
   output: O,
-  reply: FastifyReply
+  reply: FastifyReply,
 ) => Promise<FastifyReply>;
 
 /** HTTP success status codes an HTTP handler may emit (incl. redirects). */
@@ -47,11 +47,11 @@ export const createHttpHandler =
   <TUseCaseInput extends object, O, E extends BaseError>(
     useCase: UseCase<TUseCaseInput, O, E>,
     inputValidator: InputValidator<FastifyRequest, TUseCaseInput>,
-    onSuccess: SuccessResponder<O>
+    onSuccess: SuccessResponder<O>,
   ) =>
   async (
     request: FastifyRequest,
-    reply: FastifyReply
+    reply: FastifyReply,
   ): Promise<FastifyReply> => {
     const inputResult = await inputValidator(request);
     if (inputResult.isErr()) {
