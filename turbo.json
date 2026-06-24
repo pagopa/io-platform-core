@@ -17,9 +17,11 @@
       "inputs": ["**/*.{ts,tsx,js,jsx,json}"]
     },
     "format": {
+      "inputs": ["**/*.{ts,tsx,js,jsx,json,md}"],
       "outputLogs": "errors-only"
     },
     "format:check": {
+      "inputs": ["**/*.{ts,tsx,js,jsx,json,md}"],
       "outputLogs": "errors-only"
     },
     "test": {
