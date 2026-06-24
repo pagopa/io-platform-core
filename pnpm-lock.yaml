@@ -145,6 +145,9 @@ importers:
       fastify:
         specifier: 'catalog:'
         version: 5.8.5
+      prettier:
+        specifier: 'catalog:'
+        version: 3.8.4
       shx:
         specifier: 'catalog:'
         version: 0.3.4

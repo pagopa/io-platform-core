@@ -58,6 +58,7 @@
     "@types/node": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "fastify": "catalog:",
+    "prettier": "catalog:",
     "shx": "catalog:",
     "tsdown": "catalog:",
     "typescript": "catalog:",
