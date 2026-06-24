@@ -15,5 +15,5 @@ import { BaseError } from "../../errors/index.js";
  * @typeParam Error  Failure type, constrained to {@link BaseError} subclasses.
  */
 export type UseCase<Input extends object, Output, Error extends BaseError> = (
-  input: Input
+  input: Input,
 ) => Promise<Result<Output, Error>>;

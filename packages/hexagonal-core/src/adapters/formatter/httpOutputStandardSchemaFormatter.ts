@@ -20,7 +20,7 @@ import { GenericError } from "../../domain/errors/index.js";
  */
 export const createHttpResponseFormatter =
   <T extends StandardSchemaV1<unknown, unknown>>(
-    schema: T
+    schema: T,
   ): OutputFormatter<
     StandardSchemaV1.InferInput<T>,
     StandardSchemaV1.InferOutput<T>
@@ -40,5 +40,5 @@ export const createHttpResponseFormatter =
  * Useful when the use-case output is already in the desired transport shape.
  */
 export const identityFormatter: OutputFormatter<unknown, unknown> = async (
-  output
+  output,
 ) => ok(output);

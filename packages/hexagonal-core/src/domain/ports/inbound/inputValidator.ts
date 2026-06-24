@@ -14,5 +14,5 @@ import { ValidationError } from "../../errors/index.js";
  * @typeParam I Validated, typed input handed to a use case.
  */
 export type InputValidator<R, I> = (
-  request: R
+  request: R,
 ) => Promise<Result<I, ValidationError>>;

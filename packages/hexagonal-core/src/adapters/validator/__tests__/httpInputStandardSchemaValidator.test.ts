@@ -21,7 +21,7 @@ describe("createHttpRequestValidator", () => {
   it("returns ok with the validated input", async () => {
     const validate = createHttpRequestValidator<FakeRequest, typeof schema>(
       schema,
-      extractPayload
+      extractPayload,
     );
 
     const result = await validate({ params: { id: "abc" } });
@@ -33,7 +33,7 @@ describe("createHttpRequestValidator", () => {
   it("returns a ValidationError describing the offending path", async () => {
     const validate = createHttpRequestValidator<FakeRequest, typeof schema>(
       schema,
-      extractPayload
+      extractPayload,
     );
 
     const result = await validate({ params: {} });

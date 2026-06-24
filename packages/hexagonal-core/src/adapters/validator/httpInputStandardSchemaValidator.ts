@@ -47,7 +47,7 @@ type RestrictToPayloadKeys<T extends StandardSchemaV1<unknown, unknown>> =
 export const createHttpRequestValidator =
   <TRequest, T extends StandardSchemaV1<unknown, unknown>>(
     schema: RestrictToPayloadKeys<T> & T,
-    extractPayload: (request: TRequest) => HttpRequestPayload
+    extractPayload: (request: TRequest) => HttpRequestPayload,
   ): InputValidator<TRequest, StandardSchemaV1.InferOutput<T>> =>
   async (request: TRequest) => {
     const result = await schema["~standard"].validate(extractPayload(request));
@@ -66,7 +66,7 @@ export const createHttpRequestValidator =
  * @returns A ValidationError whose message lists every issue.
  */
 export const validationErrorFromStandardIssues = (
-  input: readonly StandardSchemaV1.Issue[]
+  input: readonly StandardSchemaV1.Issue[],
 ): ValidationError => new ValidationError(formatStandardIssues(input));
 
 /**
@@ -77,7 +77,7 @@ export const validationErrorFromStandardIssues = (
  * @returns A comma-separated, path-annotated description of every issue.
  */
 const formatStandardIssues = (
-  issues: readonly StandardSchemaV1.Issue[]
+  issues: readonly StandardSchemaV1.Issue[],
 ): string =>
   issues
     .map((issue) => {

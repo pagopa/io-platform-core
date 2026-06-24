@@ -5,7 +5,7 @@ import { EmailAddressSchema } from "../emailAddress.value-object.js";
 describe("EmailAddressSchema", () => {
   it("accepts a valid address and normalizes it to lower-case", () => {
     expect(EmailAddressSchema.parse("User.Name@Example.COM")).toBe(
-      "user.name@example.com"
+      "user.name@example.com",
     );
   });
 

@@ -22,20 +22,20 @@ import {
 describe("mapErrorToProblemDetails", () => {
   it("maps ValidationError to 400 under the default problems domain", () => {
     const result = mapErrorToProblemDetails()(
-      new ValidationError("Invalid input")
+      new ValidationError("Invalid input"),
     );
 
     expect(result.status).toBe(400);
     expect(result.title).toBe("Validation Error");
     expect(result.type).toBe(
-      "https://example.pagopa.it/problems/validation-error"
+      "https://example.pagopa.it/problems/validation-error",
     );
     expect(result.detail).toContain("Invalid input");
   });
 
   it("maps NotFoundError to 404", () => {
     const result = mapErrorToProblemDetails()(
-      new NotFoundError("User", "id-123")
+      new NotFoundError("User", "id-123"),
     );
 
     expect(result.status).toBe(404);
@@ -54,7 +54,7 @@ describe("mapErrorToProblemDetails", () => {
 
   it("maps ConflictError to 409", () => {
     const result = mapErrorToProblemDetails()(
-      new ConflictError("Resource already exists")
+      new ConflictError("Resource already exists"),
     );
 
     expect(result.status).toBe(409);
@@ -64,26 +64,26 @@ describe("mapErrorToProblemDetails", () => {
 
   it("maps PreconditionFailedError to 412", () => {
     const result = mapErrorToProblemDetails()(
-      new PreconditionFailedError("Version mismatch")
+      new PreconditionFailedError("Version mismatch"),
     );
 
     expect(result.status).toBe(412);
     expect(result.title).toBe("Precondition Failed");
     expect(result.type).toBe(
-      "https://example.pagopa.it/problems/precondition-failed"
+      "https://example.pagopa.it/problems/precondition-failed",
     );
     expect(result.detail).toContain("Version mismatch");
   });
 
   it("maps GenericError to 500", () => {
     const result = mapErrorToProblemDetails()(
-      new GenericError("Database connection failed")
+      new GenericError("Database connection failed"),
     );
 
     expect(result.status).toBe(500);
     expect(result.title).toBe("Internal Server Error");
     expect(result.type).toBe(
-      "https://example.pagopa.it/problems/generic-error"
+      "https://example.pagopa.it/problems/generic-error",
     );
   });
 
@@ -101,12 +101,12 @@ describe("mapErrorToProblemDetails", () => {
     }
 
     const result = mapErrorToProblemDetails()(
-      new CustomValidationError("Custom input")
+      new CustomValidationError("Custom input"),
     );
 
     expect(result.status).toBe(400);
     expect(result.type).toBe(
-      "https://example.pagopa.it/problems/custom-validation"
+      "https://example.pagopa.it/problems/custom-validation",
     );
   });
 
@@ -129,7 +129,7 @@ describe("mapErrorToProblemDetails", () => {
 describe("mapErrorToHttpResponse", () => {
   it("returns a Problem+JSON response with the expected shape", () => {
     const response = mapErrorToHttpResponse()(
-      new ValidationError("Invalid data")
+      new ValidationError("Invalid data"),
     );
 
     expect(response.status).toBe(400);
@@ -145,7 +145,7 @@ describe("mapErrorToHttpResponse", () => {
 
   it("maps NotFound to a 404 response", () => {
     const response = mapErrorToHttpResponse()(
-      new NotFoundError("User", "user-id")
+      new NotFoundError("User", "user-id"),
     );
 
     expect(response.status).toBe(404);
@@ -154,7 +154,7 @@ describe("mapErrorToHttpResponse", () => {
 
   it("maps Conflict to a 409 response", () => {
     const response = mapErrorToHttpResponse()(
-      new ConflictError("Duplicate entry")
+      new ConflictError("Duplicate entry"),
     );
 
     expect(response.status).toBe(409);
@@ -163,7 +163,7 @@ describe("mapErrorToHttpResponse", () => {
 
   it("maps PreconditionFailed to a 412 response", () => {
     const response = mapErrorToHttpResponse()(
-      new PreconditionFailedError("ETag mismatch")
+      new PreconditionFailedError("ETag mismatch"),
     );
 
     expect(response.status).toBe(412);
@@ -172,7 +172,7 @@ describe("mapErrorToHttpResponse", () => {
 
   it("maps GoneError to a 410 response", () => {
     const response = mapErrorToHttpResponse()(
-      new GoneError("resource deleted")
+      new GoneError("resource deleted"),
     );
 
     expect(response.status).toBe(410);
@@ -190,7 +190,7 @@ describe("mapErrorToHttpResponse", () => {
 
   it("maps BadGatewayError to a 502 response", () => {
     const response = mapErrorToHttpResponse()(
-      new BadGatewayError("upstream failure")
+      new BadGatewayError("upstream failure"),
     );
 
     expect(response.status).toBe(502);
@@ -200,7 +200,7 @@ describe("mapErrorToHttpResponse", () => {
 
   it("maps ServiceUnavailableError to a 503 response", () => {
     const response = mapErrorToHttpResponse()(
-      new ServiceUnavailableError("under maintenance")
+      new ServiceUnavailableError("under maintenance"),
     );
 
     expect(response.status).toBe(503);
@@ -210,7 +210,7 @@ describe("mapErrorToHttpResponse", () => {
 
   it("maps GatewayTimeoutError to a 504 response", () => {
     const response = mapErrorToHttpResponse()(
-      new GatewayTimeoutError("upstream timed out")
+      new GatewayTimeoutError("upstream timed out"),
     );
 
     expect(response.status).toBe(504);

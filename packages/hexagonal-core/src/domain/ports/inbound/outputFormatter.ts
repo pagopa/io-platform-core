@@ -15,5 +15,5 @@ import { GenericError } from "../../errors/index.js";
  * @typeParam R Encoded/serialized output produced for the transport.
  */
 export type OutputFormatter<O, R> = (
-  output: O
+  output: O,
 ) => Promise<Result<R, GenericError>>;
