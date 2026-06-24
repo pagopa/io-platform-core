@@ -91,7 +91,7 @@ import { mapErrorToHttpResponse } from "@pagopa/hexagonal-core/adapters";
 import { NotFoundError } from "@pagopa/hexagonal-core/domain/errors";
 
 const { status, headers, jsonBody } = mapErrorToHttpResponse(
-  new NotFoundError("User", "id-123"),
+  new NotFoundError("User", "id-123")
 );
 // status === 404
 // headers["content-type"] === "application/problem+json"
@@ -117,7 +117,7 @@ const validate = createHttpRequestValidator(
   schema,
   (request: MyFrameworkRequest): HttpRequestPayload => ({
     path: request.params,
-  }),
+  })
 );
 
 const result = await validate(request); // Result<{ path: { id: string } }, ValidationError>
