@@ -16,7 +16,12 @@
     "lint:check": {
       "inputs": ["**/*.{ts,tsx,js,jsx,json}"]
     },
-    "format:check": {},
+    "format": {
+      "outputLogs": "errors-only"
+    },
+    "format:check": {
+      "outputLogs": "errors-only"
+    },
     "test": {
       "dependsOn": ["^build"],
       "inputs": [],

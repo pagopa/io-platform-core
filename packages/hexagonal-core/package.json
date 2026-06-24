@@ -67,6 +67,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "pnpm lint:check --fix",
     "lint:check": "eslint . --cache",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage"
   },
@@ -92,6 +94,7 @@
     "@pagopa/io-platform-typescript-config-node": "workspace:^",
     "@types/node": "catalog:",
     "@vitest/coverage-v8": "catalog:",
+    "prettier": "catalog:",
     "shx": "catalog:",
     "tsdown": "catalog:",
     "typescript": "catalog:",

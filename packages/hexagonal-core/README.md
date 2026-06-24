@@ -46,13 +46,13 @@ src/
 
 ## Entry points
 
-| Import path                            | Contents                          |
-| -------------------------------------- | --------------------------------- |
-| `@pagopa/hexagonal-core`                | Everything (domain + adapters)    |
-| `@pagopa/hexagonal-core/domain/errors`         | Domain errors                     |
-| `@pagopa/hexagonal-core/domain/value-objects`  | Branded value objects             |
-| `@pagopa/hexagonal-core/domain/ports`          | Inbound port types                |
-| `@pagopa/hexagonal-core/adapters`       | Framework-agnostic adapter helpers |
+| Import path                                   | Contents                           |
+| --------------------------------------------- | ---------------------------------- |
+| `@pagopa/hexagonal-core`                      | Everything (domain + adapters)     |
+| `@pagopa/hexagonal-core/domain/errors`        | Domain errors                      |
+| `@pagopa/hexagonal-core/domain/value-objects` | Branded value objects              |
+| `@pagopa/hexagonal-core/domain/ports`         | Inbound port types                 |
+| `@pagopa/hexagonal-core/adapters`             | Framework-agnostic adapter helpers |
 
 ## Usage
 
@@ -125,12 +125,12 @@ const result = await validate(request); // Result<{ path: { id: string } }, Vali
 
 ## Scripts
 
-| Command               | Description                          |
-| --------------------- | ------------------------------------ |
-| `pnpm build`          | Build dual ESM + CJS bundle (tsdown) |
-| `pnpm typecheck`      | Type-check without emitting          |
-| `pnpm lint`           | Run ESLint with autofix              |
-| `pnpm lint:check`     | Run ESLint without fixing            |
-| `pnpm test`           | Run unit tests (Vitest)              |
-| `pnpm test:coverage`  | Run tests with a coverage report     |
-| `pnpm clean`          | Remove `dist/`                       |
+| Command              | Description                          |
+| -------------------- | ------------------------------------ |
+| `pnpm build`         | Build dual ESM + CJS bundle (tsdown) |
+| `pnpm typecheck`     | Type-check without emitting          |
+| `pnpm lint`          | Run ESLint with autofix              |
+| `pnpm lint:check`    | Run ESLint without fixing            |
+| `pnpm test`          | Run unit tests (Vitest)              |
+| `pnpm test:coverage` | Run tests with a coverage report     |
+| `pnpm clean`         | Remove `dist/`                       |

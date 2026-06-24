@@ -27,6 +27,9 @@ catalogs:
     neverthrow:
       specifier: ^8.2.0
       version: 8.2.0
+    prettier:
+      specifier: ^3.6.2
+      version: 3.8.4
     shx:
       specifier: ^0.3.4
       version: 0.3.4
@@ -55,7 +58,7 @@ importers:
         version: 0.84.1
       '@pagopa/eslint-config':
         specifier: 'catalog:'
-        version: 6.0.4(@typescript-eslint/eslint-plugin@8.61.1(@typescript-eslint/parser@8.61.1(eslint@10.5.0)(typescript@5.9.3))(eslint@10.5.0)(typescript@5.9.3))(eslint@10.5.0)(prettier@2.8.8)(vitest@3.2.6(@types/node@22.20.0))
+        version: 6.0.4(@typescript-eslint/eslint-plugin@8.61.1(@typescript-eslint/parser@8.61.1(eslint@10.5.0)(typescript@5.9.3))(eslint@10.5.0)(typescript@5.9.3))(eslint@10.5.0)(prettier@3.8.4)(vitest@3.2.6(@types/node@22.20.0))
       '@tsconfig/node22':
         specifier: 'catalog:'
         version: 22.0.5
@@ -90,6 +93,9 @@ importers:
       '@vitest/coverage-v8':
         specifier: 'catalog:'
         version: 3.2.6(vitest@3.2.6(@types/node@22.20.0))
+      prettier:
+        specifier: 'catalog:'
+        version: 3.8.4
       shx:
         specifier: 'catalog:'
         version: 0.3.4
@@ -1627,6 +1633,11 @@ packages:
     engines: {node: '>=10.13.0'}
     hasBin: true
 
+  prettier@3.8.4:
+    resolution: {integrity: sha512-N2MylSdi48+5N/6S5j+maeHbUSIzzZ5uOcX5Hm4QpV8Dkb1HFjfAKTKX6yNPJQD9AhcT3ifHNB66tWTTJDi11Q==}
+    engines: {node: '>=14'}
+    hasBin: true
+
   punycode@2.3.1:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
     engines: {node: '>=6'}
@@ -2416,15 +2427,15 @@ snapshots:
 
   '@oxc-project/types@0.137.0': {}
 
-  '@pagopa/eslint-config@6.0.4(@typescript-eslint/eslint-plugin@8.61.1(@typescript-eslint/parser@8.61.1(eslint@10.5.0)(typescript@5.9.3))(eslint@10.5.0)(typescript@5.9.3))(eslint@10.5.0)(prettier@2.8.8)(vitest@3.2.6(@types/node@22.20.0))':
+  '@pagopa/eslint-config@6.0.4(@typescript-eslint/eslint-plugin@8.61.1(@typescript-eslint/parser@8.61.1(eslint@10.5.0)(typescript@5.9.3))(eslint@10.5.0)(typescript@5.9.3))(eslint@10.5.0)(prettier@3.8.4)(vitest@3.2.6(@types/node@22.20.0))':
     dependencies:
       '@eslint/js': 10.0.1(eslint@10.5.0)
       '@vitest/eslint-plugin': 1.6.20(@typescript-eslint/eslint-plugin@8.61.1(@typescript-eslint/parser@8.61.1(eslint@10.5.0)(typescript@5.9.3))(eslint@10.5.0)(typescript@5.9.3))(eslint@10.5.0)(typescript@5.9.3)(vitest@3.2.6(@types/node@22.20.0))
       eslint: 10.5.0
       eslint-config-prettier: 10.1.8(eslint@10.5.0)
       eslint-plugin-perfectionist: 5.9.1(eslint@10.5.0)(typescript@5.9.3)
-      eslint-plugin-prettier: 5.5.6(eslint-config-prettier@10.1.8(eslint@10.5.0))(eslint@10.5.0)(prettier@2.8.8)
-      prettier: 2.8.8
+      eslint-plugin-prettier: 5.5.6(eslint-config-prettier@10.1.8(eslint@10.5.0))(eslint@10.5.0)(prettier@3.8.4)
+      prettier: 3.8.4
       typescript: 5.9.3
       typescript-eslint: 8.61.1(eslint@10.5.0)(typescript@5.9.3)
     transitivePeerDependencies:
@@ -2965,10 +2976,10 @@ snapshots:
       - supports-color
       - typescript
 
-  eslint-plugin-prettier@5.5.6(eslint-config-prettier@10.1.8(eslint@10.5.0))(eslint@10.5.0)(prettier@2.8.8):
+  eslint-plugin-prettier@5.5.6(eslint-config-prettier@10.1.8(eslint@10.5.0))(eslint@10.5.0)(prettier@3.8.4):
     dependencies:
       eslint: 10.5.0
-      prettier: 2.8.8
+      prettier: 3.8.4
       prettier-linter-helpers: 1.0.1
       synckit: 0.11.13
     optionalDependencies:
@@ -3430,6 +3441,8 @@ snapshots:
       fast-diff: 1.3.0
 
   prettier@2.8.8: {}
+
+  prettier@3.8.4: {}
 
   punycode@2.3.1: {}
 
