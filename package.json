@@ -8,6 +8,7 @@
     "build": "turbo run build",
     "code-review": "turbo run typecheck format:check lint:check test:coverage",
     "format": "turbo run format",
+    "format:check": "turbo run format:check",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "test:coverage": "turbo run test:coverage",
