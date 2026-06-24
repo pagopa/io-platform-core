@@ -19,10 +19,14 @@ pnpm add @pagopa/hexagonal-fastify @pagopa/hexagonal-core fastify zod neverthrow
 
 ## What's inside
 
-- `createHttpHandler` — turns a `UseCase` + input validator + output formatter
+- `createHttpHandler` — turns a `UseCase` + input validator + success responder
   into a Fastify handler, replying with `application/problem+json` on errors.
 - `mountFastifyRoute` — mounts a `defineRoute` contract on a Fastify instance,
-  deriving validation, success status and response formatting from the contract.
+  deriving validation, the single success status and response encoding from the
+  contract. Both 2xx codes and `301`/`302` redirects count as success; a
+  contract declaring more than one success response is rejected at mount time.
+  An optional `outputMapper` maps the use-case output to the success schema's
+  input before encoding; redirect / no-body (`204`) responses strip the body.
 - `createFastifyRequestValidator` / `fastifyExtractPayload` — bind the core
   Standard Schema validator to `FastifyRequest` (`path` from `request.params`).
 - `sendErrorResponse` — write a domain error as RFC 7807 problem+json (delegates
@@ -52,7 +56,7 @@ mountFastifyRoute(app, {
     request: { path: z.object({ id: z.string() }) },
     response: { 200: UserSchema, 404: ProblemJson },
   }),
-  transformInput: (req) => ({ id: req.path.id }),
+  inputMapper: (req) => ({ id: req.path.id }),
   useCase: async ({ id }) =>
     id === "1"
       ? ok({ id: "1", name: "Alice" })

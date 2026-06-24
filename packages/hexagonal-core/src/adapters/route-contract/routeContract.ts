@@ -148,10 +148,14 @@ export type SuccessSchemaFromMap<R extends ResponseMap> = SchemaOf<
   R[SuccessStatusFromMap<R>]
 >;
 
-/** Extracts the 2xx status-code key from a {@link ResponseMap}. */
+/**
+ * Extracts the success status-code key from a {@link ResponseMap}. Besides the
+ * 2xx codes, the supported redirects `301`/`302` are treated as success so the
+ * adapter can mount them as a (body-less) successful outcome.
+ */
 export type SuccessStatusFromMap<R extends ResponseMap> = Extract<
   keyof R,
-  200 | 201 | 202 | 204
+  200 | 201 | 202 | 204 | 301 | 302
 >;
 
 /**

@@ -10,6 +10,7 @@ export {
 } from "./errorResponder.js";
 export {
   createHttpHandler,
+  type SuccessResponder,
   type SuccessStatusCode,
 } from "./httpHandlerBuilder.js";
 export { mountFastifyRoute } from "./mountRoute.js";
