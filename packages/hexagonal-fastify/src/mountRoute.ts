@@ -1,10 +1,12 @@
 import type {
   EnsureResponseCoversErrors,
+  RedirectEntry,
   ResponseEntry,
   ResponseMap,
   RouteContract,
   RouteRequestSchemas,
   SuccessSchemaFromMap,
+  SuccessStatusFromMap,
   WireRequest,
 } from "@pagopa/hexagonal-core/adapters";
 import type { BaseError } from "@pagopa/hexagonal-core/domain/errors";
@@ -46,20 +48,28 @@ const fastifyMethod = {
 
 /** A success entry resolved from a response map: its status and optional schema. */
 interface ResolvedSuccessEntry {
+  isRedirect: boolean;
   schema: undefined | ZodType;
   status: SuccessStatusCode;
 }
 
 /**
  * Body type the use case (or the output mapper) must produce for a contract's
- * success response. Redirect / no-body entries carry no schema, collapsing to
- * `void`; otherwise it is the `z.input` of the success schema.
+ * success response. A redirect entry carries no body but needs a target URL, so
+ * it forces a `string` (used as the `Location` header). Other no-body entries
+ * carry no schema, collapsing to `undefined`; otherwise it is the `z.input` of
+ * the success schema.
  */
-type SuccessBodyInput<Resp extends ResponseMap> = [
-  SuccessSchemaFromMap<Resp>,
-] extends [never]
-  ? undefined
-  : z.input<SuccessSchemaFromMap<Resp>>;
+type SuccessBodyInput<Resp extends ResponseMap> =
+  SuccessEntryOf<Resp> extends RedirectEntry
+    ? string
+    : [SuccessSchemaFromMap<Resp>] extends [never]
+      ? undefined
+      : z.input<SuccessSchemaFromMap<Resp>>;
+
+/** The response-map entry associated with the contract's success status. */
+type SuccessEntryOf<Resp extends ResponseMap> =
+  Resp[SuccessStatusFromMap<Resp>];
 
 /**
  * Builds the Zod schema validated against the decomposed request. Missing parts
@@ -92,10 +102,10 @@ const resolveSuccessEntry = (response: ResponseMap): ResolvedSuccessEntry => {
     if (!SUCCESS_STATUSES.has(status)) continue;
 
     const typedEntry = entry as ResponseEntry;
+    const redirect = isRedirectEntry(typedEntry);
     matches.push({
-      schema: isRedirectEntry(typedEntry)
-        ? undefined
-        : getEntrySchema(typedEntry),
+      isRedirect: redirect,
+      schema: redirect ? undefined : getEntrySchema(typedEntry),
       status: status as SuccessStatusCode,
     });
   }
@@ -122,7 +132,11 @@ const resolveSuccessEntry = (response: ResponseMap): ResolvedSuccessEntry => {
  * a body schema is present and the status carries a body — encodes the result
  * against the success schema inside the mount. Encoding failures surface as a
  * 500 because an output that fails its own contract is a server-side bug.
- * Redirect / no-body responses skip encoding and strip the body.
+ *
+ * For a redirect entry the mapped value is the target URL: it is written to the
+ * `Location` header and the body is stripped. A non-string (or empty) redirect
+ * target surfaces as a 500, since an output that violates its own contract is a
+ * server-side bug. Other no-body responses skip encoding and strip the body.
  */
 const buildSuccessResponder = <O, R>(
   entry: ResolvedSuccessEntry,
@@ -134,6 +148,16 @@ const buildSuccessResponder = <O, R>(
 
   return async (output: O, reply: FastifyReply): Promise<FastifyReply> => {
     const mapped = outputMapper ? outputMapper(output) : (output as unknown);
+
+    if (entry.isRedirect) {
+      if (typeof mapped !== "string" || mapped.length === 0) {
+        return sendErrorResponse(
+          reply,
+          new GenericError("Redirect location is missing or not a string."),
+        );
+      }
+      return reply.code(entry.status).header("location", mapped).send();
+    }
 
     if (!sendsBody || schema === undefined) {
       return reply.code(entry.status).send();
@@ -163,13 +187,15 @@ const buildSuccessResponder = <O, R>(
  *
  * Execution flow on success: the use-case output is passed to `outputMapper`
  * (when provided), then the mapped value is encoded against the success schema
- * inside this mount — redirect / no-body responses skip encoding and strip the
- * body.
+ * inside this mount. A redirect response sets the mapped `string` as the
+ * `Location` header and strips the body; other no-body responses skip encoding
+ * and strip the body.
  *
  * Compile-time guarantees enforced via the parameter types:
  *  1. with an `outputMapper`, its return type MUST equal `z.input` of the
- *     success schema (or `void` for a redirect / no-body response); without it,
- *     the use-case output MUST equal that type directly;
+ *     success schema (a `string` Location URL for a redirect, or `undefined`
+ *     for a no-body response); without it, the use-case output MUST equal that
+ *     type directly;
  *  2. every HTTP status the use case can fail with MUST appear as a key in
  *     `contract.response` (via {@link EnsureResponseCoversErrors});
  *  3. `inputMapper` receives the validated wire request shape derived from

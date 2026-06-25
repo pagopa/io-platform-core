@@ -99,7 +99,7 @@ describe("mountFastifyRoute", () => {
     await app.close();
   });
 
-  it("treats a 301/302 redirect as a body-less success", async () => {
+  it("treats a 301/302 redirect as a body-less success with a Location header", async () => {
     const app = Fastify();
     mountFastifyRoute(app, {
       contract: defineRoute({
@@ -112,13 +112,64 @@ describe("mountFastifyRoute", () => {
         },
       }),
       inputMapper: () => ({}),
-      useCase: async () => ok(undefined),
+      useCase: async () => ok("https://example.com/new"),
     });
 
     const res = await app.inject({ method: "GET", url: "/legacy" });
 
     expect(res.statusCode).toBe(302);
+    expect(res.headers.location).toBe("https://example.com/new");
     expect(res.body).toBe("");
+
+    await app.close();
+  });
+
+  it("maps the redirect Location through the output mapper", async () => {
+    const app = Fastify();
+    mountFastifyRoute(app, {
+      contract: defineRoute({
+        method: "get",
+        operationId: "mappedRedirect",
+        path: "/go/{id}",
+        request: { path: z.object({ id: z.string() }) },
+        response: {
+          302: { description: "Moved", redirect: true },
+        },
+      }),
+      inputMapper: (req) => ({ id: req.path.id }),
+      outputMapper: (out: { target: string }) => out.target,
+      useCase: async (input: { id: string }) =>
+        ok({ target: `https://example.com/${input.id}` }),
+    });
+
+    const res = await app.inject({ method: "GET", url: "/go/42" });
+
+    expect(res.statusCode).toBe(302);
+    expect(res.headers.location).toBe("https://example.com/42");
+
+    await app.close();
+  });
+
+  it("maps a missing/empty redirect Location to 500", async () => {
+    const app = Fastify();
+    mountFastifyRoute(app, {
+      contract: defineRoute({
+        method: "get",
+        operationId: "brokenRedirect",
+        path: "/broken",
+        request: {},
+        response: {
+          302: { description: "Moved", redirect: true },
+        },
+      }),
+      inputMapper: () => ({}),
+      useCase: async () => ok(""),
+    });
+
+    const res = await app.inject({ method: "GET", url: "/broken" });
+
+    expect(res.statusCode).toBe(500);
+    expect(res.json().title).toBe("Internal Server Error");
 
     await app.close();
   });
