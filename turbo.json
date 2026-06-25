@@ -4,16 +4,24 @@
     "build": {
       "dependsOn": ["^build"],
       "inputs": [],
-      "outputs": []
+      "outputs": ["dist/**"]
     },
     "typecheck": {
       "dependsOn": ["^build"],
       "inputs": []
     },
-    "lint:check": {
-      "inputs": []
+    "lint": {
+      "inputs": ["**/*.{ts,tsx,js,jsx,json}"]
     },
-    "format:check": {},
+    "lint:check": {
+      "inputs": ["**/*.{ts,tsx,js,jsx,json}"]
+    },
+    "format": {
+      "outputLogs": "errors-only"
+    },
+    "format:check": {
+      "outputLogs": "errors-only"
+    },
     "test": {
       "dependsOn": ["^build"],
       "inputs": [],
@@ -22,8 +30,7 @@
     "test:coverage": {
       "dependsOn": ["^build"],
       "inputs": [],
-      "outputs": ["coverage"],
-      "outputLogs": "errors-only"
+      "outputs": ["coverage"]
     }
   }
 }

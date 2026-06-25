@@ -307,3 +307,6 @@ terraform.rc
 # Terraform lock files for modules
 **/modules/**/.terraform.lock.hcl
 **/_modules/**/.terraform.lock.hcl
+
+# Agent scratch / task-tracking workspace
+.tmp/

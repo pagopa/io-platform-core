@@ -1,0 +1,108 @@
+{
+  "name": "@pagopa/hexagonal-core",
+  "version": "0.0.0",
+  "description": "Framework-agnostic hexagonal building blocks (shared domain + adapter primitives) for the IO platform ecosystem.",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pagopa/io-platform-core.git"
+  },
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./domain/errors": {
+      "import": {
+        "types": "./dist/domain/errors.d.ts",
+        "default": "./dist/domain/errors.js"
+      },
+      "require": {
+        "types": "./dist/domain/errors.d.cts",
+        "default": "./dist/domain/errors.cjs"
+      }
+    },
+    "./domain/value-objects": {
+      "import": {
+        "types": "./dist/domain/value-objects.d.ts",
+        "default": "./dist/domain/value-objects.js"
+      },
+      "require": {
+        "types": "./dist/domain/value-objects.d.cts",
+        "default": "./dist/domain/value-objects.cjs"
+      }
+    },
+    "./domain/ports": {
+      "import": {
+        "types": "./dist/domain/ports.d.ts",
+        "default": "./dist/domain/ports.js"
+      },
+      "require": {
+        "types": "./dist/domain/ports.d.cts",
+        "default": "./dist/domain/ports.cjs"
+      }
+    },
+    "./adapters": {
+      "import": {
+        "types": "./dist/adapters.d.ts",
+        "default": "./dist/adapters.js"
+      },
+      "require": {
+        "types": "./dist/adapters.d.cts",
+        "default": "./dist/adapters.cjs"
+      }
+    }
+  },
+  "scripts": {
+    "clean": "shx rm -rf dist",
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit",
+    "lint": "pnpm lint:check --fix",
+    "lint:check": "eslint . --cache",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  },
+  "keywords": [
+    "io",
+    "pagopa",
+    "hexagonal",
+    "ports-and-adapters",
+    "domain",
+    "zod",
+    "neverthrow"
+  ],
+  "author": "PagoPA Platform Team",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "peerDependencies": {
+    "@standard-schema/spec": "catalog:",
+    "neverthrow": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@pagopa/io-platform-typescript-config-node": "workspace:^",
+    "@types/node": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "prettier": "catalog:",
+    "shx": "catalog:",
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}
