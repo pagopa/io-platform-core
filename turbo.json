@@ -33,8 +33,7 @@
       "outputs": ["coverage"]
     },
     "version": {
-      "dependsOn": ["^build"],
-      "inputs": ["package.json"]
+      "dependsOn": ["^build"]
     }
   }
 }
