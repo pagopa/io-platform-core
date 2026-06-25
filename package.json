@@ -14,8 +14,8 @@
     "test:coverage": "turbo run test:coverage",
     "lint": "turbo run lint -- --fix .",
     "lint:check": "turbo run lint:check",
-    "release": "changeset version",
-    "version": "turbo run version"
+    "version": "changeset version",
+    "release": "pnpm build && changeset publish"
   },
   "devDependencies": {
     "@changesets/cli": "^2.30.0",
