@@ -3,6 +3,10 @@
   "version": "0.0.0",
   "description": "Framework-agnostic hexagonal building blocks (shared domain + adapter primitives) for the IO platform ecosystem.",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pagopa/io-platform-core.git"
+  },
   "files": [
     "dist"
   ],
@@ -83,6 +87,7 @@
   ],
   "author": "PagoPA Platform Team",
   "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
     "access": "public"
   },
   "peerDependencies": {
