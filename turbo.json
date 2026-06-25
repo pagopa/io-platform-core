@@ -31,6 +31,10 @@
       "dependsOn": ["^build"],
       "inputs": [],
       "outputs": ["coverage"]
+    },
+    "version": {
+      "dependsOn": ["^build"],
+      "inputs": ["package.json"]
     }
   }
 }
