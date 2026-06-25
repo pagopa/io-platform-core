@@ -62,4 +62,37 @@ describe("createApp", () => {
       await server.close();
     }
   });
+
+  const successRoutes = [
+    {
+      expectedStatus: 200,
+      method: "GET",
+      url: `/api/v1/widgets/${ID}/summary`,
+    },
+    {
+      expectedStatus: 202,
+      method: "POST",
+      url: `/api/v1/widgets/${ID}/refresh`,
+    },
+    {
+      expectedStatus: 204,
+      method: "POST",
+      url: `/api/v1/widgets/${ID}/archive`,
+    },
+  ] as const;
+
+  it.each(successRoutes)(
+    "mounts $method $url and returns $expectedStatus from the implemented use case",
+    async ({ expectedStatus, method, url }) => {
+      const { server } = createApp();
+
+      try {
+        const res = await server.inject({ method, url });
+
+        expect(res.statusCode).toBe(expectedStatus);
+      } finally {
+        await server.close();
+      }
+    },
+  );
 });
