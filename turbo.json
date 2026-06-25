@@ -34,7 +34,7 @@
     },
     "version": {
       "dependsOn": ["^build"],
-      "inputs": ["package.json"]
+      "outputs": ["package.json"]
     }
   }
 }
