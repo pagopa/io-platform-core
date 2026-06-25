@@ -3,6 +3,10 @@
   "version": "0.0.0",
   "description": "Fastify primary-adapter primitives for the IO platform hexagonal architecture: request validation, response/error wiring and code-first route mounting.",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pagopa/io-platform-core.git"
+  },
   "files": [
     "dist"
   ],
@@ -42,6 +46,7 @@
   ],
   "author": "PagoPA Platform Team",
   "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
     "access": "public"
   },
   "dependencies": {
