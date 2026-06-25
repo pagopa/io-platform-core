@@ -81,6 +81,43 @@ importers:
         specifier: 'catalog:'
         version: 5.9.3
 
+  apps/io-example-hexagonal-fastify:
+    dependencies:
+      '@pagopa/hexagonal-core':
+        specifier: workspace:^
+        version: link:../../packages/hexagonal-core
+      '@pagopa/hexagonal-fastify':
+        specifier: workspace:^
+        version: link:../../packages/hexagonal-fastify
+      fastify:
+        specifier: 'catalog:'
+        version: 5.8.5
+      neverthrow:
+        specifier: 'catalog:'
+        version: 8.2.0
+      zod:
+        specifier: 'catalog:'
+        version: 4.4.3
+    devDependencies:
+      '@pagopa/io-platform-typescript-config-node':
+        specifier: workspace:^
+        version: link:../../packages/typescript-config-node
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.20.0
+      '@vitest/coverage-v8':
+        specifier: 'catalog:'
+        version: 3.2.6(vitest@3.2.6(@types/node@22.20.0)(yaml@2.9.0))
+      shx:
+        specifier: 'catalog:'
+        version: 0.3.4
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vitest:
+        specifier: 'catalog:'
+        version: 3.2.6(@types/node@22.20.0)(yaml@2.9.0)
+
   packages/hexagonal-core:
     dependencies:
       '@standard-schema/spec':
