@@ -1,9 +1,13 @@
-import type { BaseError } from "@pagopa/hexagonal-core/domain/errors";
 import type {
   InputValidator,
   UseCase,
 } from "@pagopa/hexagonal-core/domain/ports";
 import type { FastifyReply, FastifyRequest } from "fastify";
+
+import {
+  type BaseError,
+  GenericError,
+} from "@pagopa/hexagonal-core/domain/errors";
 
 import { sendErrorResponse } from "./errorResponder.js";
 
@@ -53,15 +57,22 @@ export const createHttpHandler =
     request: FastifyRequest,
     reply: FastifyReply,
   ): Promise<FastifyReply> => {
-    const inputResult = await inputValidator(request);
-    if (inputResult.isErr()) {
-      return sendErrorResponse(reply, inputResult.error);
-    }
+    try {
+      const inputResult = await inputValidator(request);
+      if (inputResult.isErr()) {
+        return sendErrorResponse(reply, inputResult.error);
+      }
 
-    const result = await useCase(inputResult.value);
-    if (result.isErr()) {
-      return sendErrorResponse(reply, result.error);
-    }
+      const result = await useCase(inputResult.value);
+      if (result.isErr()) {
+        return sendErrorResponse(reply, result.error);
+      }
 
-    return onSuccess(result.value, reply);
+      return onSuccess(result.value, reply);
+    } catch (err) {
+      return sendErrorResponse(
+        reply,
+        new GenericError(`Unexpected error in HTTP handler. ${err}`),
+      );
+    }
   };
