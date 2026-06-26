@@ -1,0 +1,73 @@
+{
+  "name": "@pagopa/hexagonal-fastify",
+  "version": "0.0.0",
+  "private": false,
+  "description": "Fastify primary-adapter primitives for the IO platform hexagonal architecture: request validation, response/error wiring and code-first route mounting.",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pagopa/io-platform-core.git"
+  },
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "scripts": {
+    "clean": "shx rm -rf dist",
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "pnpm lint:check --fix",
+    "lint:check": "eslint . --cache",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  },
+  "keywords": [
+    "io",
+    "pagopa",
+    "fastify",
+    "hexagonal",
+    "ports-and-adapters",
+    "adapter"
+  ],
+  "author": "PagoPA Platform Team",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "dependencies": {
+    "@pagopa/hexagonal-core": "workspace:^"
+  },
+  "peerDependencies": {
+    "@standard-schema/spec": "catalog:",
+    "fastify": "catalog:",
+    "neverthrow": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@pagopa/io-platform-typescript-config-node": "workspace:^",
+    "@types/node": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "fastify": "catalog:",
+    "prettier": "catalog:",
+    "shx": "catalog:",
+    "tsdown": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}
