@@ -85,7 +85,7 @@ const buildWireSchema = (request: RouteRequestSchemas) =>
 
 /** Converts an OpenAPI path (`/users/{id}`) to Fastify syntax (`/users/:id`). */
 const toFastifyPath = (path: string): string =>
-  path.replace(/\{([^}]+)\}/g, ":$1");
+  path.replace(/\{([^{}]+)\}/g, ":$1");
 
 /**
  * Resolves the single success entry of a response map. Both 2xx codes and the
