@@ -19,7 +19,9 @@ import type { z, ZodType } from "zod";
 
 import {
   getEntrySchema,
+  isNoBodyStatus,
   isRedirectEntry,
+  isSuccessStatus,
 } from "@pagopa/hexagonal-core/adapters";
 import { GenericError } from "@pagopa/hexagonal-core/domain/errors";
 import { z as zod } from "zod";
@@ -31,12 +33,6 @@ import {
   type SuccessStatusCode,
 } from "./httpHandlerBuilder.js";
 import { createFastifyRequestValidator } from "./validator/fastifyRequestValidator.js";
-
-/** HTTP statuses the adapter mounts as a successful outcome (incl. redirects). */
-const SUCCESS_STATUSES = new Set<number>([200, 201, 202, 204, 301, 302]);
-
-/** Statuses that never carry a response body. */
-const NO_BODY_STATUSES = new Set<number>([204, 301, 302]);
 
 const fastifyMethod = {
   delete: "DELETE",
@@ -99,7 +95,7 @@ const resolveSuccessEntry = (response: ResponseMap): ResolvedSuccessEntry => {
 
   for (const [key, entry] of Object.entries(response)) {
     const status = Number(key);
-    if (!SUCCESS_STATUSES.has(status)) continue;
+    if (!isSuccessStatus(status)) continue;
 
     const typedEntry = entry as ResponseEntry;
     const redirect = isRedirectEntry(typedEntry);
@@ -142,8 +138,7 @@ const buildSuccessResponder = <O, R>(
   entry: ResolvedSuccessEntry,
   outputMapper?: (output: O) => R,
 ): SuccessResponder<O> => {
-  const sendsBody =
-    entry.schema !== undefined && !NO_BODY_STATUSES.has(entry.status);
+  const sendsBody = entry.schema !== undefined && !isNoBodyStatus(entry.status);
   const schema = entry.schema;
 
   return async (output: O, reply: FastifyReply): Promise<FastifyReply> => {

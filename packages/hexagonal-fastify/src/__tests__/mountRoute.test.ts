@@ -98,7 +98,9 @@ describe("mountFastifyRoute", () => {
 
     await app.close();
   });
+});
 
+describe("mountFastifyRoute redirects", () => {
   it("treats a 301/302 redirect as a body-less success with a Location header", async () => {
     const app = Fastify();
     mountFastifyRoute(app, {
@@ -122,6 +124,61 @@ describe("mountFastifyRoute", () => {
     expect(res.body).toBe("");
 
     await app.close();
+  });
+
+  it("treats 303/307/308 redirects as a body-less success with a Location header", async () => {
+    const app303 = Fastify();
+    mountFastifyRoute(app303, {
+      contract: defineRoute({
+        method: "get",
+        operationId: "redirect303",
+        path: "/legacy",
+        request: {},
+        response: { 303: { description: "Redirect", redirect: true } },
+      }),
+      inputMapper: () => ({}),
+      useCase: async () => ok("https://example.com/new"),
+    });
+
+    const app307 = Fastify();
+    mountFastifyRoute(app307, {
+      contract: defineRoute({
+        method: "get",
+        operationId: "redirect307",
+        path: "/legacy",
+        request: {},
+        response: { 307: { description: "Redirect", redirect: true } },
+      }),
+      inputMapper: () => ({}),
+      useCase: async () => ok("https://example.com/new"),
+    });
+
+    const app308 = Fastify();
+    mountFastifyRoute(app308, {
+      contract: defineRoute({
+        method: "get",
+        operationId: "redirect308",
+        path: "/legacy",
+        request: {},
+        response: { 308: { description: "Redirect", redirect: true } },
+      }),
+      inputMapper: () => ({}),
+      useCase: async () => ok("https://example.com/new"),
+    });
+
+    for (const [app, status] of [
+      [app303, 303],
+      [app307, 307],
+      [app308, 308],
+    ] as const) {
+      const res = await app.inject({ method: "GET", url: "/legacy" });
+
+      expect(res.statusCode).toBe(status);
+      expect(res.headers.location).toBe("https://example.com/new");
+      expect(res.body).toBe("");
+
+      await app.close();
+    }
   });
 
   it("maps the redirect Location through the output mapper", async () => {
@@ -173,7 +230,9 @@ describe("mountFastifyRoute", () => {
 
     await app.close();
   });
+});
 
+describe("mountFastifyRoute success", () => {
   it("strips the body for a 204 success", async () => {
     const app = Fastify();
     mountFastifyRoute(app, {

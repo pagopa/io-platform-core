@@ -11,6 +11,8 @@ import {
 
 import { sendErrorResponse } from "./errorResponder.js";
 
+export type { SuccessStatusCode } from "@pagopa/hexagonal-core/adapters";
+
 /**
  * Emits the response for a successful use-case output. Output mapping and
  * schema encode/decode are performed by the caller (the mount adapter) inside
@@ -23,9 +25,6 @@ export type SuccessResponder<O> = (
   output: O,
   reply: FastifyReply,
 ) => Promise<FastifyReply>;
-
-/** HTTP success status codes an HTTP handler may emit (incl. redirects). */
-export type SuccessStatusCode = 200 | 201 | 202 | 204 | 301 | 302;
 
 /**
  * Builds a Fastify route handler from a use case, an input validator and a

@@ -2,6 +2,7 @@ import type { z, ZodObject, ZodType } from "zod";
 
 import type { BaseError } from "../../domain/errors/index.js";
 import type { ErrorKindToStatus } from "../error-mapper/errorHttpMetadata.js";
+import type { AdapterOnlyStatus, SuccessStatusCode } from "./httpStatus.js";
 
 /** HTTP methods supported by a route contract. */
 export type HttpMethod = "delete" | "get" | "patch" | "post" | "put";
@@ -86,9 +87,10 @@ const isZodTypeEntry = (entry: ResponseEntry): entry is ZodType =>
  * codes do not exactly match the HTTP statuses the use case can produce.
  *
  * - **Forward** — every use-case error must have a response entry.
- * - **Backward** — every non-2xx, non-400 response key must correspond to a
- *   use-case error (`400` is excluded because the adapter always handles input
- *   validation failures regardless of what the use case declares).
+ * - **Backward** — every response key that is not a success status (2xx or a
+ *   supported redirect) and not adapter-only (`400`) must correspond to a
+ *   use-case error. `400` is excluded because the adapter always handles input
+ *   validation failures regardless of what the use case declares.
  */
 export type EnsureResponseCoversErrors<
   E extends BaseError,
@@ -151,30 +153,25 @@ export type SuccessSchemaFromMap<R extends ResponseMap> = SchemaOf<
 
 /**
  * Extracts the success status-code key from a {@link ResponseMap}. Besides the
- * 2xx codes, the supported redirects `301`/`302` are treated as success so the
- * adapter can mount them as a (body-less) successful outcome.
+ * 2xx codes, the supported redirects (`301`/`302`/`303`/`307`/`308`) are
+ * treated as success so the adapter can mount them as a (body-less) successful
+ * outcome. The success status set is defined once in {@link SuccessStatusCode}.
  */
 export type SuccessStatusFromMap<R extends ResponseMap> = Extract<
   keyof R,
-  200 | 201 | 202 | 204 | 301 | 302
+  SuccessStatusCode
 >;
-
-/**
- * Status codes that are always emitted by the adapter framework independently
- * of the use case (e.g. 400 for request validation). These are excluded from
- * the backward coverage check so routes can document them without forcing the
- * use case to declare a corresponding error.
- */
-type AdapterOnlyStatuses = 301 | 302 | 303 | 307 | 308 | 400;
 
 /**
  * Extracts non-success, non-adapter-only numeric status keys from a response
  * map. These are the "pure domain-error" codes that must correspond 1-to-1 with
- * the use-case error union.
+ * the use-case error union. Adapter-only statuses (`400`, see
+ * {@link AdapterOnlyStatus}) are excluded because the adapter always handles
+ * request validation regardless of what the use case declares.
  */
 type ErrorResponseKeysOf<R extends ResponseMap> = Exclude<
   Extract<keyof R, number>,
-  200 | 201 | 202 | 204 | AdapterOnlyStatuses
+  AdapterOnlyStatus | SuccessStatusCode
 >;
 
 type SchemaOf<E extends ResponseEntry> = E extends ZodType
