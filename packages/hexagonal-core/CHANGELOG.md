@@ -1,5 +1,12 @@
 # @pagopa/hexagonal-core
 
+## 0.1.1
+
+### Patch Changes
+
+- 21d4ea8: Create the package/library `@pagopa/hexagonal-fastify` that provides helpers to implement the adapters using the fastify web framework for the hexagonal architecture proposal for IO.
+  Refactor and extend error mapper in `@pagopa/hexagonal-core` to support the new error handling strategy in the IO platform.
+
 ## 0.1.0
 
 ### Minor Changes
