@@ -1,6 +1,6 @@
 {
   "name": "@pagopa/hexagonal-fastify",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": false,
   "description": "Fastify primary-adapter primitives for the IO platform hexagonal architecture: request validation, response/error wiring and code-first route mounting.",
   "type": "module",
