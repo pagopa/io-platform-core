@@ -32,6 +32,7 @@
     "@pagopa/io-platform-typescript-config-node": "workspace:^",
     "@types/node": "catalog:",
     "@vitest/coverage-v8": "catalog:",
+    "prettier": "catalog:",
     "shx": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
