@@ -1,5 +1,11 @@
 # @pagopa/hexagonal-core
 
+## 0.1.2
+
+### Patch Changes
+
+- ce3031b: Document middleware patterns in the README: use case decorator and use case composition.
+
 ## 0.1.1
 
 ### Patch Changes
