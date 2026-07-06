@@ -11,7 +11,6 @@ const UserSchema = z.object({ id: z.string(), name: z.string() });
 
 const getUserContract = defineRoute({
   method: "get",
-  operationId: "getUser",
   path: "/users/{id}",
   request: { path: z.object({ id: z.string() }) },
   response: { 200: UserSchema, 404: ProblemJson },
@@ -82,7 +81,6 @@ describe("mountFastifyRoute", () => {
     mountFastifyRoute(app, {
       contract: defineRoute({
         method: "get",
-        operationId: "getEmail",
         path: "/email",
         request: {},
         response: { 200: z.object({ id: z.email() }) },
@@ -106,7 +104,6 @@ describe("mountFastifyRoute redirects", () => {
     mountFastifyRoute(app, {
       contract: defineRoute({
         method: "get",
-        operationId: "legacyRedirect",
         path: "/legacy",
         request: {},
         response: {
@@ -131,7 +128,6 @@ describe("mountFastifyRoute redirects", () => {
     mountFastifyRoute(app303, {
       contract: defineRoute({
         method: "get",
-        operationId: "redirect303",
         path: "/legacy",
         request: {},
         response: { 303: { description: "Redirect", redirect: true } },
@@ -144,7 +140,6 @@ describe("mountFastifyRoute redirects", () => {
     mountFastifyRoute(app307, {
       contract: defineRoute({
         method: "get",
-        operationId: "redirect307",
         path: "/legacy",
         request: {},
         response: { 307: { description: "Redirect", redirect: true } },
@@ -157,7 +152,6 @@ describe("mountFastifyRoute redirects", () => {
     mountFastifyRoute(app308, {
       contract: defineRoute({
         method: "get",
-        operationId: "redirect308",
         path: "/legacy",
         request: {},
         response: { 308: { description: "Redirect", redirect: true } },
@@ -186,7 +180,6 @@ describe("mountFastifyRoute redirects", () => {
     mountFastifyRoute(app, {
       contract: defineRoute({
         method: "get",
-        operationId: "mappedRedirect",
         path: "/go/{id}",
         request: { path: z.object({ id: z.string() }) },
         response: {
@@ -212,7 +205,6 @@ describe("mountFastifyRoute redirects", () => {
     mountFastifyRoute(app, {
       contract: defineRoute({
         method: "get",
-        operationId: "brokenRedirect",
         path: "/broken",
         request: {},
         response: {
@@ -238,7 +230,6 @@ describe("mountFastifyRoute success", () => {
     mountFastifyRoute(app, {
       contract: defineRoute({
         method: "delete",
-        operationId: "deleteUser",
         path: "/users/{id}",
         request: { path: z.object({ id: z.string() }) },
         response: { 204: z.object({}) },
@@ -262,7 +253,6 @@ describe("mountFastifyRoute success", () => {
       mountFastifyRoute(app, {
         contract: defineRoute({
           method: "get",
-          operationId: "multiSuccess",
           path: "/multi",
           request: {},
           response: { 200: UserSchema, 201: UserSchema },
