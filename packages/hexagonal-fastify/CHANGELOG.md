@@ -1,5 +1,12 @@
 # @pagopa/hexagonal-fastify
 
+## 0.1.1
+
+### Patch Changes
+
+- Updated dependencies [29c3a9a]
+  - @pagopa/hexagonal-core@0.2.0
+
 ## 0.1.0
 
 ### Minor Changes

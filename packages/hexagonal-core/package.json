@@ -1,6 +1,6 @@
 {
   "name": "@pagopa/hexagonal-core",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "private": false,
   "description": "Framework-agnostic hexagonal building blocks (shared domain + adapter primitives) for the IO platform ecosystem.",
   "type": "module",
