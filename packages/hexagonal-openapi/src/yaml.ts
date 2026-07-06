@@ -33,7 +33,7 @@ export type WriteResult =
  *   or `check-failed` (with a diff) when `check` is set and the file drifted.
  */
 export const writeOpenApiYaml = async (
-  options: WriteOptions
+  options: WriteOptions,
 ): Promise<WriteResult> => {
   const next = openApiToYaml(options.doc);
 
