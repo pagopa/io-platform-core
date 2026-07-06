@@ -1,5 +1,23 @@
 # @pagopa/hexagonal-core
 
+## 0.2.0
+
+### Minor Changes
+
+- 29c3a9a: Add a technology-agnostic `Logger` outbound port (`domain/ports/outbound`) and an
+  opt-in Application Insights adapter (`@pagopa/hexagonal-core/adapters/logger`)
+  that wraps the corporate `@pagopa/azure-tracing` library behind a narrow
+  `AppInsightsTelemetryClient` seam. Ships `makeApplicationInsightsLogger`,
+  `noopLogger` and the `LogLevel` → App Insights severity mapping. The corporate
+  library is an optional peer dependency, so consumers that don't use App Insights
+  never load it; the generic `./adapters` barrel stays vendor-free.
+
+## 0.1.2
+
+### Patch Changes
+
+- ce3031b: Document middleware patterns in the README: use case decorator and use case composition.
+
 ## 0.1.1
 
 ### Patch Changes

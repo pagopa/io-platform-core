@@ -1,6 +1,6 @@
 {
   "name": "@pagopa/hexagonal-core",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "private": false,
   "description": "Framework-agnostic hexagonal building blocks (shared domain + adapter primitives) for the IO platform ecosystem.",
   "type": "module",
@@ -64,6 +64,16 @@
         "types": "./dist/adapters.d.cts",
         "default": "./dist/adapters.cjs"
       }
+    },
+    "./adapters/logger": {
+      "import": {
+        "types": "./dist/adapters/logger.d.ts",
+        "default": "./dist/adapters/logger.js"
+      },
+      "require": {
+        "types": "./dist/adapters/logger.d.cts",
+        "default": "./dist/adapters/logger.cjs"
+      }
     }
   },
   "scripts": {
@@ -92,11 +102,18 @@
     "access": "public"
   },
   "peerDependencies": {
+    "@pagopa/azure-tracing": "catalog:",
     "@standard-schema/spec": "catalog:",
     "neverthrow": "catalog:",
     "zod": "catalog:"
   },
+  "peerDependenciesMeta": {
+    "@pagopa/azure-tracing": {
+      "optional": true
+    }
+  },
   "devDependencies": {
+    "@pagopa/azure-tracing": "catalog:",
     "@pagopa/io-platform-typescript-config-node": "workspace:^",
     "@types/node": "catalog:",
     "@vitest/coverage-v8": "catalog:",

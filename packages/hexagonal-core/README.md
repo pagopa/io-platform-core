@@ -41,18 +41,20 @@ src/
 └── adapters/
     ├── error-mapper/    # mapErrorToProblemDetails, mapErrorToHttpResponse (RFC 7807)
     ├── formatter/       # createHttpResponseFormatter, identityFormatter
+    ├── logger/          # makeApplicationInsightsLogger (App Insights via @pagopa/azure-tracing), noopLogger
     └── validator/       # createHttpRequestValidator, emptyValidator, …
 ```
 
 ## Entry points
 
-| Import path                                   | Contents                           |
-| --------------------------------------------- | ---------------------------------- |
-| `@pagopa/hexagonal-core`                      | Everything (domain + adapters)     |
-| `@pagopa/hexagonal-core/domain/errors`        | Domain errors                      |
-| `@pagopa/hexagonal-core/domain/value-objects` | Branded value objects              |
-| `@pagopa/hexagonal-core/domain/ports`         | Inbound port types                 |
-| `@pagopa/hexagonal-core/adapters`             | Framework-agnostic adapter helpers |
+| Import path                                   | Contents                                     |
+| --------------------------------------------- | -------------------------------------------- |
+| `@pagopa/hexagonal-core`                      | Everything (domain + adapters)               |
+| `@pagopa/hexagonal-core/domain/errors`        | Domain errors                                |
+| `@pagopa/hexagonal-core/domain/value-objects` | Branded value objects                        |
+| `@pagopa/hexagonal-core/domain/ports`         | Inbound + outbound port types                |
+| `@pagopa/hexagonal-core/adapters`             | Framework-agnostic adapter helpers           |
+| `@pagopa/hexagonal-core/adapters/logger`      | Application Insights logger adapter (opt-in) |
 
 ## Usage
 
@@ -122,6 +124,247 @@ const validate = createHttpRequestValidator(
 
 const result = await validate(request); // Result<{ path: { id: string } }, ValidationError>
 ```
+
+### Logging & telemetry (Application Insights)
+
+The `Logger` port is technology-agnostic; the concrete adapter wraps the
+corporate **`@pagopa/azure-tracing`** library (Tech Radar `pagopa-azure-tracing`)
+— never the raw `applicationinsights` client. Depend on the **port** in your
+application layer, and wire the adapter only in the composition root.
+
+The adapter consumes a narrow structural seam (`AppInsightsTelemetryClient`), so
+the composition root bootstraps the corporate library once and passes a small
+shim that maps it onto the seam:
+
+```ts
+import { makeApplicationInsightsLogger } from "@pagopa/hexagonal-core/adapters/logger";
+import type { AppInsightsTelemetryClient } from "@pagopa/hexagonal-core/adapters/logger";
+import { initAzureMonitor } from "@pagopa/azure-tracing/azure-monitor";
+import { emitCustomEvent } from "@pagopa/azure-tracing/logger";
+import { logs, SeverityNumber } from "@opentelemetry/api-logs";
+
+// 1. Bootstrap OpenTelemetry / Azure Monitor ONCE at process start.
+//    Reads APPLICATIONINSIGHTS_CONNECTION_STRING from the environment.
+initAzureMonitor();
+
+// 2. Shim the corporate library onto the adapter's structural seam.
+const aiLogger = logs.getLogger("io-user-profile");
+const stringify = (p?: Record<string, unknown>): Record<string, string> =>
+  Object.fromEntries(Object.entries(p ?? {}).map(([k, v]) => [k, String(v)]));
+
+const client: AppInsightsTelemetryClient = {
+  trackTrace: ({ message, severity, properties }) =>
+    aiLogger.emit({
+      body: message,
+      severityNumber: severity as unknown as SeverityNumber,
+      attributes: stringify(properties),
+    }),
+  trackEvent: ({ name, properties }) =>
+    emitCustomEvent(name, stringify(properties))(),
+  trackException: ({ exception, properties }) =>
+    aiLogger.emit({
+      body: exception.message,
+      severityNumber: SeverityNumber.ERROR,
+      attributes: {
+        ...stringify(properties),
+        "exception.stack": exception.stack ?? "",
+      },
+    }),
+};
+
+// 3. Build the port and inject it into your use-case factories.
+const logger = makeApplicationInsightsLogger({
+  client,
+  baseProperties: { service: "io-user-profile" },
+});
+
+logger.info("profile fetched", { userId: "u1" }); // → traces (Information)
+logger.trackEvent({ name: "UserProfileCreated" }); // → customEvents
+logger.trackException({ error: new Error("boom") }); // → exceptions
+
+const requestLogger = logger.with({ correlationId: "c-123" }); // child logger
+await logger.flush(); // flush before a serverless worker suspends
+```
+
+Depend on the **port**, not the adapter, in your application layer:
+
+```ts
+import type { Logger } from "@pagopa/hexagonal-core/domain/ports";
+
+const makeCreateUserProfileUseCase =
+  (deps: { logger: Logger }) => async (input: { fiscalCode: string }) => {
+    deps.logger.debug("creating profile", { fiscalCode: input.fiscalCode });
+    // …
+  };
+```
+
+For testing, use the bundled null object:
+
+```ts
+import { noopLogger } from "@pagopa/hexagonal-core/adapters/logger";
+
+const useCase = makeCreateUserProfileUseCase({ logger: noopLogger });
+```
+
+## Middleware and cross-cutting concerns
+
+Cross-cutting concerns — logging, tracing, metrics, audit logging, idempotency,
+authorization, reusable business rules — must not leak into the domain or use
+cases as direct dependencies, nor be re-implemented for every primary adapter
+(Fastify, Azure Functions). `@pagopa/hexagonal-core` supports two
+framework-agnostic middleware patterns that build on the `UseCase` port:
+
+- **Use case decorator** — wrap a `UseCase` to add infrastructural behaviour.
+- **Use case composition** — orchestrate smaller, reusable use cases as
+  first-class business steps.
+
+Both follow the same guiding principles:
+
+1. **Cross-cutting dependencies enter as outbound ports** (`ILogger`, `IClock`,
+   `IAuditLog`, `IPolicy`, …), injected through the `makeXxxUseCase(deps)`
+   factory. A use case never imports a concrete logger or HTTP client.
+2. **Everything stays `Result<_, BaseError>`.** Each decorator or orchestrated
+   step returns the same error channel, so the single RFC 7807 error mapper
+   (`mapErrorToHttpResponse`) keeps handling every response. Any new error type
+   must be added to the route contract's `response` map.
+3. **Context stays transport-neutral.** If a concern needs request metadata
+   (headers, IP, correlation id), model it explicitly in the use-case input —
+   never pass the raw `FastifyRequest`. The same chain then serves Fastify and
+   Azure Functions.
+4. **The mechanism follows the nature of the concern**, not convenience: an
+   infrastructural detail is decorated, a reusable business rule is composed.
+
+> A pipeline-middleware stage inside the handler builder is not currently
+> supported by the core packages.
+
+### Use case decorator
+
+Because `UseCase<Input, Output, Error>` is a function type, it can be wrapped by
+a higher-order function: `withTiming(logger)(useCase)`,
+`withAuthorization(policy)(useCase)`. Decorators live in the `application/`
+layer and are composed at wiring time in `createApp.ts`; their dependencies are
+injected as outbound ports.
+
+An infrastructural decorator preserves the use-case error type `E` untouched:
+
+```ts
+import type { BaseError } from "@pagopa/hexagonal-core/domain/errors";
+import type { UseCase } from "@pagopa/hexagonal-core/domain/ports";
+
+// `ILogger` is an outbound port you define and inject.
+const withTiming =
+  (logger: ILogger) =>
+  <I extends object, O, E extends BaseError>(
+    useCase: UseCase<I, O, E>,
+  ): UseCase<I, O, E> =>
+  async (input) => {
+    const startedAt = Date.now();
+    const result = await useCase(input);
+    logger.info({ ok: result.isOk(), ms: Date.now() - startedAt });
+    return result;
+  };
+```
+
+A decorator that adds a failure mode **widens the error channel** — the route
+contract must then declare the corresponding status (e.g. `403`):
+
+```ts
+import type { BaseError } from "@pagopa/hexagonal-core/domain/errors";
+import { ForbiddenError } from "@pagopa/hexagonal-core/domain/errors";
+import type { UseCase } from "@pagopa/hexagonal-core/domain/ports";
+import { err } from "neverthrow";
+
+// `IPolicy` is an outbound port; `Actor` is your caller identity type.
+const withAuthorization =
+  (policy: IPolicy) =>
+  <I extends { actor: Actor }, O, E extends BaseError>(
+    useCase: UseCase<I, O, E>,
+  ): UseCase<I, O, E | ForbiddenError> =>
+  async (input) =>
+    (await policy.allows(input.actor))
+      ? useCase(input)
+      : err(new ForbiddenError());
+```
+
+Compose decorators explicitly at wiring time (`createApp.ts`):
+
+```ts
+const getWidget = withTiming(logger)(
+  withAuthorization(policy)(makeGetWidgetUseCase(deps)),
+);
+```
+
+**Recommended for:** logging, tracing, metrics, audit logging (emit),
+idempotency, and application-level authorization — infrastructural concerns that
+wrap a use case without being part of the business logic itself.
+
+- ✅ Stays in the application layer; framework-agnostic (identical for Fastify
+  and Azure Functions); operates on typed input; preserves the `Result`.
+- ⚠️ Runs **after** input validation (it wraps the use case): it cannot
+  short-circuit before validation, concerns needing raw headers must model them
+  in the input, and the composition order is manual.
+
+### Use case composition
+
+An **orchestrator** use case calls smaller, reusable use cases internally — each
+encapsulating a slice of business logic — and stops at the first `err`:
+
+```ts
+import { err, ok } from "neverthrow";
+
+// `checkEntitlement`, `saveWidget`, `emitAudit` are themselves `UseCase`s.
+const makePublishWidgetUseCase =
+  (deps: {
+    checkEntitlement: CheckEntitlementUseCase; // reusable domain rule
+    saveWidget: SaveWidgetUseCase;
+    emitAudit: EmitWidgetEventUseCase;
+  }): PublishWidgetUseCase =>
+  async (input) => {
+    const entitled = await deps.checkEntitlement({
+      actor: input.actor,
+      id: input.id,
+    });
+    if (entitled.isErr()) return err(entitled.error);
+
+    const saved = await deps.saveWidget({ id: input.id, patch: input.patch });
+    if (saved.isErr()) return err(saved.error);
+
+    const audited = await deps.emitAudit({
+      event: "WidgetPublished",
+      id: saved.value.id,
+    });
+    return audited.isErr() ? err(audited.error) : ok(saved.value);
+  };
+```
+
+The same sequencing can be written fluently with `neverthrow`'s `ResultAsync`
+and chained `.andThen(...)` calls.
+
+**Recommended for:** reusable business rules and entitlement checks, enforcement
+of domain preconditions, and audit recorded as a _domain event_ — concerns that
+are part of the ubiquitous language.
+
+- ✅ Keeps business-relevant steps as first-class, testable, reusable units; no
+  new framework concept (just functions returning `Result`); fully
+  transport-agnostic.
+- ⚠️ Suited **only** to business logic: forcing infrastructural concerns
+  (generic logging, tracing) here pollutes the domain and duplicates code in
+  every orchestrator. Watch for "god object" orchestrators; atomicity across
+  inner use cases requires a shared transaction (unit-of-work) port.
+
+### Choosing a mechanism
+
+| Concern                               | Nature                | Mechanism                                      | Port                          |
+| ------------------------------------- | --------------------- | ---------------------------------------------- | ----------------------------- |
+| Logging / tracing / metrics           | Infrastructure        | Decorator                                      | `ILogger`, `ITracer`          |
+| Security audit log                    | Infra or domain event | Decorator (emit) or Composition (domain event) | `IAuditLog`                   |
+| Application authorization             | Application           | Decorator (widens `ForbiddenError`)            | `IPolicy`                     |
+| Entitlement / reusable business rules | Business              | Composition                                    | ports of the involved domains |
+| Preconditions enforcement             | Business              | Composition                                    | precondition port             |
+
+**Rule of thumb:** infrastructure _around_ the use case → decorator; reusable
+_business_ logic → composition. Both leave the domain pure, keep errors as
+values.
 
 ## Scripts
 

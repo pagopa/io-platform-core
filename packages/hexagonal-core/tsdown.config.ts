@@ -19,8 +19,9 @@ export default defineConfig({
   // the `package.json` `exports` map point at deterministic paths.
   entry: {
     adapters: "src/adapters/index.ts",
+    "adapters/logger": "src/adapters/logger/index.ts",
     "domain/errors": "src/domain/errors/index.ts",
-    "domain/ports": "src/domain/ports/inbound/index.ts",
+    "domain/ports": "src/domain/ports/index.ts",
     "domain/value-objects": "src/domain/value-objects/index.ts",
     index: "src/index.ts",
   },
