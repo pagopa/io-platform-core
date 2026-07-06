@@ -4,6 +4,7 @@ packages:
 
 catalog:
   "@asteasolutions/zod-to-openapi": ^8.5.0
+  "@pagopa/azure-tracing": ^0.5.4
   "@pagopa/eslint-config": ^6.0.2
   "@standard-schema/spec": ^1.1.0
   "@tsconfig/node22": ^22.0.5
