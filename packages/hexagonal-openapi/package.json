@@ -4,6 +4,10 @@
   "private": false,
   "description": "Code-first OpenAPI toolkit for the IO platform: framework-agnostic route contracts, a route registry and an OpenAPI 3.1 generator built on Zod.",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pagopa/io-platform-core.git"
+  },
   "files": [
     "dist"
   ],
@@ -41,6 +45,7 @@
   ],
   "author": "PagoPA Platform Team",
   "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
     "access": "public"
   },
   "dependencies": {
