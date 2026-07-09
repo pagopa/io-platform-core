@@ -35,13 +35,17 @@ export type WriteResult =
 export const writeOpenApiYaml = async (
   options: WriteOptions,
 ): Promise<WriteResult> => {
-  const next = openApiToYaml(options.doc);
+  const next = normalizeLineEndings(openApiToYaml(options.doc));
 
   let current: string | undefined;
   try {
-    current = await readFile(options.path, "utf8");
-  } catch {
-    current = undefined;
+    current = normalizeLineEndings(await readFile(options.path, "utf8"));
+  } catch (err) {
+    if (isErrnoCode(err, "ENOENT")) {
+      current = undefined;
+    } else {
+      throw err;
+    }
   }
 
   if (current === next) return { kind: "unchanged", path: options.path };
@@ -57,6 +61,15 @@ export const writeOpenApiYaml = async (
   await writeFile(options.path, next, "utf8");
   return { kind: "ok", path: options.path };
 };
+
+const normalizeLineEndings = (value: string): string =>
+  value.replace(/\r\n/g, "\n");
+
+const isErrnoCode = (err: unknown, code: string): boolean =>
+  typeof err === "object" &&
+  err !== null &&
+  "code" in err &&
+  (err as { code: unknown }).code === code;
 
 const minimalDiff = (a: string, b: string): string => {
   const aLines = a.split("\n");

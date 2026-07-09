@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
@@ -55,5 +55,20 @@ describe("writeOpenApiYaml", () => {
     });
 
     expect(result.kind).toBe("check-failed");
+  });
+
+  it("treats CRLF and LF line endings as equivalent in check mode", async () => {
+    const path = join(dir, "crlf.yaml");
+    await writeFile(path, openApiToYaml(doc).replace(/\n/g, "\r\n"), "utf8");
+
+    const result = await writeOpenApiYaml({ check: true, doc, path });
+
+    expect(result.kind).toBe("unchanged");
+  });
+
+  it("throws when reading an existing path fails for a non-ENOENT reason", async () => {
+    const path = dir; // directory path forces EISDIR on readFile
+
+    await expect(writeOpenApiYaml({ doc, path })).rejects.toThrow();
   });
 });

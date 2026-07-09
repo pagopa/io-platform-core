@@ -62,4 +62,28 @@ describe("buildOpenApiDocument", () => {
   it("registers named component schemas", () => {
     expect(doc.components?.schemas?.["Thing"]).toBeDefined();
   });
+
+  it("falls back to a non-empty description when a redirect entry omits one", () => {
+    const redirectDoc = buildOpenApiDocument({
+      document: { info: { title: "Test API", version: "1.0.0" } },
+      routes: [
+        defineRoute({
+          method: "get",
+          operationId: "legacyRedirect",
+          path: "/legacy",
+          request: {},
+          response: { 301: { description: "", redirect: true } },
+        }),
+      ],
+    });
+
+    const redirectResponse = (
+      redirectDoc.paths?.["/legacy"] as
+        | undefined
+        | { get?: { responses?: Record<string, { description?: string }> } }
+    )?.get?.responses?.["301"];
+
+    expect(redirectResponse).toHaveProperty("description");
+    expect(redirectResponse?.description).toBe("HTTP 301");
+  });
 });

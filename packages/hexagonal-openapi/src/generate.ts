@@ -175,7 +175,7 @@ const responseDescription = (
   operationId: string,
 ): string => {
   const override = getEntryDescription(entry);
-  if (override !== undefined) return override;
+  if (override !== undefined && override.length > 0) return override;
   if (status >= 200 && status < 300) {
     return status === 204
       ? "No Content"
@@ -206,7 +206,11 @@ const toRouteConfig = (contract: AnyRouteContract): RouteConfig => {
           )
         : undefined;
       (responses as Record<string, unknown>)[statusStr] = {
-        description: typedEntry.description,
+        description: responseDescription(
+          status,
+          typedEntry,
+          contract.operationId,
+        ),
         ...(redirectHeaders !== undefined ? { headers: redirectHeaders } : {}),
       };
       continue;
