@@ -113,22 +113,21 @@ export type Equals<A, B> =
 
 /**
  * A pure description of an HTTP route. Carries no runtime behavior; the single
- * source of truth shared between the OpenAPI generator and the adapter that
- * mounts the route on a framework.
+ * source of truth for the adapter that mounts the route on a framework. Only
+ * the fields actually needed to mount/execute a route live here. OpenAPI
+ * documentation metadata (`operationId`, `description`, `summary`, `tags`,
+ * `security`) is not part of the runtime contract; importing
+ * `@pagopa/hexagonal-openapi` augments this interface (via `declare module`)
+ * to add those fields back for consumers who generate an OpenAPI document.
  */
 export interface RouteContract<
   Req extends RouteRequestSchemas,
   Resp extends ResponseMap,
 > {
-  description?: string;
   method: HttpMethod;
-  operationId: string;
   path: string;
   request: Req;
   response: Resp;
-  security?: readonly Readonly<Record<string, readonly string[]>>[];
-  summary?: string;
-  tags?: readonly string[];
 }
 
 /**
@@ -182,8 +181,16 @@ type SchemaOf<E extends ResponseEntry> = E extends ZodType
 
 /**
  * Identity helper that preserves the literal types of method, path and the
- * response-map status-code keys. Required for the compile-time checks performed
+ * response-map status-code keys, required for the compile-time checks performed
  * by the adapter mount functions.
+ *
+ * The contract is typed as {@link RouteContract} directly, so the compiler's
+ * excess-property check rejects any field not declared on the interface. A team
+ * that needs extra fields must extend the contract through an explicit type
+ * override — e.g. the `declare module` augmentation shipped by
+ * `@pagopa/hexagonal-openapi`, which adds the OpenAPI metadata. This keeps
+ * contract extensions visible and prevents hidden, arbitrary property
+ * injection.
  */
 export const defineRoute = <
   Req extends RouteRequestSchemas,

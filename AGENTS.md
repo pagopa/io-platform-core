@@ -17,7 +17,7 @@ For setup (devcontainer, `nodenv`, `tfenv`, `pre-commit`) and release flow, read
   ```
   Never use a different Node version — mismatches cause subtle build/test failures.
 - **TypeScript ~5.8** with `moduleResolution: nodenext`.
-- **Versioning/release: Changesets.** Any change to a publishable package needs a changeset (`pnpm changeset`).
+- **Versioning/release: Changesets.** Any change to a publishable package needs a changeset (`pnpm changeset`). [**IMPORTANT**] If there is a changeset file already present, consolidate the changes into a single changeset file, and remove the others.
 
 ### Dependencies
 
