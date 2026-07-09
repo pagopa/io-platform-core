@@ -1,12 +1,12 @@
 {
-  "name": "@pagopa/hexagonal-fastify",
-  "version": "0.1.2",
+  "name": "@pagopa/hexagonal-openapi",
+  "version": "0.1.0",
   "private": false,
-  "description": "Fastify primary-adapter primitives for the IO platform hexagonal architecture: request validation, response/error wiring and code-first route mounting.",
+  "description": "Code-first OpenAPI toolkit for the IO platform: framework-agnostic route contracts, a route registry and an OpenAPI 3.1 generator built on Zod.",
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "https://github.com/pagopa/io-platform-core.git"
+    "url": "git+https://github.com/pagopa/io-platform-core.git"
   },
   "files": [
     "dist"
@@ -30,8 +30,6 @@
     "clean": "shx rm -rf dist",
     "build": "tsdown",
     "typecheck": "tsc --noEmit",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
     "lint": "pnpm lint:check --fix",
     "lint:check": "eslint . --cache",
     "test": "vitest run",
@@ -40,10 +38,10 @@
   "keywords": [
     "io",
     "pagopa",
-    "fastify",
-    "hexagonal",
-    "ports-and-adapters",
-    "adapter"
+    "openapi",
+    "code-first",
+    "zod",
+    "hexagonal"
   ],
   "author": "PagoPA Platform Team",
   "publishConfig": {
@@ -51,20 +49,17 @@
     "access": "public"
   },
   "dependencies": {
-    "@pagopa/hexagonal-core": "workspace:^"
+    "@asteasolutions/zod-to-openapi": "catalog:",
+    "@pagopa/hexagonal-core": "workspace:^",
+    "yaml": "catalog:"
   },
   "peerDependencies": {
-    "@standard-schema/spec": "catalog:",
-    "fastify": "catalog:",
-    "neverthrow": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@pagopa/io-platform-typescript-config-node": "workspace:^",
     "@types/node": "catalog:",
     "@vitest/coverage-v8": "catalog:",
-    "fastify": "catalog:",
-    "prettier": "catalog:",
     "shx": "catalog:",
     "tsdown": "catalog:",
     "typescript": "catalog:",

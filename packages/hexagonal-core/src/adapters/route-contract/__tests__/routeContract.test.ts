@@ -61,13 +61,25 @@ describe("defineRoute", () => {
   it("returns the contract unchanged (identity helper)", () => {
     const contract = defineRoute({
       method: "get",
-      operationId: "getThing",
       path: "/things/{id}",
       request: { path: z.object({ id: z.string() }) },
       response: { 200: z.object({ id: z.string() }) },
     });
 
-    expect(contract.operationId).toBe("getThing");
+    expect(contract.method).toBe("get");
+    expect(contract.path).toBe("/things/{id}");
+  });
+
+  it("rejects arbitrary properties at compile time (no hidden injection)", () => {
+    const contract = defineRoute({
+      // @ts-expect-error - extra properties are not allowed on the minimal RouteContract
+      extra: "meta",
+      method: "get",
+      path: "/things/{id}",
+      request: { path: z.object({ id: z.string() }) },
+      response: { 200: z.object({ id: z.string() }) },
+    });
+
     expect(contract.method).toBe("get");
   });
 });
