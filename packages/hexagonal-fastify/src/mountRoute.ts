@@ -176,9 +176,9 @@ const buildSuccessResponder = <O, R>(
  * the success status code (derived from the single success key of the
  * contract's response map — a 2xx code or a `301`/`302` redirect).
  *
- * This adapter is **registry-free**: it performs no OpenAPI registration. Feed
- * contracts to a `RouteRegistry` from `@pagopa/hexagonal-openapi` separately to
- * generate the spec.
+ * This adapter is **registry-free**: it performs no OpenAPI registration. Pass
+ * the same contracts to `buildOpenApiDocument` from `@pagopa/hexagonal-openapi`
+ * to generate the spec.
  *
  * Execution flow on success: the use-case output is passed to `outputMapper`
  * (when provided), then the mapped value is encoded against the success schema

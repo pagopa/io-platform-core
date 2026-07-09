@@ -5,8 +5,7 @@
 
 Introduce `@pagopa/hexagonal-openapi`, the code-first OpenAPI toolkit for the IO platform: declare HTTP routes as framework-agnostic contracts built from Zod, generate an OpenAPI 3.1 document from them, and serialize it to YAML.
 
-- `RouteRegistry` — the single in-memory home for OpenAPI state: collects route contracts and named component schemas, decoupled from any framework adapter.
-- `buildOpenApiDocument` — generates an OpenAPI 3.1 document from route contracts, built on Zod and `@asteasolutions/zod-to-openapi`; schemas carrying `.meta({ id })` (including the shared `ProblemDetails`) are auto-registered as reusable components and referenced via `$ref`.
+- `buildOpenApiDocument` — generates an OpenAPI 3.1 document directly from route contracts, built on Zod and `@asteasolutions/zod-to-openapi`; schemas carrying `.meta({ id })` (including the shared `ProblemDetails`) are auto-registered as reusable components and referenced via `$ref`. An optional `registerComponents` callback exposes the underlying registry for advanced use cases such as security schemes or explicit named-schema registration.
 - `openApiToYaml` / `writeOpenApiYaml` — serialize the document to YAML, with a CI-friendly `check` mode to detect drift.
 - Importing the package augments `@pagopa/hexagonal-core`'s `RouteContract` (via `declare module`) with the OpenAPI documentation metadata — `operationId` (required) plus optional `description`, `summary`, `tags` and `security` — so contracts in a project that generates an OpenAPI document get these fields automatically.
 

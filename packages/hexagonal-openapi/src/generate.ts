@@ -90,8 +90,8 @@ export const readSchemaId = (schema: ZodType): string | undefined => {
 
 /**
  * Recursively collects every Zod schema that carries a `.meta({ id })`
- * annotation from the given schema tree. Used to auto-populate the
- * {@link RouteRegistry} with named component schemas.
+ * annotation from the given schema tree. Useful when you want to register
+ * named component schemas explicitly through the `registerComponents` hook.
  *
  * Traversal covers common Zod v4 constructs (object, optional/nullable/default,
  * pipe/transform, array, union, intersection) and uses a visited-set to avoid

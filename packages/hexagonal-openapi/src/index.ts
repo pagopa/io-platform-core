@@ -21,7 +21,6 @@ export {
   type GenerateOptions,
   readSchemaId,
 } from "./generate.js";
-export { RouteRegistry } from "./route-registry.js";
 export {
   openApiToYaml,
   writeOpenApiYaml,
