@@ -1,5 +1,15 @@
 # @pagopa/hexagonal-core
 
+## 0.4.0
+
+### Minor Changes
+
+- a079d19: Enforce, at compile time, that a route contract declares the `400` (ValidationError) response whenever its `request` validates any part of the incoming request (body/headers/path/query).
+
+  - `@pagopa/hexagonal-core` exports two new type helpers from `adapters`: `HasRequestValidation<Req>` and `EnsureValidationErrorDeclared<Req, Resp>`, plus the `MissingValidationErrorResponse` failure type they surface.
+
+  This closes a gap left by `EnsureResponseCoversErrors`, which intentionally excludes `400` from its coverage check since the adapter always emits it on validation failure. Existing contracts that validate the request must now add a `400` entry (e.g. `400: ProblemJson`) to their `response` map.
+
 ## 0.3.0
 
 ### Minor Changes

@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: IO Example Hexagonal Fastify API
-  version: 0.0.1
+  version: 0.0.2
 components:
   schemas:
     ProblemDetails:
