@@ -14,7 +14,7 @@ import { CreateWidgetBodySchema, WidgetResponseSchema } from "./dto/schemas.js";
  * returned with HTTP 201. Validation and generic failures are documented as
  * problem+json responses.
  */
-const createWidgetContract = defineRoute({
+export const createWidgetContract = defineRoute({
   description: "Creates a widget from the supplied name and description.",
   method: "post",
   operationId: "createWidget",

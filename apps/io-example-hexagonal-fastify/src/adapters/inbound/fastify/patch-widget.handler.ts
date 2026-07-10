@@ -17,7 +17,7 @@ import {
  * The adapter validates the widget id and partial body before the application
  * use case is invoked, documenting validation and generic errors as problem+json.
  */
-const patchWidgetContract = defineRoute({
+export const patchWidgetContract = defineRoute({
   description:
     "Applies a partial update to the widget identified by the supplied id.",
   method: "patch",

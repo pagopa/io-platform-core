@@ -18,7 +18,7 @@ import {
  * use case runs. Validation and generic use-case errors are documented as
  * problem+json responses.
  */
-const getWidgetAuditContract = defineRoute({
+export const getWidgetAuditContract = defineRoute({
   description:
     "Returns audit events for a widget and correlates the request through x-request-id.",
   method: "get",

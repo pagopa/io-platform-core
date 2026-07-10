@@ -9,6 +9,7 @@ export default defineConfig({
         "**/__mocks__/**",
         "*.js",
         "src/main.ts",
+        "src/scripts/generate.ts",
       ],
       reporter: ["lcov", "text"],
     },

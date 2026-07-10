@@ -18,7 +18,7 @@ import {
  * case runs. Adapter validation and generic use-case errors are documented as
  * problem+json responses.
  */
-const replaceWidgetContract = defineRoute({
+export const replaceWidgetContract = defineRoute({
   description:
     "Replaces the widget identified by id with the supplied payload.",
   method: "put",

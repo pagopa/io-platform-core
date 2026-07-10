@@ -10,7 +10,7 @@ import {
   WidgetRefreshAcceptedSchema,
 } from "./dto/schemas.js";
 
-const refreshWidgetContract = defineRoute({
+export const refreshWidgetContract = defineRoute({
   description:
     "Enqueues an asynchronous refresh of the widget and returns 202 Accepted. The handler reshapes the internal job id into the public task id via an output mapper.",
   method: "post",

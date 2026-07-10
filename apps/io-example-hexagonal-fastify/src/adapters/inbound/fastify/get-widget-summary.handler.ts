@@ -10,7 +10,7 @@ import {
   WidgetSummaryResponseSchema,
 } from "./dto/schemas.js";
 
-const getWidgetSummaryContract = defineRoute({
+export const getWidgetSummaryContract = defineRoute({
   description:
     "Returns a summary of the widget. The use case returns an internal shape that the handler reshapes into the public response via an output mapper.",
   method: "get",

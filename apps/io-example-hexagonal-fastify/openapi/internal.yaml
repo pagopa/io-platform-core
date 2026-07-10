@@ -1,0 +1,523 @@
+openapi: 3.1.0
+info:
+  title: IO Example Hexagonal Fastify API
+  version: 0.0.1
+components:
+  schemas:
+    ProblemDetails:
+      type: object
+      properties:
+        detail:
+          type: string
+        status:
+          type: integer
+        title:
+          type: string
+        type:
+          type: string
+          format: uri
+      required:
+        - detail
+        - status
+        - title
+        - type
+      description: RFC 7807 Problem Details for HTTP APIs. See https://www.rfc-editor.org/rfc/rfc7807.
+  parameters: {}
+paths:
+  /api/v1/widgets:
+    get:
+      description: Returns a paginated list of widgets optionally filtered by a search term.
+      operationId: listWidgets
+      summary: List widgets
+      tags:
+        - widgets
+      parameters:
+        - schema:
+            type: string
+          required: false
+          name: filter
+          in: query
+        - schema:
+            type: integer
+            minimum: 1
+          required: false
+          name: page
+          in: query
+        - schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+          required: false
+          name: pageSize
+          in: query
+      responses:
+        "200":
+          description: Successful response for listWidgets
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        createdAt:
+                          type: string
+                          format: date-time
+                        description:
+                          type: string
+                        id:
+                          type: string
+                          format: uuid
+                        name:
+                          type: string
+                          minLength: 1
+                      required:
+                        - createdAt
+                        - id
+                        - name
+                  page:
+                    type: integer
+                    minimum: 1
+                  pageSize:
+                    type: integer
+                    minimum: 1
+                  total:
+                    type: integer
+                    minimum: 0
+                required:
+                  - items
+                  - page
+                  - pageSize
+                  - total
+        "500":
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+    post:
+      description: Creates a widget from the supplied name and description.
+      operationId: createWidget
+      summary: Create a widget
+      tags:
+        - widgets
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                description:
+                  type: string
+                name:
+                  type: string
+                  minLength: 1
+              required:
+                - name
+      responses:
+        "201":
+          description: Successful response for createWidget
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  createdAt:
+                    type: string
+                    format: date-time
+                  description:
+                    type: string
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                    minLength: 1
+                required:
+                  - createdAt
+                  - id
+                  - name
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "500":
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+  /api/v1/widgets/{id}:
+    get:
+      description: Returns the widget identified by the supplied path parameter.
+      operationId: getWidget
+      summary: Get a widget
+      tags:
+        - widgets
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: id
+          in: path
+      responses:
+        "200":
+          description: Successful response for getWidget
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  createdAt:
+                    type: string
+                    format: date-time
+                  description:
+                    type: string
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                    minLength: 1
+                required:
+                  - createdAt
+                  - id
+                  - name
+        "500":
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+    put:
+      description: Replaces the widget identified by id with the supplied payload.
+      operationId: replaceWidget
+      summary: Replace a widget
+      tags:
+        - widgets
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: id
+          in: path
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                description:
+                  type: string
+                name:
+                  type: string
+                  minLength: 1
+              required:
+                - name
+      responses:
+        "200":
+          description: Successful response for replaceWidget
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  createdAt:
+                    type: string
+                    format: date-time
+                  description:
+                    type: string
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                    minLength: 1
+                required:
+                  - createdAt
+                  - id
+                  - name
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "500":
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+    patch:
+      description: Applies a partial update to the widget identified by the supplied id.
+      operationId: patchWidget
+      summary: Patch a widget
+      tags:
+        - widgets
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: id
+          in: path
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                description:
+                  type: string
+                name:
+                  type: string
+                  minLength: 1
+      responses:
+        "200":
+          description: Successful response for patchWidget
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  createdAt:
+                    type: string
+                    format: date-time
+                  description:
+                    type: string
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                    minLength: 1
+                required:
+                  - createdAt
+                  - id
+                  - name
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "500":
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+    delete:
+      description: Deletes the widget identified by the supplied path parameter.
+      operationId: deleteWidget
+      summary: Delete a widget
+      tags:
+        - widgets
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: id
+          in: path
+      responses:
+        "204":
+          description: No Content
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+        "500":
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+  /api/v1/widgets/{id}/audit:
+    get:
+      description: Returns audit events for a widget and correlates the request through x-request-id.
+      operationId: getWidgetAudit
+      summary: Get widget audit events
+      tags:
+        - widgets
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: id
+          in: path
+        - schema:
+            type: string
+            minLength: 1
+          required: true
+          name: x-request-id
+          in: header
+      responses:
+        "200":
+          description: Successful response for getWidgetAudit
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  events:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        at:
+                          type: string
+                          format: date-time
+                        message:
+                          type: string
+                        requestId:
+                          type: string
+                          minLength: 1
+                        type:
+                          type: string
+                          minLength: 1
+                      required:
+                        - at
+                        - message
+                        - type
+                  widgetId:
+                    type: string
+                    format: uuid
+                required:
+                  - events
+                  - widgetId
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "500":
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+  /api/v1/widgets/{id}/summary:
+    get:
+      description: Returns a summary of the widget. The use case returns an internal shape that the handler reshapes into the public response via an output mapper.
+      operationId: getWidgetSummary
+      summary: Get a widget summary
+      tags:
+        - widgets
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: id
+          in: path
+      responses:
+        "200":
+          description: Successful response for getWidgetSummary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  createdAt:
+                    type: string
+                    format: date-time
+                  description:
+                    type: string
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                    minLength: 1
+                required:
+                  - createdAt
+                  - id
+                  - name
+        "500":
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+  /api/v1/widgets/{id}/refresh:
+    post:
+      description: Enqueues an asynchronous refresh of the widget and returns 202 Accepted. The handler reshapes the internal job id into the public task id via an output mapper.
+      operationId: refreshWidget
+      summary: Refresh a widget
+      tags:
+        - widgets
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: id
+          in: path
+      responses:
+        "202":
+          description: Successful response for refreshWidget
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum:
+                      - accepted
+                  taskId:
+                    type: string
+                    format: uuid
+                required:
+                  - status
+                  - taskId
+        "500":
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+  /api/v1/widgets/{id}/archive:
+    post:
+      description: Archives the widget and returns 204 No Content. The use case still returns a value, but the contract strips the body.
+      operationId: archiveWidget
+      summary: Archive a widget
+      tags:
+        - widgets
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: id
+          in: path
+      responses:
+        "204":
+          description: No Content
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {}
+        "500":
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+webhooks: {}

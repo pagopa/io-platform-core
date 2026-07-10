@@ -13,7 +13,7 @@ import { WidgetIdPathSchema, WidgetResponseSchema } from "./dto/schemas.js";
  * The path parameter is validated as a widget id before the use case is called,
  * and generic application failures are returned as problem+json responses.
  */
-const getWidgetContract = defineRoute({
+export const getWidgetContract = defineRoute({
   description: "Returns the widget identified by the supplied path parameter.",
   method: "get",
   operationId: "getWidget",

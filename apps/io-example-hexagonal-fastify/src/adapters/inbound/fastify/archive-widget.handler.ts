@@ -8,7 +8,7 @@ import type { ArchiveWidgetUseCase } from "../../../application/use-cases/archiv
 
 import { WidgetIdPathSchema } from "./dto/schemas.js";
 
-const archiveWidgetContract = defineRoute({
+export const archiveWidgetContract = defineRoute({
   description:
     "Archives the widget and returns 204 No Content. The use case still returns a value, but the contract strips the body.",
   method: "post",

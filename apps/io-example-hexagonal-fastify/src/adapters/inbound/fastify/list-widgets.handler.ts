@@ -16,7 +16,7 @@ import {
  * The query string is validated before invoking the use case, while generic
  * application failures are rendered as RFC 7807 problem+json responses.
  */
-const listWidgetsContract = defineRoute({
+export const listWidgetsContract = defineRoute({
   description:
     "Returns a paginated list of widgets optionally filtered by a search term.",
   method: "get",

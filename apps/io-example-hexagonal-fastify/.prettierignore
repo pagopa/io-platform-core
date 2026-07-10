@@ -4,3 +4,6 @@
 # Ignore built files
 dist
 coverage
+
+# Ignore generated OpenAPI spec
+openapi/internal.yaml

@@ -14,7 +14,7 @@ import { WidgetIdPathSchema } from "./dto/schemas.js";
  * A successful deletion returns HTTP 204 with no response body, while generic
  * application failures are returned as problem+json responses.
  */
-const deleteWidgetContract = defineRoute({
+export const deleteWidgetContract = defineRoute({
   description: "Deletes the widget identified by the supplied path parameter.",
   method: "delete",
   operationId: "deleteWidget",

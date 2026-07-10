@@ -19,11 +19,13 @@
     "lint:check": "eslint .",
     "start": "node dist/main.js",
     "test": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "generate": "tsx src/scripts/generate.ts"
   },
   "dependencies": {
     "@pagopa/hexagonal-core": "workspace:^",
     "@pagopa/hexagonal-fastify": "workspace:^",
+    "@pagopa/hexagonal-openapi": "workspace:^",
     "fastify": "catalog:",
     "neverthrow": "catalog:",
     "zod": "catalog:"
@@ -34,6 +36,7 @@
     "@vitest/coverage-v8": "catalog:",
     "prettier": "catalog:",
     "shx": "catalog:",
+    "tsx": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }
