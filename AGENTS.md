@@ -29,13 +29,24 @@ For setup (devcontainer, `nodenv`, `tfenv`, `pre-commit`) and release flow, read
 
 ```bash
 pnpm build                       # turbo run build (respects ^build deps)
-pnpm test                        # run all tests (vitest); or: pnpm -r test
+pnpm code-review                 # full verification pipeline: typecheck, format:check, lint:check, test:coverage
+pnpm format                      # auto-fix formatting across the repo
+pnpm format:check                # check formatting without fixing
 pnpm typecheck                   # type-check every workspace
+pnpm test                        # run all tests (vitest); or: pnpm -r test
+pnpm test:coverage               # run tests with coverage reporting
+pnpm lint                        # auto-fix lint/style issues (eslint --fix .)
+pnpm lint:check                  # check lint/style without fixing
+pnpm version                     # bump versions using changesets
+pnpm release                     # build and publish packages
 pnpm --filter <workspace> <script>   # run one package's script
 ```
 
-Per-workspace scripts: `clean`, `build` (`tsc`), `typecheck`, `lint`, `lint:check`,
-`test` (`vitest run`), `test:coverage`.
+Per-workspace scripts: `clean`, `build` (`tsc`), `typecheck`, `format`, `format:check`,
+`lint`, `lint:check`, `test` (`vitest run`), `test:coverage`.
+
+> **Development verification flow:** run `pnpm format` first to auto-fix formatting,
+> then `pnpm code-review` to run the full check pipeline.
 
 ## Linting & formatting — ALWAYS autofix first
 
@@ -87,7 +98,9 @@ Tests live next to code in `__tests__/*.test.ts`.
 ### Core packages
 
 - `@pagopa/hexagonal-core` — framework-agnostic hexagonal building blocks (domain + adapters).
-- `@pagopa/io-platform-typescript-config-node` — shared base `tsconfig`.
+- `@pagopa/hexagonal-fastify` — Fastify inbound adapter and route utilities for hexagonal apps.
+- `@pagopa/hexagonal-openapi` — code-first OpenAPI generation and route-contract helpers.
+- `@pagopa/io-platform-typescript-config-node` — shared base `tsconfig` (internal/private).
 
 ## Publishing packages — dual ESM + CJS is mandatory
 

@@ -4,7 +4,7 @@
 
 ### Minor Changes
 
-  To support this, `@pagopa/hexagonal-core`'s `RouteContract` now only declares the fields needed to mount a route at runtime: `method`, `path`, `request`, `response`. The OpenAPI-only documentation fields (`operationId`, `description`, `summary`, `tags`, `security`) have been removed from it. `defineRoute` types its argument directly as `RouteContract`, so the compiler's excess-property check rejects any field not declared on the interface — contracts can no longer accumulate hidden, arbitrary properties. Extending the contract now requires an explicit type override, such as the augmentation shipped by `@pagopa/hexagonal-openapi`.
+To support this, `@pagopa/hexagonal-core`'s `RouteContract` now only declares the fields needed to mount a route at runtime: `method`, `path`, `request`, `response`. The OpenAPI-only documentation fields (`operationId`, `description`, `summary`, `tags`, `security`) have been removed from it. `defineRoute` types its argument directly as `RouteContract`, so the compiler's excess-property check rejects any field not declared on the interface — contracts can no longer accumulate hidden, arbitrary properties. Extending the contract now requires an explicit type override, such as the augmentation shipped by `@pagopa/hexagonal-openapi`.
 
 ## 0.2.0
 
