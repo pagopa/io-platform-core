@@ -17,7 +17,11 @@ export const refreshWidgetContract = defineRoute({
   operationId: "refreshWidget",
   path: "/api/v1/widgets/{id}/refresh",
   request: { path: WidgetIdPathSchema },
-  response: { 202: WidgetRefreshAcceptedSchema, 500: ProblemJson },
+  response: {
+    202: WidgetRefreshAcceptedSchema,
+    400: ProblemJson,
+    500: ProblemJson,
+  },
   summary: "Refresh a widget",
   tags: ["widgets"],
 });

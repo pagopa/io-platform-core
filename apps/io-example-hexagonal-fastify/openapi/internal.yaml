@@ -92,6 +92,12 @@ paths:
                   - page
                   - pageSize
                   - total
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
         "500":
           description: Internal Server Error
           content:
@@ -190,6 +196,12 @@ paths:
                   - createdAt
                   - id
                   - name
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
         "500":
           description: Internal Server Error
           content:
@@ -339,6 +351,12 @@ paths:
               schema:
                 type: object
                 properties: {}
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
         "500":
           description: Internal Server Error
           content:
@@ -448,6 +466,12 @@ paths:
                   - createdAt
                   - id
                   - name
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
         "500":
           description: Internal Server Error
           content:
@@ -486,6 +510,12 @@ paths:
                 required:
                   - status
                   - taskId
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
         "500":
           description: Internal Server Error
           content:
@@ -514,6 +544,12 @@ paths:
               schema:
                 type: object
                 properties: {}
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
         "500":
           description: Internal Server Error
           content:

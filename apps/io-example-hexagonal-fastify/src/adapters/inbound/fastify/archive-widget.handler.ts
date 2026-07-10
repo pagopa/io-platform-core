@@ -15,7 +15,7 @@ export const archiveWidgetContract = defineRoute({
   operationId: "archiveWidget",
   path: "/api/v1/widgets/{id}/archive",
   request: { path: WidgetIdPathSchema },
-  response: { 204: z.object({}), 500: ProblemJson },
+  response: { 204: z.object({}), 400: ProblemJson, 500: ProblemJson },
   summary: "Archive a widget",
   tags: ["widgets"],
 });

@@ -23,7 +23,11 @@ export const listWidgetsContract = defineRoute({
   operationId: "listWidgets",
   path: "/api/v1/widgets",
   request: { query: ListWidgetsQuerySchema },
-  response: { 200: WidgetListResponseSchema, 500: ProblemJson },
+  response: {
+    200: WidgetListResponseSchema,
+    400: ProblemJson,
+    500: ProblemJson,
+  },
   summary: "List widgets",
   tags: ["widgets"],
 });

@@ -19,7 +19,7 @@ export const getWidgetContract = defineRoute({
   operationId: "getWidget",
   path: "/api/v1/widgets/{id}",
   request: { path: WidgetIdPathSchema },
-  response: { 200: WidgetResponseSchema, 500: ProblemJson },
+  response: { 200: WidgetResponseSchema, 400: ProblemJson, 500: ProblemJson },
   summary: "Get a widget",
   tags: ["widgets"],
 });

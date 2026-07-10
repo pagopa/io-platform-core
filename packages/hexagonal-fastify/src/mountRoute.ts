@@ -1,5 +1,6 @@
 import type {
   EnsureResponseCoversErrors,
+  EnsureValidationErrorDeclared,
   RedirectEntry,
   ResponseEntry,
   ResponseMap,
@@ -194,7 +195,12 @@ const buildSuccessResponder = <O, R>(
  *  2. every HTTP status the use case can fail with MUST appear as a key in
  *     `contract.response` (via {@link EnsureResponseCoversErrors});
  *  3. `inputMapper` receives the validated wire request shape derived from
- *     `contract.request` and must return the use-case input type.
+ *     `contract.request` and must return the use-case input type;
+ *  4. when `contract.request` validates any part (body/headers/path/query),
+ *     `contract.response` MUST declare a `400` entry (via
+ *     {@link EnsureValidationErrorDeclared}) — the adapter always emits `400`
+ *     on a validation failure, so a validating contract without one would be
+ *     inconsistent with the adapter's actual runtime behavior.
  *
  * @typeParam Req Request schemas declared by the contract.
  * @typeParam Resp Response map declared by the contract.
@@ -214,7 +220,8 @@ export function mountFastifyRoute<
 >(
   server: FastifyInstance,
   spec: {
-    contract: RouteContract<Req, Resp>;
+    contract: NoInfer<EnsureValidationErrorDeclared<Req, Resp>> &
+      RouteContract<Req, Resp>;
     inputMapper: (req: WireRequest<Req>) => UseCaseInput;
     outputMapper: (output: O) => SuccessBodyInput<Resp>;
     useCase: NoInfer<EnsureResponseCoversErrors<E, Resp>> &
@@ -229,7 +236,8 @@ export function mountFastifyRoute<
 >(
   server: FastifyInstance,
   spec: {
-    contract: RouteContract<Req, Resp>;
+    contract: NoInfer<EnsureValidationErrorDeclared<Req, Resp>> &
+      RouteContract<Req, Resp>;
     inputMapper: (req: WireRequest<Req>) => UseCaseInput;
     useCase: NoInfer<EnsureResponseCoversErrors<E, Resp>> &
       UseCase<UseCaseInput, SuccessBodyInput<Resp>, E>;

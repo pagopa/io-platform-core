@@ -20,7 +20,7 @@ export const deleteWidgetContract = defineRoute({
   operationId: "deleteWidget",
   path: "/api/v1/widgets/{id}",
   request: { path: WidgetIdPathSchema },
-  response: { 204: z.object({}), 500: ProblemJson },
+  response: { 204: z.object({}), 400: ProblemJson, 500: ProblemJson },
   summary: "Delete a widget",
   tags: ["widgets"],
 });

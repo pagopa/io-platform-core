@@ -199,6 +199,49 @@ export const defineRoute = <
   contract: RouteContract<Req, Resp>,
 ): RouteContract<Req, Resp> => contract;
 
+/**
+ * Type-level guard meant to be intersected into the `contract` parameter of a
+ * mount function. Requires the `400` response (see {@link AdapterOnlyStatus})
+ * to be declared whenever `Req` validates any part of the incoming request:
+ * the adapter always emits `400` on a validation failure regardless of what
+ * the use case declares, so a validating contract that omits `400` would
+ * leave the declared API (and any generated OpenAPI document) inconsistent
+ * with the adapter's actual runtime behavior.
+ *
+ * Resolves to `unknown` (a no-op) when there is nothing to validate, or when
+ * `400` is already declared; otherwise resolves to
+ * {@link MissingValidationErrorResponse}, which fails the intersection.
+ */
+export type EnsureValidationErrorDeclared<
+  Req extends RouteRequestSchemas,
+  Resp extends ResponseMap,
+> = [HasRequestValidation<Req>] extends [true]
+  ? [AdapterOnlyStatus] extends [keyof Resp]
+    ? unknown
+    : MissingValidationErrorResponse
+  : unknown;
+
+/**
+ * True when a {@link RouteRequestSchemas} validates at least one request part
+ * (body/headers/path/query). Reuses {@link WireRequest}'s own
+ * `Req[K] extends ZodType` predicate — i.e. "has validation" and "produces a
+ * wire key" are the same condition — so the two can never drift apart.
+ */
+export type HasRequestValidation<Req extends RouteRequestSchemas> =
+  keyof WireRequest<Req> extends never ? false : true;
+
+/**
+ * Compile-time failure surfaced when a contract validates part of the request
+ * (body/headers/path/query) but its response map omits the `400` entry — the
+ * status the adapter always emits for validation failures (see
+ * {@link AdapterOnlyStatus}). The property name doubles as the compiler
+ * diagnostic: intersecting this into the `contract` parameter turns a missing
+ * `400` into a "missing property" error that names the fix.
+ */
+export interface MissingValidationErrorResponse {
+  readonly "add a 400 (ValidationError) response entry to this contract": never;
+}
+
 /** Convenience: the type the use case must return for a given contract. */
 export type UseCaseOutputOf<
   C extends RouteContract<RouteRequestSchemas, ResponseMap>,

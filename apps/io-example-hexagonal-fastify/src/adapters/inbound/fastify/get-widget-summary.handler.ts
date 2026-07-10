@@ -17,7 +17,11 @@ export const getWidgetSummaryContract = defineRoute({
   operationId: "getWidgetSummary",
   path: "/api/v1/widgets/{id}/summary",
   request: { path: WidgetIdPathSchema },
-  response: { 200: WidgetSummaryResponseSchema, 500: ProblemJson },
+  response: {
+    200: WidgetSummaryResponseSchema,
+    400: ProblemJson,
+    500: ProblemJson,
+  },
   summary: "Get a widget summary",
   tags: ["widgets"],
 });
