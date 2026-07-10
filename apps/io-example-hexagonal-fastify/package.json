@@ -1,0 +1,43 @@
+{
+  "name": "io-example-hexagonal-fastify",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/main.js",
+  "files": [
+    "dist/*"
+  ],
+  "scripts": {
+    "clean": "shx rm -rf dist",
+    "build": "tsc",
+    "build:watch": "tsc -w",
+    "typecheck": "tsc -p tsconfig.typecheck.json",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "pnpm lint:check --fix",
+    "lint:check": "eslint .",
+    "start": "node dist/main.js",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "generate": "tsx src/scripts/generate.ts"
+  },
+  "dependencies": {
+    "@pagopa/hexagonal-core": "workspace:^",
+    "@pagopa/hexagonal-fastify": "workspace:^",
+    "@pagopa/hexagonal-openapi": "workspace:^",
+    "fastify": "catalog:",
+    "neverthrow": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@pagopa/io-platform-typescript-config-node": "workspace:^",
+    "@types/node": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "prettier": "catalog:",
+    "shx": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

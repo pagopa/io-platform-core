@@ -13,7 +13,7 @@ const getUserContract = defineRoute({
   method: "get",
   path: "/users/{id}",
   request: { path: z.object({ id: z.string() }) },
-  response: { 200: UserSchema, 404: ProblemJson },
+  response: { 200: UserSchema, 400: ProblemJson, 404: ProblemJson },
 });
 
 const mountGetUser = (app: ReturnType<typeof Fastify>): void => {
@@ -184,6 +184,7 @@ describe("mountFastifyRoute redirects", () => {
         request: { path: z.object({ id: z.string() }) },
         response: {
           302: { description: "Moved", redirect: true },
+          400: ProblemJson,
         },
       }),
       inputMapper: (req) => ({ id: req.path.id }),
@@ -232,7 +233,7 @@ describe("mountFastifyRoute success", () => {
         method: "delete",
         path: "/users/{id}",
         request: { path: z.object({ id: z.string() }) },
-        response: { 204: z.object({}) },
+        response: { 204: z.object({}), 400: ProblemJson },
       }),
       inputMapper: (req) => ({ id: req.path.id }),
       useCase: async () => ok({}),
@@ -261,5 +262,54 @@ describe("mountFastifyRoute success", () => {
         useCase: async () => ok({ id: "1", name: "Alice" }),
       }),
     ).toThrow(/multiple success entries/);
+  });
+});
+
+describe("mountFastifyRoute validation coverage", () => {
+  it("rejects at compile time a validating contract that omits the 400 response", async () => {
+    const app = Fastify();
+
+    mountFastifyRoute(app, {
+      // @ts-expect-error - request.path validates input but response has no 400 entry
+      contract: defineRoute({
+        method: "get",
+        path: "/things/{id}",
+        request: { path: z.object({ id: z.string() }) },
+        response: { 200: UserSchema },
+      }),
+      inputMapper: (req) => ({ id: req.path.id }),
+      useCase: async (input: { id: string }) =>
+        ok({ id: input.id, name: "Alice" }),
+    });
+
+    // The guard is purely a compile-time (type) check: the suppressed error
+    // above does not affect runtime behavior, so the route still mounts.
+    const res = await app.inject({ method: "GET", url: "/things/1" });
+
+    expect(res.statusCode).toBe(200);
+
+    await app.close();
+  });
+
+  it("returns 400 at runtime when the request fails a declared validation schema", async () => {
+    const app = Fastify();
+    mountFastifyRoute(app, {
+      contract: defineRoute({
+        method: "get",
+        path: "/things/{id}",
+        request: { path: z.object({ id: z.string().uuid() }) },
+        response: { 200: UserSchema, 400: ProblemJson },
+      }),
+      inputMapper: (req) => ({ id: req.path.id }),
+      useCase: async (input: { id: string }) =>
+        ok({ id: input.id, name: "Alice" }),
+    });
+
+    const res = await app.inject({ method: "GET", url: "/things/not-a-uuid" });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.headers["content-type"]).toContain("application/problem+json");
+
+    await app.close();
   });
 });

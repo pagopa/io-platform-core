@@ -1,0 +1,9 @@
+# Ignore all files with a .hbs extension
+**/*.hbs
+
+# Ignore built files
+dist
+coverage
+
+# Ignore generated OpenAPI spec
+openapi/internal.yaml

@@ -29,13 +29,24 @@ For setup (devcontainer, `nodenv`, `tfenv`, `pre-commit`) and release flow, read
 
 ```bash
 pnpm build                       # turbo run build (respects ^build deps)
-pnpm test                        # run all tests (vitest); or: pnpm -r test
+pnpm code-review                 # full verification pipeline: typecheck, format:check, lint:check, test:coverage
+pnpm format                      # auto-fix formatting across the repo
+pnpm format:check                # check formatting without fixing
 pnpm typecheck                   # type-check every workspace
+pnpm test                        # run all tests (vitest); or: pnpm -r test
+pnpm test:coverage               # run tests with coverage reporting
+pnpm lint                        # auto-fix lint/style issues (eslint --fix .)
+pnpm lint:check                  # check lint/style without fixing
+pnpm version                     # bump versions using changesets
+pnpm release                     # build and publish packages
 pnpm --filter <workspace> <script>   # run one package's script
 ```
 
-Per-workspace scripts: `clean`, `build` (`tsc`), `typecheck`, `lint`, `lint:check`,
-`test` (`vitest run`), `test:coverage`.
+Per-workspace scripts: `clean`, `build` (`tsc`), `typecheck`, `format`, `format:check`,
+`lint`, `lint:check`, `test` (`vitest run`), `test:coverage`.
+
+> **Development verification flow:** run `pnpm format` first to auto-fix formatting,
+> then `pnpm code-review` to run the full check pipeline.
 
 ## Linting & formatting — ALWAYS autofix first
 
@@ -65,7 +76,7 @@ framework-free.
 |-------|------|----------|
 | Domain | `domain/entities/*.entity.ts`, `domain/ports/**/*.repository.ts` | Entities + port **interfaces** (`IUserProfileRepository`) |
 | Application | `application/use-cases/*.use-case.ts` | Business logic as factories: `makeXxxUseCase(deps): UseCase<In,Out,Err>` |
-| Adapters (inbound) | `adapters/inbound/{fastify,azure-functions-v4}/*.handler.ts` + `dto/openapi-schemas.ts` | HTTP/trigger handlers, route contracts, DTO schemas |
+| Adapters (inbound) | `adapters/inbound/*.handler.ts` + `dto/*.dto.ts` | HTTP/trigger handlers, route contracts; adapter-specific DTOs only when an input/output mapper transforms a shape |
 | Adapters (outbound) | `adapters/outbound/persistence/*.repository.ts` | Port implementations (e.g. in-memory) |
 | Composition | `createApp.ts`, `main.ts` | Wire adapters → use cases; process entry point |
 
@@ -79,6 +90,11 @@ Tests live next to code in `__tests__/*.test.ts`.
 - **Validation & types: `zod` v4.** Model value-objects/entities/DTOs as schemas;
   use **branded types** (`.brand<"EmailAddress">()`). Value objects go in
   `value-objects/*.value-object.ts` exporting `XxxSchema` + `type Xxx`.
+- **Shared DTO schemas live in `domain/entities/`**. Request/response schemas that
+  pass unchanged between an inbound adapter and a use case belong with the domain
+  model. Adapter-specific shapes (transport headers, mapper outputs) live in
+  `adapters/inbound/dto/*.dto.ts`. The application layer must not contain DTO
+  schemas or import adapter DTOs.
 - **Dependency injection via factory functions** (`makeXxxUseCase`, `mount<X>Handler`);
   wire everything explicitly in `createApp.ts`. Repository interfaces are `I`-prefixed.
 - **ESM-only source with explicit `.js` import extensions** (required by `nodenext`),
@@ -87,7 +103,9 @@ Tests live next to code in `__tests__/*.test.ts`.
 ### Core packages
 
 - `@pagopa/hexagonal-core` — framework-agnostic hexagonal building blocks (domain + adapters).
-- `@pagopa/io-platform-typescript-config-node` — shared base `tsconfig`.
+- `@pagopa/hexagonal-fastify` — Fastify inbound adapter and route utilities for hexagonal apps.
+- `@pagopa/hexagonal-openapi` — code-first OpenAPI generation and route-contract helpers.
+- `@pagopa/io-platform-typescript-config-node` — shared base `tsconfig` (internal/private).
 
 ## Publishing packages — dual ESM + CJS is mandatory
 
