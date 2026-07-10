@@ -4,6 +4,7 @@ export default defineConfig({
   test: {
     coverage: {
       exclude: [
+        "vite.config.mts",
         "dist",
         "node_modules",
         "**/__mocks__/**",
