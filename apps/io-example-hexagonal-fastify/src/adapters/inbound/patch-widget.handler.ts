@@ -3,13 +3,11 @@ import type { FastifyInstance } from "fastify";
 import { defineRoute } from "@pagopa/hexagonal-core/adapters";
 import { mountFastifyRoute, ProblemJson } from "@pagopa/hexagonal-fastify";
 
-import type { PatchWidgetUseCase } from "../../../application/use-cases/patch-widget.use-case.js";
+import type { PatchWidgetUseCase } from "../../application/use-cases/patch-widget.use-case.js";
 
-import {
-  PatchWidgetBodySchema,
-  WidgetIdPathSchema,
-  WidgetResponseSchema,
-} from "./dto/schemas.js";
+import { WidgetIdSchema } from "../../domain/entities/widget-id.entity.js";
+import { PatchWidgetSchema } from "../../domain/entities/widget-mutation.entity.js";
+import { WidgetSchema } from "../../domain/entities/widget.entity.js";
 
 /**
  * Route contract for partially updating a widget by id.
@@ -23,8 +21,8 @@ export const patchWidgetContract = defineRoute({
   method: "patch",
   operationId: "patchWidget",
   path: "/api/v1/widgets/{id}",
-  request: { body: PatchWidgetBodySchema, path: WidgetIdPathSchema },
-  response: { 200: WidgetResponseSchema, 400: ProblemJson, 500: ProblemJson },
+  request: { body: PatchWidgetSchema, path: WidgetIdSchema },
+  response: { 200: WidgetSchema, 400: ProblemJson, 500: ProblemJson },
   summary: "Patch a widget",
   tags: ["widgets"],
 });

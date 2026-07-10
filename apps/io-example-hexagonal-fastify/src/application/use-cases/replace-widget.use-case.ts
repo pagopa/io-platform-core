@@ -5,19 +5,18 @@ import type { z } from "zod";
 import { GenericError as GenericErrorValue } from "@pagopa/hexagonal-core/domain/errors";
 import { err } from "neverthrow";
 
-import { WidgetResponseSchema } from "../../adapters/inbound/fastify/dto/schemas.js";
+import { WidgetIdSchema } from "../../domain/entities/widget-id.entity.js";
+import { ReplaceWidgetSchema } from "../../domain/entities/widget-mutation.entity.js";
+import { WidgetSchema } from "../../domain/entities/widget.entity.js";
 
 /** Input accepted by the widget replacement use case. */
-export interface ReplaceWidgetInput {
-  description?: string;
-  id: string;
-  name: string;
-}
+export type ReplaceWidgetInput = z.input<typeof ReplaceWidgetSchema> &
+  z.input<typeof WidgetIdSchema>;
 
 /** Use case contract for replacing a widget. */
 export type ReplaceWidgetUseCase = UseCase<
   ReplaceWidgetInput,
-  z.input<typeof WidgetResponseSchema>,
+  z.input<typeof WidgetSchema>,
   GenericError
 >;
 

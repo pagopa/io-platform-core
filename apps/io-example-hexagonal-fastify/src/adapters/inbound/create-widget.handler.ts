@@ -3,9 +3,10 @@ import type { FastifyInstance } from "fastify";
 import { defineRoute } from "@pagopa/hexagonal-core/adapters";
 import { mountFastifyRoute, ProblemJson } from "@pagopa/hexagonal-fastify";
 
-import type { CreateWidgetUseCase } from "../../../application/use-cases/create-widget.use-case.js";
+import type { CreateWidgetUseCase } from "../../application/use-cases/create-widget.use-case.js";
 
-import { CreateWidgetBodySchema, WidgetResponseSchema } from "./dto/schemas.js";
+import { CreateWidgetSchema } from "../../domain/entities/widget-mutation.entity.js";
+import { WidgetSchema } from "../../domain/entities/widget.entity.js";
 
 /**
  * Route contract for creating a widget.
@@ -19,8 +20,8 @@ export const createWidgetContract = defineRoute({
   method: "post",
   operationId: "createWidget",
   path: "/api/v1/widgets",
-  request: { body: CreateWidgetBodySchema },
-  response: { 201: WidgetResponseSchema, 400: ProblemJson, 500: ProblemJson },
+  request: { body: CreateWidgetSchema },
+  response: { 201: WidgetSchema, 400: ProblemJson, 500: ProblemJson },
   summary: "Create a widget",
   tags: ["widgets"],
 });

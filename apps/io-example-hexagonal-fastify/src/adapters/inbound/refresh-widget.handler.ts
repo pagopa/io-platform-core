@@ -3,12 +3,10 @@ import type { FastifyInstance } from "fastify";
 import { defineRoute } from "@pagopa/hexagonal-core/adapters";
 import { mountFastifyRoute, ProblemJson } from "@pagopa/hexagonal-fastify";
 
-import type { RefreshWidgetUseCase } from "../../../application/use-cases/refresh-widget.use-case.js";
+import type { RefreshWidgetUseCase } from "../../application/use-cases/refresh-widget.use-case.js";
 
-import {
-  WidgetIdPathSchema,
-  WidgetRefreshAcceptedSchema,
-} from "./dto/schemas.js";
+import { WidgetIdSchema } from "../../domain/entities/widget-id.entity.js";
+import { WidgetRefreshAcceptedSchema } from "./dto/widget-refresh-accepted.dto.js";
 
 export const refreshWidgetContract = defineRoute({
   description:
@@ -16,7 +14,7 @@ export const refreshWidgetContract = defineRoute({
   method: "post",
   operationId: "refreshWidget",
   path: "/api/v1/widgets/{id}/refresh",
-  request: { path: WidgetIdPathSchema },
+  request: { path: WidgetIdSchema },
   response: {
     202: WidgetRefreshAcceptedSchema,
     400: ProblemJson,

@@ -11,7 +11,7 @@ import {
   mountPatchWidgetHandler,
   mountRefreshWidgetHandler,
   mountReplaceWidgetHandler,
-} from "./adapters/inbound/fastify/index.js";
+} from "./adapters/inbound/index.js";
 import { makeArchiveWidgetUseCase } from "./application/use-cases/archive-widget.use-case.js";
 import { makeCreateWidgetUseCase } from "./application/use-cases/create-widget.use-case.js";
 import { makeDeleteWidgetUseCase } from "./application/use-cases/delete-widget.use-case.js";

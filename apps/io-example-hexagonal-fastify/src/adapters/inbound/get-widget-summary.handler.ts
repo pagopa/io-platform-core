@@ -3,12 +3,10 @@ import type { FastifyInstance } from "fastify";
 import { defineRoute } from "@pagopa/hexagonal-core/adapters";
 import { mountFastifyRoute, ProblemJson } from "@pagopa/hexagonal-fastify";
 
-import type { GetWidgetSummaryUseCase } from "../../../application/use-cases/get-widget-summary.use-case.js";
+import type { GetWidgetSummaryUseCase } from "../../application/use-cases/get-widget-summary.use-case.js";
 
-import {
-  WidgetIdPathSchema,
-  WidgetSummaryResponseSchema,
-} from "./dto/schemas.js";
+import { WidgetIdSchema } from "../../domain/entities/widget-id.entity.js";
+import { WidgetSummarySchema } from "./dto/widget-summary.dto.js";
 
 export const getWidgetSummaryContract = defineRoute({
   description:
@@ -16,9 +14,9 @@ export const getWidgetSummaryContract = defineRoute({
   method: "get",
   operationId: "getWidgetSummary",
   path: "/api/v1/widgets/{id}/summary",
-  request: { path: WidgetIdPathSchema },
+  request: { path: WidgetIdSchema },
   response: {
-    200: WidgetSummaryResponseSchema,
+    200: WidgetSummarySchema,
     400: ProblemJson,
     500: ProblemJson,
   },

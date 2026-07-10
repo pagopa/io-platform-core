@@ -3,12 +3,12 @@ import type { FastifyInstance } from "fastify";
 import { defineRoute } from "@pagopa/hexagonal-core/adapters";
 import { mountFastifyRoute, ProblemJson } from "@pagopa/hexagonal-fastify";
 
-import type { ListWidgetsUseCase } from "../../../application/use-cases/list-widgets.use-case.js";
+import type { ListWidgetsUseCase } from "../../application/use-cases/list-widgets.use-case.js";
 
 import {
-  ListWidgetsQuerySchema,
-  WidgetListResponseSchema,
-} from "./dto/schemas.js";
+  ListWidgetsSchema,
+  WidgetListSchema,
+} from "../../domain/entities/widget-list.entity.js";
 
 /**
  * Route contract for listing widgets through the public API.
@@ -22,9 +22,9 @@ export const listWidgetsContract = defineRoute({
   method: "get",
   operationId: "listWidgets",
   path: "/api/v1/widgets",
-  request: { query: ListWidgetsQuerySchema },
+  request: { query: ListWidgetsSchema },
   response: {
-    200: WidgetListResponseSchema,
+    200: WidgetListSchema,
     400: ProblemJson,
     500: ProblemJson,
   },

@@ -5,19 +5,18 @@ import type { z } from "zod";
 import { GenericError as GenericErrorValue } from "@pagopa/hexagonal-core/domain/errors";
 import { err } from "neverthrow";
 
-import { WidgetListResponseSchema } from "../../adapters/inbound/fastify/dto/schemas.js";
+import {
+  ListWidgetsSchema,
+  WidgetListSchema,
+} from "../../domain/entities/widget-list.entity.js";
 
 /** Input accepted by the widget listing use case. */
-export interface ListWidgetsInput {
-  filter?: string;
-  page?: number;
-  pageSize?: number;
-}
+export type ListWidgetsInput = z.input<typeof ListWidgetsSchema>;
 
 /** Use case contract for listing widgets. */
 export type ListWidgetsUseCase = UseCase<
   ListWidgetsInput,
-  z.input<typeof WidgetListResponseSchema>,
+  z.input<typeof WidgetListSchema>,
   GenericError
 >;
 

@@ -5,18 +5,18 @@ import type { z } from "zod";
 import { GenericError as GenericErrorValue } from "@pagopa/hexagonal-core/domain/errors";
 import { err } from "neverthrow";
 
-import { WidgetAuditResponseSchema } from "../../adapters/inbound/fastify/dto/schemas.js";
+import { WidgetAuditSchema } from "../../domain/entities/widget-audit.entity.js";
+import { WidgetIdSchema } from "../../domain/entities/widget-id.entity.js";
 
 /** Input accepted by the widget audit retrieval use case. */
-export interface GetWidgetAuditInput {
-  id: string;
+export type GetWidgetAuditInput = z.input<typeof WidgetIdSchema> & {
   requestId: string;
-}
+};
 
 /** Use case contract for retrieving widget audit events. */
 export type GetWidgetAuditUseCase = UseCase<
   GetWidgetAuditInput,
-  z.input<typeof WidgetAuditResponseSchema>,
+  z.input<typeof WidgetAuditSchema>,
   GenericError
 >;
 

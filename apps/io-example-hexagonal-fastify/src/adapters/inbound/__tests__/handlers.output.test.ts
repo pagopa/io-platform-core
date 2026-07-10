@@ -5,9 +5,9 @@ import Fastify, {
 } from "fastify";
 import { describe, expect, it } from "vitest";
 
-import { makeArchiveWidgetUseCase } from "../../../../application/use-cases/archive-widget.use-case.js";
-import { makeGetWidgetSummaryUseCase } from "../../../../application/use-cases/get-widget-summary.use-case.js";
-import { makeRefreshWidgetUseCase } from "../../../../application/use-cases/refresh-widget.use-case.js";
+import { makeArchiveWidgetUseCase } from "../../../application/use-cases/archive-widget.use-case.js";
+import { makeGetWidgetSummaryUseCase } from "../../../application/use-cases/get-widget-summary.use-case.js";
+import { makeRefreshWidgetUseCase } from "../../../application/use-cases/refresh-widget.use-case.js";
 import { mountArchiveWidgetHandler } from "../archive-widget.handler.js";
 import { mountGetWidgetSummaryHandler } from "../get-widget-summary.handler.js";
 import { mountRefreshWidgetHandler } from "../refresh-widget.handler.js";

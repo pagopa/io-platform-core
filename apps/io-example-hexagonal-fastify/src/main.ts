@@ -9,7 +9,8 @@ const main = async (): Promise<void> => {
     console.log("Server listening on http://localhost:7072");
   } catch (error) {
     server.log.error(error);
-    process.exit(1);
+    await server.close();
+    process.exitCode = 1;
   }
 };
 

@@ -5,11 +5,11 @@ import Fastify, {
 } from "fastify";
 import { describe, expect, it } from "vitest";
 
-import { makeCreateWidgetUseCase } from "../../../../application/use-cases/create-widget.use-case.js";
-import { makeDeleteWidgetUseCase } from "../../../../application/use-cases/delete-widget.use-case.js";
-import { makeGetWidgetAuditUseCase } from "../../../../application/use-cases/get-widget-audit.use-case.js";
-import { makeGetWidgetUseCase } from "../../../../application/use-cases/get-widget.use-case.js";
-import { makeReplaceWidgetUseCase } from "../../../../application/use-cases/replace-widget.use-case.js";
+import { makeCreateWidgetUseCase } from "../../../application/use-cases/create-widget.use-case.js";
+import { makeDeleteWidgetUseCase } from "../../../application/use-cases/delete-widget.use-case.js";
+import { makeGetWidgetAuditUseCase } from "../../../application/use-cases/get-widget-audit.use-case.js";
+import { makeGetWidgetUseCase } from "../../../application/use-cases/get-widget.use-case.js";
+import { makeReplaceWidgetUseCase } from "../../../application/use-cases/replace-widget.use-case.js";
 import { mountCreateWidgetHandler } from "../create-widget.handler.js";
 import { mountDeleteWidgetHandler } from "../delete-widget.handler.js";
 import { mountGetWidgetAuditHandler } from "../get-widget-audit.handler.js";

@@ -4,9 +4,9 @@ import { defineRoute } from "@pagopa/hexagonal-core/adapters";
 import { mountFastifyRoute, ProblemJson } from "@pagopa/hexagonal-fastify";
 import { z } from "zod";
 
-import type { DeleteWidgetUseCase } from "../../../application/use-cases/delete-widget.use-case.js";
+import type { DeleteWidgetUseCase } from "../../application/use-cases/delete-widget.use-case.js";
 
-import { WidgetIdPathSchema } from "./dto/schemas.js";
+import { WidgetIdSchema } from "../../domain/entities/widget-id.entity.js";
 
 /**
  * Route contract for deleting a widget by id.
@@ -19,7 +19,7 @@ export const deleteWidgetContract = defineRoute({
   method: "delete",
   operationId: "deleteWidget",
   path: "/api/v1/widgets/{id}",
-  request: { path: WidgetIdPathSchema },
+  request: { path: WidgetIdSchema },
   response: { 204: z.object({}), 400: ProblemJson, 500: ProblemJson },
   summary: "Delete a widget",
   tags: ["widgets"],

@@ -3,13 +3,11 @@ import type { FastifyInstance } from "fastify";
 import { defineRoute } from "@pagopa/hexagonal-core/adapters";
 import { mountFastifyRoute, ProblemJson } from "@pagopa/hexagonal-fastify";
 
-import type { ReplaceWidgetUseCase } from "../../../application/use-cases/replace-widget.use-case.js";
+import type { ReplaceWidgetUseCase } from "../../application/use-cases/replace-widget.use-case.js";
 
-import {
-  ReplaceWidgetBodySchema,
-  WidgetIdPathSchema,
-  WidgetResponseSchema,
-} from "./dto/schemas.js";
+import { WidgetIdSchema } from "../../domain/entities/widget-id.entity.js";
+import { ReplaceWidgetSchema } from "../../domain/entities/widget-mutation.entity.js";
+import { WidgetSchema } from "../../domain/entities/widget.entity.js";
 
 /**
  * Route contract for replacing a widget by id.
@@ -24,8 +22,8 @@ export const replaceWidgetContract = defineRoute({
   method: "put",
   operationId: "replaceWidget",
   path: "/api/v1/widgets/{id}",
-  request: { body: ReplaceWidgetBodySchema, path: WidgetIdPathSchema },
-  response: { 200: WidgetResponseSchema, 400: ProblemJson, 500: ProblemJson },
+  request: { body: ReplaceWidgetSchema, path: WidgetIdSchema },
+  response: { 200: WidgetSchema, 400: ProblemJson, 500: ProblemJson },
   summary: "Replace a widget",
   tags: ["widgets"],
 });

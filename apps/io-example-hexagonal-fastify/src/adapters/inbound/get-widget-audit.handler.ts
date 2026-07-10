@@ -3,13 +3,11 @@ import type { FastifyInstance } from "fastify";
 import { defineRoute } from "@pagopa/hexagonal-core/adapters";
 import { mountFastifyRoute, ProblemJson } from "@pagopa/hexagonal-fastify";
 
-import type { GetWidgetAuditUseCase } from "../../../application/use-cases/get-widget-audit.use-case.js";
+import type { GetWidgetAuditUseCase } from "../../application/use-cases/get-widget-audit.use-case.js";
 
-import {
-  RequestIdHeaderSchema,
-  WidgetAuditResponseSchema,
-  WidgetIdPathSchema,
-} from "./dto/schemas.js";
+import { WidgetAuditSchema } from "../../domain/entities/widget-audit.entity.js";
+import { WidgetIdSchema } from "../../domain/entities/widget-id.entity.js";
+import { RequestIdHeaderSchema } from "./dto/request-id-header.dto.js";
 
 /**
  * Route contract for retrieving widget audit events.
@@ -24,9 +22,9 @@ export const getWidgetAuditContract = defineRoute({
   method: "get",
   operationId: "getWidgetAudit",
   path: "/api/v1/widgets/{id}/audit",
-  request: { headers: RequestIdHeaderSchema, path: WidgetIdPathSchema },
+  request: { headers: RequestIdHeaderSchema, path: WidgetIdSchema },
   response: {
-    200: WidgetAuditResponseSchema,
+    200: WidgetAuditSchema,
     400: ProblemJson,
     500: ProblemJson,
   },

@@ -24,9 +24,9 @@ export declare const WidgetIdBrand: unique symbol;
  * via `WidgetSchema.shape.*` rather than redefining the constraints.
  */
 export const WidgetSchema = z.object({
-  createdAt: z.iso.datetime(),
+  createdAt: z.string().datetime(),
   description: z.string().optional(),
-  id: z.uuid().brand<typeof WidgetIdBrand>(),
+  id: z.string().uuid().brand<typeof WidgetIdBrand>(),
   name: z.string().min(1),
 });
 

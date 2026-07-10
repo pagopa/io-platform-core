@@ -4,9 +4,9 @@ import { defineRoute } from "@pagopa/hexagonal-core/adapters";
 import { mountFastifyRoute, ProblemJson } from "@pagopa/hexagonal-fastify";
 import { z } from "zod";
 
-import type { ArchiveWidgetUseCase } from "../../../application/use-cases/archive-widget.use-case.js";
+import type { ArchiveWidgetUseCase } from "../../application/use-cases/archive-widget.use-case.js";
 
-import { WidgetIdPathSchema } from "./dto/schemas.js";
+import { WidgetIdSchema } from "../../domain/entities/widget-id.entity.js";
 
 export const archiveWidgetContract = defineRoute({
   description:
@@ -14,7 +14,7 @@ export const archiveWidgetContract = defineRoute({
   method: "post",
   operationId: "archiveWidget",
   path: "/api/v1/widgets/{id}/archive",
-  request: { path: WidgetIdPathSchema },
+  request: { path: WidgetIdSchema },
   response: { 204: z.object({}), 400: ProblemJson, 500: ProblemJson },
   summary: "Archive a widget",
   tags: ["widgets"],

@@ -76,7 +76,7 @@ framework-free.
 |-------|------|----------|
 | Domain | `domain/entities/*.entity.ts`, `domain/ports/**/*.repository.ts` | Entities + port **interfaces** (`IUserProfileRepository`) |
 | Application | `application/use-cases/*.use-case.ts` | Business logic as factories: `makeXxxUseCase(deps): UseCase<In,Out,Err>` |
-| Adapters (inbound) | `adapters/inbound/{fastify,azure-functions-v4}/*.handler.ts` + `dto/openapi-schemas.ts` | HTTP/trigger handlers, route contracts, DTO schemas |
+| Adapters (inbound) | `adapters/inbound/*.handler.ts` + `dto/*.dto.ts` | HTTP/trigger handlers, route contracts; adapter-specific DTOs only when an input/output mapper transforms a shape |
 | Adapters (outbound) | `adapters/outbound/persistence/*.repository.ts` | Port implementations (e.g. in-memory) |
 | Composition | `createApp.ts`, `main.ts` | Wire adapters → use cases; process entry point |
 
@@ -90,6 +90,11 @@ Tests live next to code in `__tests__/*.test.ts`.
 - **Validation & types: `zod` v4.** Model value-objects/entities/DTOs as schemas;
   use **branded types** (`.brand<"EmailAddress">()`). Value objects go in
   `value-objects/*.value-object.ts` exporting `XxxSchema` + `type Xxx`.
+- **Shared DTO schemas live in `domain/entities/`**. Request/response schemas that
+  pass unchanged between an inbound adapter and a use case belong with the domain
+  model. Adapter-specific shapes (transport headers, mapper outputs) live in
+  `adapters/inbound/dto/*.dto.ts`. The application layer must not contain DTO
+  schemas or import adapter DTOs.
 - **Dependency injection via factory functions** (`makeXxxUseCase`, `mount<X>Handler`);
   wire everything explicitly in `createApp.ts`. Repository interfaces are `I`-prefixed.
 - **ESM-only source with explicit `.js` import extensions** (required by `nodenext`),

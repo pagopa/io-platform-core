@@ -2,7 +2,7 @@ import type { InjectOptions, LightMyRequestResponse } from "fastify";
 
 import { describe, expect, it } from "vitest";
 
-import { createApp } from "../../../../createApp.js";
+import { createApp } from "../../../createApp.js";
 
 const ID = "11111111-1111-4111-8111-111111111111";
 

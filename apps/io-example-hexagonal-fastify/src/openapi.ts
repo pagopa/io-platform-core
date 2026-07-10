@@ -4,16 +4,16 @@ import { buildOpenApiDocument } from "@pagopa/hexagonal-openapi";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-import { archiveWidgetContract } from "./adapters/inbound/fastify/archive-widget.handler.js";
-import { createWidgetContract } from "./adapters/inbound/fastify/create-widget.handler.js";
-import { deleteWidgetContract } from "./adapters/inbound/fastify/delete-widget.handler.js";
-import { getWidgetAuditContract } from "./adapters/inbound/fastify/get-widget-audit.handler.js";
-import { getWidgetSummaryContract } from "./adapters/inbound/fastify/get-widget-summary.handler.js";
-import { getWidgetContract } from "./adapters/inbound/fastify/get-widget.handler.js";
-import { listWidgetsContract } from "./adapters/inbound/fastify/list-widgets.handler.js";
-import { patchWidgetContract } from "./adapters/inbound/fastify/patch-widget.handler.js";
-import { refreshWidgetContract } from "./adapters/inbound/fastify/refresh-widget.handler.js";
-import { replaceWidgetContract } from "./adapters/inbound/fastify/replace-widget.handler.js";
+import { archiveWidgetContract } from "./adapters/inbound/archive-widget.handler.js";
+import { createWidgetContract } from "./adapters/inbound/create-widget.handler.js";
+import { deleteWidgetContract } from "./adapters/inbound/delete-widget.handler.js";
+import { getWidgetAuditContract } from "./adapters/inbound/get-widget-audit.handler.js";
+import { getWidgetSummaryContract } from "./adapters/inbound/get-widget-summary.handler.js";
+import { getWidgetContract } from "./adapters/inbound/get-widget.handler.js";
+import { listWidgetsContract } from "./adapters/inbound/list-widgets.handler.js";
+import { patchWidgetContract } from "./adapters/inbound/patch-widget.handler.js";
+import { refreshWidgetContract } from "./adapters/inbound/refresh-widget.handler.js";
+import { replaceWidgetContract } from "./adapters/inbound/replace-widget.handler.js";
 
 interface PackageJson {
   version: string;
