@@ -4,7 +4,4 @@
 
 ### Patch Changes
 
-- Updated dependencies [a079d19]
-  - @pagopa/hexagonal-core@0.4.0
-  - @pagopa/hexagonal-fastify@0.2.0
-  - @pagopa/hexagonal-openapi@0.1.1
+Implemented the first version of an example Fastify app built on a hexagonal architecture.

@@ -15,7 +15,8 @@
     "lint": "turbo run lint -- --fix .",
     "lint:check": "turbo run lint:check",
     "version": "changeset version",
-    "release": "pnpm build && changeset publish"
+    "release": "pnpm build && changeset publish",
+    "generate": "turbo run generate"
   },
   "devDependencies": {
     "@changesets/cli": "^2.30.0",
