@@ -64,7 +64,7 @@ and it owns formatting too.
 - `packages/*` — reusable modules. Publishable `hexagonal-core` package plus or cross product shared packages without the `io-` prefix.
   `typescript-config-node` (shared `tsconfig`, internal/`private`).
 - `infra/*` — Terraform IaC (see below).
-- `docs/*` — architecture notes/ADRs. Link user docs from a package `README`, not here.
+
 
 ## Architecture — hexagonal (ports & adapters)
 
@@ -106,6 +106,9 @@ Tests live next to code in `__tests__/*.test.ts`.
 - `@pagopa/hexagonal-fastify` — Fastify inbound adapter and route utilities for hexagonal apps.
 - `@pagopa/hexagonal-openapi` — code-first OpenAPI generation and route-contract helpers.
 - `@pagopa/io-platform-typescript-config-node` — shared base `tsconfig` (internal/private).
+
+### Documentation
+- `packages/hexagonal-core/docs/*` — architecture notes/ADRs related to the hexagonal pattern libs. Link user docs from a package `README`, not here.
 
 ## Publishing packages — dual ESM + CJS is mandatory
 

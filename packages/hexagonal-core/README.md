@@ -211,14 +211,16 @@ const useCase = makeCreateUserProfileUseCase({ logger: noopLogger });
 Cross-cutting concerns — logging, tracing, metrics, audit logging, idempotency,
 authorization, reusable business rules — must not leak into the domain or use
 cases as direct dependencies, nor be re-implemented for every primary adapter
-(Fastify, Azure Functions). `@pagopa/hexagonal-core` supports two
-framework-agnostic middleware patterns that build on the `UseCase` port:
+(Fastify, Azure Functions). `@pagopa/hexagonal-core` supports three
+framework-agnostic middleware patterns:
 
+- **HTTP request middleware** — inspect a parsed request and short-circuit
+  before request-schema validation.
 - **Use case decorator** — wrap a `UseCase` to add infrastructural behaviour.
 - **Use case composition** — orchestrate smaller, reusable use cases as
   first-class business steps.
 
-Both follow the same guiding principles:
+All follow the same guiding principles:
 
 1. **Cross-cutting dependencies enter as outbound ports** (`ILogger`, `IClock`,
    `IAuditLog`, `IPolicy`, …), injected through the `makeXxxUseCase(deps)`
@@ -227,15 +229,91 @@ Both follow the same guiding principles:
    step returns the same error channel, so the single RFC 7807 error mapper
    (`mapErrorToHttpResponse`) keeps handling every response. Any new error type
    must be added to the route contract's `response` map.
-3. **Context stays transport-neutral.** If a concern needs request metadata
-   (headers, IP, correlation id), model it explicitly in the use-case input —
-   never pass the raw `FastifyRequest`. The same chain then serves Fastify and
-   Azure Functions.
+3. **Context stays transport-neutral.** HTTP middleware receives the canonical
+   `body` / `headers` / `path` / `query` payload and an append-only context. It
+   never receives a native `FastifyRequest`, Azure request, raw stream or
+   generic `meta` object. The same sequence serves Fastify and Azure Functions.
 4. **The mechanism follows the nature of the concern**, not convenience: an
    infrastructural detail is decorated, a reusable business rule is composed.
 
-> A pipeline-middleware stage inside the handler builder is not currently
-> supported by the core packages.
+### HTTP request middleware
+
+HTTP middleware are standalone functions assembled into an ordered readonly
+tuple. The sequence runs after the adapter has parsed the request and before the
+declared request schemas run. Each function declares the minimum context it
+requires and returns only the new context fragment it owns. TypeScript verifies
+the tuple order and unique context keys, then derives its final context and
+error union. An `err` stops the sequence immediately, so later middleware,
+request validation, the input mapper and the use case do not run.
+
+```ts
+import {
+  defineRoute,
+  type EmptyHttpMiddlewareContext,
+  type HttpRequestMiddleware,
+  ProblemJson,
+} from "@pagopa/hexagonal-core/adapters";
+import { AuthenticationError } from "@pagopa/hexagonal-core/domain/errors";
+import { mountFastifyRoute } from "@pagopa/hexagonal-fastify";
+import { err, ok } from "neverthrow";
+import { z } from "zod";
+
+interface ActorContext {
+  actorId: string;
+}
+
+const authenticate: HttpRequestMiddleware<
+  EmptyHttpMiddlewareContext,
+  ActorContext,
+  AuthenticationError
+> = async ({ payload }) => {
+  const headers = payload.headers as { authorization?: string } | undefined;
+  return headers?.authorization
+    ? ok({ actorId: headers.authorization })
+    : err(new AuthenticationError());
+};
+
+const resolveTenant: HttpRequestMiddleware<
+  Pick<ActorContext, "actorId">,
+  { tenantId: string },
+  never
+> = async ({ context }) => ok({ tenantId: `tenant-for-${context.actorId}` });
+
+const middlewares = [authenticate, resolveTenant] as const;
+
+mountFastifyRoute(app, {
+  contract: defineRoute({
+    method: "post",
+    path: "/users",
+    request: {
+      body: z.object({ name: z.string() }),
+      headers: z.object({ authorization: z.string() }),
+    },
+    response: { 200: UserSchema, 400: ProblemJson, 401: ProblemJson },
+  }),
+  middlewares,
+  inputMapper: (request, context) => ({
+    actorId: context.actorId,
+    name: request.body.name,
+    tenantId: context.tenantId,
+  }),
+  useCase,
+});
+```
+
+The payload is an eager, readonly snapshot with only `body`, `headers`,
+`path`, and `query`. The adapter owns extraction, so a future Azure Functions
+adapter can reuse the same sequence by supplying its own extractor. A stored
+middleware sequence uses `as const` to retain tuple order; a tuple literal
+passed directly to `mountFastifyRoute` is inferred as a tuple automatically.
+Error response statuses must be declared in the route contract, and every
+declared error schema must accept and return the RFC 7807 `ProblemDetails`
+shape. The mount also validates the mapped error response at runtime and falls
+back to `500` if an invalid contract is bypassed.
+
+Use HTTP middleware for authentication, correlation extraction, rate limiting
+and other concerns that must run before validation. Use a use-case decorator
+when the concern needs validated input or application dependencies instead.
 
 ### Use case decorator
 

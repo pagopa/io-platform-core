@@ -1,6 +1,13 @@
 import type {
+  ContextualInputMapper,
+  EnsureErrorResponsePayloads,
+  EnsureHttpMiddlewareSequence,
   EnsureResponseCoversErrors,
   EnsureValidationErrorDeclared,
+  HttpMiddlewareContext,
+  HttpMiddlewareErrors,
+  HttpMiddlewareSequence,
+  HttpRequestPayload,
   RedirectEntry,
   ResponseEntry,
   ResponseMap,
@@ -19,6 +26,8 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { z, ZodType } from "zod";
 
 import {
+  createHttpRequestPayloadValidator,
+  executeHttpRequestPipeline,
   getEntrySchema,
   isNoBodyStatus,
   isRedirectEntry,
@@ -27,13 +36,17 @@ import {
 import { GenericError } from "@pagopa/hexagonal-core/domain/errors";
 import { z as zod } from "zod";
 
-import { sendErrorResponse } from "./errorResponder.js";
 import {
-  createHttpHandler,
+  sendContractErrorResponse,
+  sendErrorResponse,
+} from "./errorResponder.js";
+import {
+  createHttpHandlerFromExecution,
+  type ErrorResponder,
   type SuccessResponder,
   type SuccessStatusCode,
 } from "./httpHandlerBuilder.js";
-import { createFastifyRequestValidator } from "./validator/fastifyRequestValidator.js";
+import { fastifyExtractPayload } from "./validator/fastifyRequestValidator.js";
 
 const fastifyMethod = {
   delete: "DELETE",
@@ -138,6 +151,7 @@ const resolveSuccessEntry = (response: ResponseMap): ResolvedSuccessEntry => {
 const buildSuccessResponder = <O, R>(
   entry: ResolvedSuccessEntry,
   outputMapper?: (output: O) => R,
+  onError: ErrorResponder = (reply, error) => sendErrorResponse(reply, error),
 ): SuccessResponder<O> => {
   const sendsBody = entry.schema !== undefined && !isNoBodyStatus(entry.status);
   const schema = entry.schema;
@@ -147,7 +161,7 @@ const buildSuccessResponder = <O, R>(
 
     if (entry.isRedirect) {
       if (typeof mapped !== "string" || mapped.length === 0) {
-        return sendErrorResponse(
+        return onError(
           reply,
           new GenericError("Redirect location is missing or not a string."),
         );
@@ -161,10 +175,7 @@ const buildSuccessResponder = <O, R>(
 
     const result = await schema["~standard"].validate(mapped);
     if (result.issues) {
-      return sendErrorResponse(
-        reply,
-        new GenericError("Output encoding failed."),
-      );
+      return onError(reply, new GenericError("Output encoding failed."));
     }
 
     return reply.code(entry.status).send(result.value);
@@ -195,12 +206,17 @@ const buildSuccessResponder = <O, R>(
  *  2. every HTTP status the use case can fail with MUST appear as a key in
  *     `contract.response` (via {@link EnsureResponseCoversErrors});
  *  3. `inputMapper` receives the validated wire request shape derived from
- *     `contract.request` and must return the use-case input type;
+ *     `contract.request` and must return the use-case input type. It also
+ *     receives the context accumulated by the ordered middleware tuple;
  *  4. when `contract.request` validates any part (body/headers/path/query),
  *     `contract.response` MUST declare a `400` entry (via
  *     {@link EnsureValidationErrorDeclared}) — the adapter always emits `400`
  *     on a validation failure, so a validating contract without one would be
  *     inconsistent with the adapter's actual runtime behavior.
+ *  5. every non-success response schema MUST accept and return RFC 7807
+ *     Problem Details (via {@link EnsureErrorResponsePayloads}); runtime
+ *     validation falls back to `500` if a contract is bypassed or a refinement
+ *     rejects the mapped error payload.
  *
  * @typeParam Req Request schemas declared by the contract.
  * @typeParam Resp Response map declared by the contract.
@@ -216,15 +232,24 @@ export function mountFastifyRoute<
   const Resp extends ResponseMap,
   UseCaseInput extends object,
   O,
-  E extends BaseError,
+  E extends BaseError = never,
+  const Middlewares extends HttpMiddlewareSequence = readonly [],
 >(
   server: FastifyInstance,
   spec: {
-    contract: NoInfer<EnsureValidationErrorDeclared<Req, Resp>> &
+    contract: NoInfer<EnsureErrorResponsePayloads<Resp>> &
+      NoInfer<EnsureValidationErrorDeclared<Req, Resp>> &
       RouteContract<Req, Resp>;
-    inputMapper: (req: WireRequest<Req>) => UseCaseInput;
+    inputMapper: (
+      req: WireRequest<Req>,
+      context: Readonly<HttpMiddlewareContext<NoInfer<Middlewares>>>,
+    ) => UseCaseInput;
+    middlewares?: Middlewares &
+      NoInfer<EnsureHttpMiddlewareSequence<Middlewares>>;
     outputMapper: (output: O) => SuccessBodyInput<Resp>;
-    useCase: NoInfer<EnsureResponseCoversErrors<E, Resp>> &
+    useCase: NoInfer<
+      EnsureResponseCoversErrors<E | HttpMiddlewareErrors<Middlewares>, Resp>
+    > &
       UseCase<UseCaseInput, O, E>;
   },
 ): void;
@@ -232,14 +257,23 @@ export function mountFastifyRoute<
   Req extends RouteRequestSchemas,
   const Resp extends ResponseMap,
   UseCaseInput extends object,
-  E extends BaseError,
+  E extends BaseError = never,
+  const Middlewares extends HttpMiddlewareSequence = readonly [],
 >(
   server: FastifyInstance,
   spec: {
-    contract: NoInfer<EnsureValidationErrorDeclared<Req, Resp>> &
+    contract: NoInfer<EnsureErrorResponsePayloads<Resp>> &
+      NoInfer<EnsureValidationErrorDeclared<Req, Resp>> &
       RouteContract<Req, Resp>;
-    inputMapper: (req: WireRequest<Req>) => UseCaseInput;
-    useCase: NoInfer<EnsureResponseCoversErrors<E, Resp>> &
+    inputMapper: (
+      req: WireRequest<Req>,
+      context: Readonly<HttpMiddlewareContext<NoInfer<Middlewares>>>,
+    ) => UseCaseInput;
+    middlewares?: Middlewares &
+      NoInfer<EnsureHttpMiddlewareSequence<Middlewares>>;
+    useCase: NoInfer<
+      EnsureResponseCoversErrors<E | HttpMiddlewareErrors<Middlewares>, Resp>
+    > &
       UseCase<UseCaseInput, SuccessBodyInput<Resp>, E>;
   },
 ): void;
@@ -249,37 +283,67 @@ export function mountFastifyRoute<
   UseCaseInput extends object,
   O,
   E extends BaseError,
+  Middlewares extends HttpMiddlewareSequence = readonly [],
 >(
   server: FastifyInstance,
   spec: {
     contract: RouteContract<Req, Resp>;
-    inputMapper: (req: WireRequest<Req>) => UseCaseInput;
+    inputMapper: (
+      req: WireRequest<Req>,
+      context: Readonly<HttpMiddlewareContext<Middlewares>>,
+    ) => UseCaseInput;
+    middlewares?: Middlewares &
+      NoInfer<EnsureHttpMiddlewareSequence<Middlewares>>;
     outputMapper?: (output: O) => SuccessBodyInput<Resp>;
     useCase: UseCase<UseCaseInput, O, E>;
   },
 ): void {
   const successEntry = resolveSuccessEntry(spec.contract.response);
 
-  const wire = buildWireSchema(spec.contract.request).transform((parts) =>
-    spec.inputMapper(parts as WireRequest<Req>),
-  );
+  const wire = buildWireSchema(spec.contract.request);
 
-  // The wire schema only contains body/headers/path/query keys, satisfying the
-  // validator's structural constraint at runtime.
-  const validator = createFastifyRequestValidator(
-    wire as unknown as Parameters<typeof createFastifyRequestValidator>[0],
-  ) as InputValidator<FastifyRequest, UseCaseInput>;
+  const validator = createHttpRequestPayloadValidator(
+    wire as Parameters<typeof createHttpRequestPayloadValidator>[0],
+  ) as InputValidator<HttpRequestPayload, WireRequest<Req>>;
+
+  const onError: ErrorResponder = (reply, error) =>
+    sendContractErrorResponse(reply, error, spec.contract.response);
 
   const onSuccess = buildSuccessResponder<O, SuccessBodyInput<Resp>>(
     successEntry,
     spec.outputMapper,
+    onError,
   );
 
-  const handler = createHttpHandler<UseCaseInput, O, E>(
-    spec.useCase,
-    validator,
-    onSuccess,
-  );
+  const execute = (request: FastifyRequest) => {
+    const payload = fastifyExtractPayload(request);
+    const inputMapper: ContextualInputMapper<
+      WireRequest<Req>,
+      HttpMiddlewareContext<Middlewares> | Record<never, never>,
+      UseCaseInput
+    > = (input, context) =>
+      spec.inputMapper(
+        input,
+        context as Readonly<HttpMiddlewareContext<Middlewares>>,
+      );
+
+    return spec.middlewares
+      ? executeHttpRequestPipeline(
+          payload,
+          validator,
+          inputMapper,
+          spec.useCase,
+          spec.middlewares,
+        )
+      : executeHttpRequestPipeline(
+          payload,
+          validator,
+          inputMapper,
+          spec.useCase,
+        );
+  };
+
+  const handler = createHttpHandlerFromExecution(execute, onSuccess, onError);
 
   server.route({
     handler,

@@ -5,6 +5,7 @@ export {
   errorMetadata,
   type ErrorMetadata,
   type ErrorsFromKinds,
+  type HttpMappedError,
   type KindToError,
   type StatusesFor,
   type StatusForKind,
@@ -15,3 +16,7 @@ export {
   mapErrorToProblemDetails,
   type ProblemDetails,
 } from "./errorMapper.js";
+export {
+  mapErrorToHttpResponseAgainstContract,
+  validateHttpErrorResponseAgainstContract,
+} from "./httpErrorResponseContract.js";

@@ -3,6 +3,7 @@ import type {
   UseCase,
 } from "@pagopa/hexagonal-core/domain/ports";
 import type { FastifyReply, FastifyRequest } from "fastify";
+import type { Result } from "neverthrow";
 
 import {
   type BaseError,
@@ -12,6 +13,17 @@ import {
 import { sendErrorResponse } from "./errorResponder.js";
 
 export type { SuccessStatusCode } from "@pagopa/hexagonal-core/adapters";
+
+/** Writes a mapped domain error to the transport response. */
+export type ErrorResponder = (
+  reply: FastifyReply,
+  error: BaseError,
+) => FastifyReply | Promise<FastifyReply>;
+
+/** Executes a request and returns either the output or a mapped domain error. */
+export type RequestExecution<O, E extends BaseError> = (
+  request: FastifyRequest,
+) => Promise<Result<O, E>>;
 
 /**
  * Emits the response for a successful use-case output. Output mapping and
@@ -70,6 +82,38 @@ export const createHttpHandler =
       return onSuccess(result.value, reply);
     } catch (err) {
       return sendErrorResponse(
+        reply,
+        new GenericError(`Unexpected error in HTTP handler. ${err}`),
+      );
+    }
+  };
+
+/**
+ * Builds a Fastify handler from a complete request execution function.
+ *
+ * This variant is used by route mounts that need work before request-schema
+ * validation, while keeping the same error and success response behavior as
+ * {@link createHttpHandler}.
+ */
+export const createHttpHandlerFromExecution =
+  <O, E extends BaseError>(
+    execute: RequestExecution<O, E>,
+    onSuccess: SuccessResponder<O>,
+    onError: ErrorResponder = (reply, error) => sendErrorResponse(reply, error),
+  ) =>
+  async (
+    request: FastifyRequest,
+    reply: FastifyReply,
+  ): Promise<FastifyReply> => {
+    try {
+      const result = await execute(request);
+      if (result.isErr()) {
+        return onError(reply, result.error);
+      }
+
+      return onSuccess(result.value, reply);
+    } catch (err) {
+      return onError(
         reply,
         new GenericError(`Unexpected error in HTTP handler. ${err}`),
       );

@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
+import { AuthenticationError } from "../../../domain/errors/index.js";
+import { ProblemJson } from "../../http-responses/problemDetails.schema.js";
 import {
   defineRoute,
+  type EnsureErrorResponsePayloads,
+  type EnsureResponseCoversErrors,
   getEntryDescription,
   getEntrySchema,
   isRedirectEntry,
@@ -81,5 +85,47 @@ describe("defineRoute", () => {
     });
 
     expect(contract.method).toBe("get");
+  });
+});
+
+describe("route response type guards", () => {
+  it("requires every mapped error status to be declared", () => {
+    type MissingAuthenticationResponse = EnsureResponseCoversErrors<
+      AuthenticationError,
+      { 200: typeof ProblemJson }
+    >;
+
+    // @ts-expect-error - 401 is missing from the response map
+    const missingResponse: MissingAuthenticationResponse = {};
+
+    expect(missingResponse).toEqual({});
+  });
+
+  it("requires error response schemas to accept RFC 7807 payloads", () => {
+    const invalidSchema = z.string();
+    expect(invalidSchema).toBeDefined();
+    type InvalidPayloadResponse = EnsureErrorResponsePayloads<{
+      401: typeof invalidSchema;
+    }>;
+
+    // @ts-expect-error - a string schema cannot encode Problem Details
+    const invalidResponse: InvalidPayloadResponse = {};
+
+    expect(invalidResponse).toEqual({});
+  });
+
+  it("rejects transforms that return a non-Problem Details payload", () => {
+    const invalidTransformedSchema = z
+      .unknown()
+      .transform(() => ({ invalid: true }));
+    expect(invalidTransformedSchema).toBeDefined();
+    type InvalidTransformedResponse = EnsureErrorResponsePayloads<{
+      401: typeof invalidTransformedSchema;
+    }>;
+
+    // @ts-expect-error - the transformed output is not Problem Details
+    const invalidResponse: InvalidTransformedResponse = {};
+
+    expect(invalidResponse).toEqual({});
   });
 });

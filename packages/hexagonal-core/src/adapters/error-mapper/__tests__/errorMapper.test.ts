@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { z } from "zod";
 
 import {
+  AuthenticationError,
   BadGatewayError,
   BaseError,
   ConflictError,
@@ -14,10 +16,12 @@ import {
   TooManyRequestsError,
   ValidationError,
 } from "../../../domain/errors/index.js";
+import { ProblemJson } from "../../http-responses/problemDetails.schema.js";
 import {
   mapErrorToHttpResponse,
   mapErrorToProblemDetails,
 } from "../errorMapper.js";
+import { validateHttpErrorResponseAgainstContract } from "../httpErrorResponseContract.js";
 
 describe("mapErrorToProblemDetails", () => {
   it("maps ValidationError to 400 under the default problems domain", () => {
@@ -216,5 +220,49 @@ describe("mapErrorToHttpResponse", () => {
     expect(response.status).toBe(504);
     expect(response.jsonBody.status).toBe(504);
     expect(response.jsonBody.title).toBe("Gateway Timeout");
+  });
+});
+
+describe("validateHttpErrorResponseAgainstContract", () => {
+  it("accepts a mapped error with a compatible declared schema", async () => {
+    const response = mapErrorToHttpResponse()(new AuthenticationError());
+
+    const result = await validateHttpErrorResponseAgainstContract(response, {
+      401: ProblemJson,
+    });
+
+    expect(result.isOk()).toBe(true);
+  });
+
+  it("rejects an undeclared status", async () => {
+    const response = mapErrorToHttpResponse()(new AuthenticationError());
+
+    const result = await validateHttpErrorResponseAgainstContract(response, {
+      400: ProblemJson,
+    });
+
+    expect(result.isErr()).toBe(true);
+  });
+
+  it("rejects a schema that fails at runtime", async () => {
+    const response = mapErrorToHttpResponse()(new AuthenticationError());
+    const schema = ProblemJson.refine(() => false);
+
+    const result = await validateHttpErrorResponseAgainstContract(response, {
+      401: schema,
+    });
+
+    expect(result.isErr()).toBe(true);
+  });
+
+  it("rejects a schema transform that does not return Problem Details", async () => {
+    const response = mapErrorToHttpResponse()(new AuthenticationError());
+    const schema = z.unknown().transform(() => ({ invalid: true }));
+
+    const result = await validateHttpErrorResponseAgainstContract(response, {
+      401: schema,
+    });
+
+    expect(result.isErr()).toBe(true);
   });
 });
