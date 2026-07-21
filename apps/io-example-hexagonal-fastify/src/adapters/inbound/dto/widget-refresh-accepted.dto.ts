@@ -1,14 +1,6 @@
 import { z } from "zod";
 
-/**
- * Unique symbol used to brand {@link WidgetTaskId}.
- *
- * The async refresh endpoint returns an opaque task identifier; branding it
- * with a `unique symbol` keeps it nominally distinct from a widget id or any
- * other string. The declaration is exported (type-only, no runtime value) so
- * the inferred schema type is nameable across module boundaries.
- */
-export declare const WidgetTaskIdBrand: unique symbol;
+import { WidgetTaskIdSchema } from "../../../domain/value-objects/widget-task-id.value-object.js";
 
 /**
  * Response schema for the asynchronous widget refresh endpoint (202 Accepted).
@@ -19,5 +11,5 @@ export declare const WidgetTaskIdBrand: unique symbol;
  */
 export const WidgetRefreshAcceptedSchema = z.object({
   status: z.literal("accepted"),
-  taskId: z.string().uuid().brand<typeof WidgetTaskIdBrand>(),
+  taskId: WidgetTaskIdSchema,
 });

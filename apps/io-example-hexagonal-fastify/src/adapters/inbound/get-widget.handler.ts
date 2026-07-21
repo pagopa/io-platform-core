@@ -5,7 +5,7 @@ import { mountFastifyRoute, ProblemJson } from "@pagopa/hexagonal-fastify";
 
 import type { GetWidgetUseCase } from "../../application/use-cases/get-widget.use-case.js";
 
-import { WidgetIdSchema } from "../../domain/entities/widget-id.entity.js";
+import { WidgetIdPathSchema } from "../../domain/entities/widget-id.entity.js";
 import { WidgetSchema } from "../../domain/entities/widget.entity.js";
 
 /**
@@ -19,7 +19,7 @@ export const getWidgetContract = defineRoute({
   method: "get",
   operationId: "getWidget",
   path: "/api/v1/widgets/{id}",
-  request: { path: WidgetIdSchema },
+  request: { path: WidgetIdPathSchema },
   response: { 200: WidgetSchema, 400: ProblemJson, 500: ProblemJson },
   summary: "Get a widget",
   tags: ["widgets"],

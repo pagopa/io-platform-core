@@ -6,7 +6,7 @@ import { z } from "zod";
 
 import type { DeleteWidgetUseCase } from "../../application/use-cases/delete-widget.use-case.js";
 
-import { WidgetIdSchema } from "../../domain/entities/widget-id.entity.js";
+import { WidgetIdPathSchema } from "../../domain/entities/widget-id.entity.js";
 
 /**
  * Route contract for deleting a widget by id.
@@ -19,7 +19,7 @@ export const deleteWidgetContract = defineRoute({
   method: "delete",
   operationId: "deleteWidget",
   path: "/api/v1/widgets/{id}",
-  request: { path: WidgetIdSchema },
+  request: { path: WidgetIdPathSchema },
   response: { 204: z.object({}), 400: ProblemJson, 500: ProblemJson },
   summary: "Delete a widget",
   tags: ["widgets"],

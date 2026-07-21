@@ -2,8 +2,10 @@ import fastify, { type FastifyInstance } from "fastify";
 
 import {
   mountArchiveWidgetHandler,
+  mountAuthenticatedWidgetSummaryHandler,
   mountCreateWidgetHandler,
   mountDeleteWidgetHandler,
+  mountGetWidgetAccessHandler,
   mountGetWidgetAuditHandler,
   mountGetWidgetHandler,
   mountGetWidgetSummaryHandler,
@@ -15,6 +17,7 @@ import {
 import { makeArchiveWidgetUseCase } from "./application/use-cases/archive-widget.use-case.js";
 import { makeCreateWidgetUseCase } from "./application/use-cases/create-widget.use-case.js";
 import { makeDeleteWidgetUseCase } from "./application/use-cases/delete-widget.use-case.js";
+import { makeGetWidgetAccessUseCase } from "./application/use-cases/get-widget-access.use-case.js";
 import { makeGetWidgetAuditUseCase } from "./application/use-cases/get-widget-audit.use-case.js";
 import { makeGetWidgetSummaryUseCase } from "./application/use-cases/get-widget-summary.use-case.js";
 import { makeGetWidgetUseCase } from "./application/use-cases/get-widget.use-case.js";
@@ -42,6 +45,8 @@ export const createApp = (): { server: FastifyInstance } => {
   mountDeleteWidgetHandler(server, makeDeleteWidgetUseCase());
   mountGetWidgetAuditHandler(server, makeGetWidgetAuditUseCase());
   mountGetWidgetSummaryHandler(server, makeGetWidgetSummaryUseCase());
+  mountAuthenticatedWidgetSummaryHandler(server, makeGetWidgetSummaryUseCase());
+  mountGetWidgetAccessHandler(server, makeGetWidgetAccessUseCase());
   mountRefreshWidgetHandler(server, makeRefreshWidgetUseCase());
   mountArchiveWidgetHandler(server, makeArchiveWidgetUseCase());
 

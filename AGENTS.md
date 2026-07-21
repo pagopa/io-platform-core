@@ -74,7 +74,7 @@ framework-free.
 
 | Layer | Path | Contains |
 |-------|------|----------|
-| Domain | `domain/entities/*.entity.ts`, `domain/ports/**/*.repository.ts` | Entities + port **interfaces** (`IUserProfileRepository`) |
+| Domain | `domain/entities/*.entity.ts`, `domain/value-objects/*.value-object.ts`, `domain/ports/**/*.repository.ts` | Entities, value objects + port **interfaces** (`IUserProfileRepository`) |
 | Application | `application/use-cases/*.use-case.ts` | Business logic as factories: `makeXxxUseCase(deps): UseCase<In,Out,Err>` |
 | Adapters (inbound) | `adapters/inbound/*.handler.ts` + `dto/*.dto.ts` | HTTP/trigger handlers, route contracts; adapter-specific DTOs only when an input/output mapper transforms a shape |
 | Adapters (outbound) | `adapters/outbound/persistence/*.repository.ts` | Port implementations (e.g. in-memory) |
@@ -90,6 +90,14 @@ Tests live next to code in `__tests__/*.test.ts`.
 - **Validation & types: `zod` v4.** Model value-objects/entities/DTOs as schemas;
   use **branded types** (`.brand<"EmailAddress">()`). Value objects go in
   `value-objects/*.value-object.ts` exporting `XxxSchema` + `type Xxx`.
+- **Value-object reuse:** Inbound DTO properties must reuse a compatible value
+  object from `@pagopa/hexagonal-core/domain/value-objects` when available,
+  otherwise reuse or create one under the app's `domain/value-objects/`. Give
+  each cross-layer domain concept its own named/branded value object even when
+  multiple concepts share the same primitive constraints. Generic core schemas
+  may be used directly for values owned exclusively by the adapter. Keep only
+  transport-specific object shapes and mapping contracts in adapter DTO files;
+  value objects are owned by the domain, not the application use-case layer.
 - **Shared DTO schemas live in `domain/entities/`**. Request/response schemas that
   pass unchanged between an inbound adapter and a use case belong with the domain
   model. Adapter-specific shapes (transport headers, mapper outputs) live in

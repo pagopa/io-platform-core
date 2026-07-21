@@ -1,16 +1,6 @@
 import { z } from "zod";
 
-/**
- * Unique symbol used to brand {@link WidgetId}.
- *
- * Using a module-private `unique symbol` (instead of a string literal brand)
- * yields a truly nominal type: the brand cannot be reproduced or forged from
- * outside this module, so a plain `string` can never be assigned where a
- * `WidgetId` is expected. The declaration is exported (type-only, no runtime
- * value) so schemas derived from {@link WidgetSchema} can name the branded
- * type across module boundaries.
- */
-export declare const WidgetIdBrand: unique symbol;
+import { WidgetIdSchema } from "../value-objects/widget-id.value-object.js";
 
 /**
  * Zod schema for the demo Widget aggregate exposed by the example API.
@@ -26,7 +16,7 @@ export declare const WidgetIdBrand: unique symbol;
 export const WidgetSchema = z.object({
   createdAt: z.string().datetime(),
   description: z.string().optional(),
-  id: z.string().uuid().brand<typeof WidgetIdBrand>(),
+  id: WidgetIdSchema,
   name: z.string().min(1),
 });
 

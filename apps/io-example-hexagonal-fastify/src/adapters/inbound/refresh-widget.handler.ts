@@ -5,7 +5,7 @@ import { mountFastifyRoute, ProblemJson } from "@pagopa/hexagonal-fastify";
 
 import type { RefreshWidgetUseCase } from "../../application/use-cases/refresh-widget.use-case.js";
 
-import { WidgetIdSchema } from "../../domain/entities/widget-id.entity.js";
+import { WidgetIdPathSchema } from "../../domain/entities/widget-id.entity.js";
 import { WidgetRefreshAcceptedSchema } from "./dto/widget-refresh-accepted.dto.js";
 
 export const refreshWidgetContract = defineRoute({
@@ -14,7 +14,7 @@ export const refreshWidgetContract = defineRoute({
   method: "post",
   operationId: "refreshWidget",
   path: "/api/v1/widgets/{id}/refresh",
-  request: { path: WidgetIdSchema },
+  request: { path: WidgetIdPathSchema },
   response: {
     202: WidgetRefreshAcceptedSchema,
     400: ProblemJson,

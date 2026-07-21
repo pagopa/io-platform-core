@@ -6,31 +6,40 @@ import { mountFastifyRoute, ProblemJson } from "@pagopa/hexagonal-fastify";
 import type { GetWidgetSummaryUseCase } from "../../application/use-cases/get-widget-summary.use-case.js";
 
 import { WidgetIdPathSchema } from "../../domain/entities/widget-id.entity.js";
+import { AuthorizationHeadersSchema } from "./dto/middleware-headers.dto.js";
 import { WidgetSummarySchema } from "./dto/widget-summary.dto.js";
+import { authenticateRequest } from "./middleware/request.middleware.js";
 
-export const getWidgetSummaryContract = defineRoute({
+/** Contract for a widget summary that requires request authentication. */
+export const getAuthenticatedWidgetSummaryContract = defineRoute({
   description:
-    "Returns a summary of the widget. The use case returns an internal shape that the handler reshapes into the public response via an output mapper.",
+    "Returns a widget summary after the authentication middleware accepts the request.",
   method: "get",
-  operationId: "getWidgetSummary",
-  path: "/api/v1/widgets/{id}/summary",
-  request: { path: WidgetIdPathSchema },
+  operationId: "getAuthenticatedWidgetSummary",
+  path: "/api/v1/widgets/{id}/authenticated-summary",
+  request: {
+    headers: AuthorizationHeadersSchema,
+    path: WidgetIdPathSchema,
+  },
   response: {
     200: WidgetSummarySchema,
     400: ProblemJson,
+    401: ProblemJson,
     500: ProblemJson,
   },
-  summary: "Get a widget summary",
-  tags: ["widgets"],
+  summary: "Get an authenticated widget summary",
+  tags: ["widgets", "middleware"],
 });
 
-export const mountGetWidgetSummaryHandler = (
+/** Mounts the single-middleware summary example on the Fastify server. */
+export const mountAuthenticatedWidgetSummaryHandler = (
   server: FastifyInstance,
   useCase: GetWidgetSummaryUseCase,
 ): void => {
   mountFastifyRoute(server, {
-    contract: getWidgetSummaryContract,
+    contract: getAuthenticatedWidgetSummaryContract,
     inputMapper: (req) => ({ id: req.path.id }),
+    middlewares: [authenticateRequest],
     outputMapper: (output) => ({
       createdAt: new Date(output.createdAtEpochMs).toISOString(),
       description: output.details,

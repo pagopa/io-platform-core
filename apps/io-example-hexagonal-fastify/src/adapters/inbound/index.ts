@@ -1,6 +1,8 @@
 export { mountArchiveWidgetHandler } from "./archive-widget.handler.js";
 export { mountCreateWidgetHandler } from "./create-widget.handler.js";
 export { mountDeleteWidgetHandler } from "./delete-widget.handler.js";
+export { mountAuthenticatedWidgetSummaryHandler } from "./get-authenticated-widget-summary.handler.js";
+export { mountGetWidgetAccessHandler } from "./get-widget-access.handler.js";
 export { mountGetWidgetAuditHandler } from "./get-widget-audit.handler.js";
 export { mountGetWidgetSummaryHandler } from "./get-widget-summary.handler.js";
 export { mountGetWidgetHandler } from "./get-widget.handler.js";

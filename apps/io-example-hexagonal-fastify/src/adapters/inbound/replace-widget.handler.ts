@@ -5,7 +5,7 @@ import { mountFastifyRoute, ProblemJson } from "@pagopa/hexagonal-fastify";
 
 import type { ReplaceWidgetUseCase } from "../../application/use-cases/replace-widget.use-case.js";
 
-import { WidgetIdSchema } from "../../domain/entities/widget-id.entity.js";
+import { WidgetIdPathSchema } from "../../domain/entities/widget-id.entity.js";
 import { ReplaceWidgetSchema } from "../../domain/entities/widget-mutation.entity.js";
 import { WidgetSchema } from "../../domain/entities/widget.entity.js";
 
@@ -22,7 +22,7 @@ export const replaceWidgetContract = defineRoute({
   method: "put",
   operationId: "replaceWidget",
   path: "/api/v1/widgets/{id}",
-  request: { body: ReplaceWidgetSchema, path: WidgetIdSchema },
+  request: { body: ReplaceWidgetSchema, path: WidgetIdPathSchema },
   response: { 200: WidgetSchema, 400: ProblemJson, 500: ProblemJson },
   summary: "Replace a widget",
   tags: ["widgets"],
