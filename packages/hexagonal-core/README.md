@@ -71,11 +71,30 @@ error.tag; //  "not-found"
 ### Value objects
 
 ```ts
-import { EmailAddressSchema } from "@pagopa/hexagonal-core/value-objects";
+import { EmailAddressSchema } from "@pagopa/hexagonal-core/domain/value-objects";
 
 const parsed = EmailAddressSchema.safeParse("User@Example.com");
 // parsed.success === true, parsed.data === "user@example.com"
 ```
+
+Define branded value objects with an exported runtime symbol, pass that symbol
+to Zod, and infer the public type from the schema:
+
+```ts
+import { z } from "zod";
+
+export const OrderIdBrand = Symbol("OrderId");
+
+export const OrderIdSchema = z.string().uuid().brand(OrderIdBrand);
+
+export type OrderId = z.infer<typeof OrderIdSchema>;
+```
+
+Using a dedicated `unique symbol` makes each value object nominally distinct,
+even when two schemas share the same primitive validation. Passing the runtime
+symbol to `.brand(...)` keeps schema and type inference lean: do not recreate
+brands with string literals, `declare const`, manual `z.core.$brand`
+intersections, or schema type assertions.
 
 ### Inbound ports
 

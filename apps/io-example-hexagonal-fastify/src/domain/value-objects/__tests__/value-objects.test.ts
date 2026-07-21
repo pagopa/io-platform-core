@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
 
 import { CallerIdSchema } from "../caller-id.value-object.js";
 import { ClientIpSchema } from "../client-ip.value-object.js";
@@ -24,5 +24,13 @@ describe("application value objects", () => {
 
     expect(schema.parse(value)).toBe(value);
     expect(schema.safeParse("not-a-uuid").success).toBe(false);
+  });
+
+  it("keeps value objects with the same base type nominally distinct", () => {
+    const callerId = CallerIdSchema.parse("caller-1");
+    const requestId = RequestIdSchema.parse("request-1");
+
+    expect(callerId).toBe("caller-1");
+    expectTypeOf(callerId).not.toEqualTypeOf(requestId);
   });
 });

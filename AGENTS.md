@@ -88,8 +88,12 @@ Tests live next to code in `__tests__/*.test.ts`.
   Error types extend `BaseError` from `@pagopa/hexagonal-core/domain/errors`
   (`NotFoundError`, `ConflictError`, `GenericError`, `ValidationError`).
 - **Validation & types: `zod` v4.** Model value-objects/entities/DTOs as schemas;
-  use **branded types** (`.brand<"EmailAddress">()`). Value objects go in
-  `value-objects/*.value-object.ts` exporting `XxxSchema` + `type Xxx`.
+  define every branded value object with an exported runtime symbol
+  (`export const XxxBrand = Symbol("Xxx")`), pass it to `.brand(XxxBrand)`, and
+  infer the type with `z.infer<typeof XxxSchema>`. Do not use string-literal
+  brands, `declare const` brands, explicit `z.core.$brand` intersections, or
+  schema type assertions. Value objects go in `value-objects/*.value-object.ts`
+  exporting `XxxBrand`, `XxxSchema` and `type Xxx`.
 - **Value-object reuse:** Inbound DTO properties must reuse a compatible value
   object from `@pagopa/hexagonal-core/domain/value-objects` when available,
   otherwise reuse or create one under the app's `domain/value-objects/`. Give
@@ -107,6 +111,10 @@ Tests live next to code in `__tests__/*.test.ts`.
   wire everything explicitly in `createApp.ts`. Repository interfaces are `I`-prefixed.
 - **ESM-only source with explicit `.js` import extensions** (required by `nodenext`),
   e.g. `import { x } from "./user-profile.entity.js"`.
+- **Deployable private apps do not emit declarations.** Set `declaration: false`
+  in their build `tsconfig`; declaration output is for publishable libraries.
+  This also prevents private adapter composition schemas from leaking nominal
+  `unique symbol` implementation details into unused `.d.ts` files.
 
 ### Core packages
 
