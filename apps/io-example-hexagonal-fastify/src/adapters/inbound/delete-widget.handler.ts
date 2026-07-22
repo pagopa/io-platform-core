@@ -1,7 +1,11 @@
 import type { FastifyInstance } from "fastify";
 
 import { defineRoute } from "@pagopa/hexagonal-core/adapters";
-import { mountFastifyRoute, ProblemJson } from "@pagopa/hexagonal-fastify";
+import {
+  type ErrorResponderConfig,
+  mountFastifyRoute,
+  ProblemJson,
+} from "@pagopa/hexagonal-fastify";
 import { z } from "zod";
 
 import type { DeleteWidgetUseCase } from "../../application/use-cases/delete-widget.use-case.js";
@@ -34,10 +38,15 @@ export const deleteWidgetContract = defineRoute({
 export const mountDeleteWidgetHandler = (
   server: FastifyInstance,
   useCase: DeleteWidgetUseCase,
+  config?: ErrorResponderConfig,
 ): void => {
-  mountFastifyRoute(server, {
-    contract: deleteWidgetContract,
-    inputMapper: (req) => ({ id: req.path.id }),
-    useCase,
-  });
+  mountFastifyRoute(
+    server,
+    {
+      contract: deleteWidgetContract,
+      inputMapper: (req) => ({ id: req.path.id }),
+      useCase,
+    },
+    config,
+  );
 };

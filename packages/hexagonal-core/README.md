@@ -111,13 +111,16 @@ type CreateUser = UseCase<{ email: string }, { id: string }, ConflictError>;
 import { mapErrorToHttpResponse } from "@pagopa/hexagonal-core/adapters";
 import { NotFoundError } from "@pagopa/hexagonal-core/domain/errors";
 
-const { status, headers, jsonBody } = mapErrorToHttpResponse(
-  new NotFoundError("User", "id-123"),
-);
+const { status, headers, jsonBody } = mapErrorToHttpResponse({
+  typeBaseUrl: "https://example.pagopa.it/problems/",
+})(new NotFoundError("User", "id-123"));
 // status === 404
 // headers["content-type"] === "application/problem+json"
+// jsonBody.type === "https://example.pagopa.it/problems/not-found"
 // jsonBody is an RFC 7807 Problem Details object
 ```
+
+When `typeBaseUrl` is omitted, `jsonBody.type` defaults to `about:blank`.
 
 ### Validate a request with a Standard Schema
 

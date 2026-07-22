@@ -1,7 +1,11 @@
 import type { FastifyInstance } from "fastify";
 
 import { defineRoute } from "@pagopa/hexagonal-core/adapters";
-import { mountFastifyRoute, ProblemJson } from "@pagopa/hexagonal-fastify";
+import {
+  type ErrorResponderConfig,
+  mountFastifyRoute,
+  ProblemJson,
+} from "@pagopa/hexagonal-fastify";
 import { z } from "zod";
 
 import type { ArchiveWidgetUseCase } from "../../application/use-cases/archive-widget.use-case.js";
@@ -23,13 +27,18 @@ export const archiveWidgetContract = defineRoute({
 export const mountArchiveWidgetHandler = (
   server: FastifyInstance,
   useCase: ArchiveWidgetUseCase,
+  config?: ErrorResponderConfig,
 ): void => {
-  mountFastifyRoute(server, {
-    contract: archiveWidgetContract,
-    inputMapper: (req) => ({ id: req.path.id }),
-    // The 204 contract strips the body, so the use case's result is discarded
-    // by mapping it to an empty object.
-    outputMapper: () => ({}),
-    useCase,
-  });
+  mountFastifyRoute(
+    server,
+    {
+      contract: archiveWidgetContract,
+      inputMapper: (req) => ({ id: req.path.id }),
+      // The 204 contract strips the body, so the use case's result is discarded
+      // by mapping it to an empty object.
+      outputMapper: () => ({}),
+      useCase,
+    },
+    config,
+  );
 };

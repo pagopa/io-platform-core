@@ -1,7 +1,11 @@
 import type { FastifyInstance } from "fastify";
 
 import { defineRoute } from "@pagopa/hexagonal-core/adapters";
-import { mountFastifyRoute, ProblemJson } from "@pagopa/hexagonal-fastify";
+import {
+  type ErrorResponderConfig,
+  mountFastifyRoute,
+  ProblemJson,
+} from "@pagopa/hexagonal-fastify";
 
 import type { GetWidgetAuditUseCase } from "../../application/use-cases/get-widget-audit.use-case.js";
 
@@ -41,13 +45,18 @@ export const getWidgetAuditContract = defineRoute({
 export const mountGetWidgetAuditHandler = (
   server: FastifyInstance,
   useCase: GetWidgetAuditUseCase,
+  config?: ErrorResponderConfig,
 ): void => {
-  mountFastifyRoute(server, {
-    contract: getWidgetAuditContract,
-    inputMapper: (req) => ({
-      id: req.path.id,
-      requestId: req.headers["x-request-id"],
-    }),
-    useCase,
-  });
+  mountFastifyRoute(
+    server,
+    {
+      contract: getWidgetAuditContract,
+      inputMapper: (req) => ({
+        id: req.path.id,
+        requestId: req.headers["x-request-id"],
+      }),
+      useCase,
+    },
+    config,
+  );
 };

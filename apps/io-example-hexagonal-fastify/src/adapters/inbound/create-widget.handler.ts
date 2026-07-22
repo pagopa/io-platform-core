@@ -1,7 +1,11 @@
 import type { FastifyInstance } from "fastify";
 
 import { defineRoute } from "@pagopa/hexagonal-core/adapters";
-import { mountFastifyRoute, ProblemJson } from "@pagopa/hexagonal-fastify";
+import {
+  type ErrorResponderConfig,
+  mountFastifyRoute,
+  ProblemJson,
+} from "@pagopa/hexagonal-fastify";
 
 import type { CreateWidgetUseCase } from "../../application/use-cases/create-widget.use-case.js";
 
@@ -35,13 +39,18 @@ export const createWidgetContract = defineRoute({
 export const mountCreateWidgetHandler = (
   server: FastifyInstance,
   useCase: CreateWidgetUseCase,
+  config?: ErrorResponderConfig,
 ): void => {
-  mountFastifyRoute(server, {
-    contract: createWidgetContract,
-    inputMapper: (req) => ({
-      description: req.body.description,
-      name: req.body.name,
-    }),
-    useCase,
-  });
+  mountFastifyRoute(
+    server,
+    {
+      contract: createWidgetContract,
+      inputMapper: (req) => ({
+        description: req.body.description,
+        name: req.body.name,
+      }),
+      useCase,
+    },
+    config,
+  );
 };

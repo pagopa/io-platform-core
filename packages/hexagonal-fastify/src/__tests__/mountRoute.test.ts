@@ -93,6 +93,56 @@ describe("mountFastifyRoute", () => {
     await app.close();
   });
 
+  it("applies error responder config from the top-level mount", async () => {
+    const app = Fastify();
+    mountFastifyRoute(
+      app,
+      {
+        contract: getUserContract,
+        inputMapper: (req) => ({ id: req.path.id }),
+        useCase: async (input: { id: string }) =>
+          err(new NotFoundError("User", input.id)),
+      },
+      { typeBaseUrl: "https://errors.example/" },
+    );
+
+    const res = await app.inject({ method: "GET", url: "/users/999" });
+
+    expect(res.statusCode).toBe(404);
+    expect(res.json().type).toBe("https://errors.example/not-found");
+
+    await app.close();
+  });
+
+  it("applies error responder config to request validation errors", async () => {
+    const app = Fastify();
+    mountFastifyRoute(
+      app,
+      {
+        contract: defineRoute({
+          method: "get",
+          path: "/validated-users/{id}",
+          request: { path: z.object({ id: z.uuid() }) },
+          response: { 200: UserSchema, 400: ProblemJson },
+        }),
+        inputMapper: (req) => ({ id: req.path.id }),
+        useCase: async (input: { id: string }) =>
+          ok({ id: input.id, name: "Alice" }),
+      },
+      { typeBaseUrl: "https://errors.example/" },
+    );
+
+    const res = await app.inject({
+      method: "GET",
+      url: "/validated-users/not-a-uuid",
+    });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.json().type).toBe("https://errors.example/validation-error");
+
+    await app.close();
+  });
+
   it("applies the output mapper before encoding the success body", async () => {
     const app = Fastify();
     mountFastifyRoute(app, {

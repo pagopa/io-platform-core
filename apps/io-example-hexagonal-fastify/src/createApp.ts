@@ -1,3 +1,5 @@
+import type { ErrorResponderConfig } from "@pagopa/hexagonal-fastify";
+
 import fastify, { type FastifyInstance } from "fastify";
 
 import {
@@ -26,6 +28,10 @@ import { makePatchWidgetUseCase } from "./application/use-cases/patch-widget.use
 import { makeRefreshWidgetUseCase } from "./application/use-cases/refresh-widget.use-case.js";
 import { makeReplaceWidgetUseCase } from "./application/use-cases/replace-widget.use-case.js";
 
+const errorResponderConfig: ErrorResponderConfig = {
+  typeBaseUrl: "https://example.pagopa.it/problems/",
+};
+
 /**
  * Creates the Fastify application and mounts all widget routes directly.
  *
@@ -37,18 +43,62 @@ import { makeReplaceWidgetUseCase } from "./application/use-cases/replace-widget
 export const createApp = (): { server: FastifyInstance } => {
   const server = fastify();
 
-  mountListWidgetsHandler(server, makeListWidgetsUseCase());
-  mountGetWidgetHandler(server, makeGetWidgetUseCase());
-  mountCreateWidgetHandler(server, makeCreateWidgetUseCase());
-  mountReplaceWidgetHandler(server, makeReplaceWidgetUseCase());
-  mountPatchWidgetHandler(server, makePatchWidgetUseCase());
-  mountDeleteWidgetHandler(server, makeDeleteWidgetUseCase());
-  mountGetWidgetAuditHandler(server, makeGetWidgetAuditUseCase());
-  mountGetWidgetSummaryHandler(server, makeGetWidgetSummaryUseCase());
-  mountAuthenticatedWidgetSummaryHandler(server, makeGetWidgetSummaryUseCase());
-  mountGetWidgetAccessHandler(server, makeGetWidgetAccessUseCase());
-  mountRefreshWidgetHandler(server, makeRefreshWidgetUseCase());
-  mountArchiveWidgetHandler(server, makeArchiveWidgetUseCase());
+  mountListWidgetsHandler(
+    server,
+    makeListWidgetsUseCase(),
+    errorResponderConfig,
+  );
+  mountGetWidgetHandler(server, makeGetWidgetUseCase(), errorResponderConfig);
+  mountCreateWidgetHandler(
+    server,
+    makeCreateWidgetUseCase(),
+    errorResponderConfig,
+  );
+  mountReplaceWidgetHandler(
+    server,
+    makeReplaceWidgetUseCase(),
+    errorResponderConfig,
+  );
+  mountPatchWidgetHandler(
+    server,
+    makePatchWidgetUseCase(),
+    errorResponderConfig,
+  );
+  mountDeleteWidgetHandler(
+    server,
+    makeDeleteWidgetUseCase(),
+    errorResponderConfig,
+  );
+  mountGetWidgetAuditHandler(
+    server,
+    makeGetWidgetAuditUseCase(),
+    errorResponderConfig,
+  );
+  mountGetWidgetSummaryHandler(
+    server,
+    makeGetWidgetSummaryUseCase(),
+    errorResponderConfig,
+  );
+  mountAuthenticatedWidgetSummaryHandler(
+    server,
+    makeGetWidgetSummaryUseCase(),
+    errorResponderConfig,
+  );
+  mountGetWidgetAccessHandler(
+    server,
+    makeGetWidgetAccessUseCase(),
+    errorResponderConfig,
+  );
+  mountRefreshWidgetHandler(
+    server,
+    makeRefreshWidgetUseCase(),
+    errorResponderConfig,
+  );
+  mountArchiveWidgetHandler(
+    server,
+    makeArchiveWidgetUseCase(),
+    errorResponderConfig,
+  );
 
   return { server };
 };

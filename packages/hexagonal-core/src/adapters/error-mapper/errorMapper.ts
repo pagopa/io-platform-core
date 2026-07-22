@@ -34,8 +34,8 @@ export interface ProblemDetails {
   readonly type: string;
 }
 
-/** Base URI under which problem `type` slugs are published. */
-const DEFAULT_TYPE_BASE_URL = "https://example.pagopa.it/problems/";
+/** Default problem type when no problem type registry is configured. */
+const DEFAULT_TYPE_BASE_URL = "about:blank";
 
 /** Fallback config used when an error `kind` is not recognised. */
 const defaultHttpError = {
@@ -49,7 +49,7 @@ const defaultHttpError = {
 export interface ErrorMapperConfig {
   /**
    * Base URI under which problem `type` slugs are published.
-   * Overrides the default `https://example.pagopa.it/problems/`.
+   * When omitted, the problem `type` is `about:blank`.
    */
   readonly typeBaseUrl?: string;
 }
@@ -74,7 +74,9 @@ export const mapErrorToProblemDetails =
       detail: error.message,
       status: errorConfig.status,
       title: errorConfig.title,
-      type: (config?.typeBaseUrl || DEFAULT_TYPE_BASE_URL) + error.tag,
+      type: config?.typeBaseUrl
+        ? `${config.typeBaseUrl}${error.tag}`
+        : DEFAULT_TYPE_BASE_URL,
     };
   };
 

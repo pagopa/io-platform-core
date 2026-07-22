@@ -24,16 +24,14 @@ import {
 import { validateHttpErrorResponseAgainstContract } from "../httpErrorResponseContract.js";
 
 describe("mapErrorToProblemDetails", () => {
-  it("maps ValidationError to 400 under the default problems domain", () => {
+  it("maps ValidationError to 400 with the default problem type", () => {
     const result = mapErrorToProblemDetails()(
       new ValidationError("Invalid input"),
     );
 
     expect(result.status).toBe(400);
     expect(result.title).toBe("Validation Error");
-    expect(result.type).toBe(
-      "https://example.pagopa.it/problems/validation-error",
-    );
+    expect(result.type).toBe("about:blank");
     expect(result.detail).toContain("Invalid input");
   });
 
@@ -44,7 +42,7 @@ describe("mapErrorToProblemDetails", () => {
 
     expect(result.status).toBe(404);
     expect(result.title).toBe("Not Found");
-    expect(result.type).toBe("https://example.pagopa.it/problems/not-found");
+    expect(result.type).toBe("about:blank");
     expect(result.detail).toContain("Unable to find User");
   });
 
@@ -53,7 +51,7 @@ describe("mapErrorToProblemDetails", () => {
 
     expect(result.status).toBe(403);
     expect(result.title).toBe("Forbidden");
-    expect(result.type).toBe("https://example.pagopa.it/problems/forbidden");
+    expect(result.type).toBe("about:blank");
   });
 
   it("maps ConflictError to 409", () => {
@@ -63,7 +61,7 @@ describe("mapErrorToProblemDetails", () => {
 
     expect(result.status).toBe(409);
     expect(result.title).toBe("Conflict");
-    expect(result.type).toBe("https://example.pagopa.it/problems/conflict");
+    expect(result.type).toBe("about:blank");
   });
 
   it("maps PreconditionFailedError to 412", () => {
@@ -73,9 +71,7 @@ describe("mapErrorToProblemDetails", () => {
 
     expect(result.status).toBe(412);
     expect(result.title).toBe("Precondition Failed");
-    expect(result.type).toBe(
-      "https://example.pagopa.it/problems/precondition-failed",
-    );
+    expect(result.type).toBe("about:blank");
     expect(result.detail).toContain("Version mismatch");
   });
 
@@ -86,12 +82,10 @@ describe("mapErrorToProblemDetails", () => {
 
     expect(result.status).toBe(500);
     expect(result.title).toBe("Internal Server Error");
-    expect(result.type).toBe(
-      "https://example.pagopa.it/problems/generic-error",
-    );
+    expect(result.type).toBe("about:blank");
   });
 
-  it("uses a custom TYPE_BASE_URL when provided", () => {
+  it("uses a custom type base URL when provided", () => {
     const result = mapErrorToProblemDetails({
       typeBaseUrl: "https://ioapp.it/problems/",
     })(new ValidationError("Invalid input"));
@@ -109,9 +103,7 @@ describe("mapErrorToProblemDetails", () => {
     );
 
     expect(result.status).toBe(400);
-    expect(result.type).toBe(
-      "https://example.pagopa.it/problems/custom-validation",
-    );
+    expect(result.type).toBe("about:blank");
   });
 
   it("falls back to 500 for unknown error kinds", () => {
@@ -126,7 +118,7 @@ describe("mapErrorToProblemDetails", () => {
 
     expect(result.status).toBe(500);
     expect(result.title).toBe("Internal Server Error");
-    expect(result.type).toBe("https://example.pagopa.it/problems/base-error");
+    expect(result.type).toBe("about:blank");
   });
 });
 

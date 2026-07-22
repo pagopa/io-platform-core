@@ -37,6 +37,7 @@ import { GenericError } from "@pagopa/hexagonal-core/domain/errors";
 import { z as zod } from "zod";
 
 import {
+  ErrorResponderConfig,
   sendContractErrorResponse,
   sendErrorResponse,
 } from "./errorResponder.js";
@@ -226,6 +227,7 @@ const buildSuccessResponder = <O, R>(
  * @param server The Fastify instance to mount the route on.
  * @param spec The route contract, input mapper, use case and optional output
  *   mapper.
+ * @param config Optional error responder configuration.
  */
 export function mountFastifyRoute<
   Req extends RouteRequestSchemas,
@@ -252,6 +254,7 @@ export function mountFastifyRoute<
     > &
       UseCase<UseCaseInput, O, E>;
   },
+  config?: ErrorResponderConfig,
 ): void;
 export function mountFastifyRoute<
   Req extends RouteRequestSchemas,
@@ -276,6 +279,7 @@ export function mountFastifyRoute<
     > &
       UseCase<UseCaseInput, SuccessBodyInput<Resp>, E>;
   },
+  config?: ErrorResponderConfig,
 ): void;
 export function mountFastifyRoute<
   Req extends RouteRequestSchemas,
@@ -297,6 +301,7 @@ export function mountFastifyRoute<
     outputMapper?: (output: O) => SuccessBodyInput<Resp>;
     useCase: UseCase<UseCaseInput, O, E>;
   },
+  config?: ErrorResponderConfig,
 ): void {
   const successEntry = resolveSuccessEntry(spec.contract.response);
 
@@ -307,7 +312,7 @@ export function mountFastifyRoute<
   ) as InputValidator<HttpRequestPayload, WireRequest<Req>>;
 
   const onError: ErrorResponder = (reply, error) =>
-    sendContractErrorResponse(reply, error, spec.contract.response);
+    sendContractErrorResponse(reply, error, spec.contract.response, config);
 
   const onSuccess = buildSuccessResponder<O, SuccessBodyInput<Resp>>(
     successEntry,

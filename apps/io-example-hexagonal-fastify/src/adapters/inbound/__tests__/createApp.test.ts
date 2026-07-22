@@ -45,11 +45,40 @@ describe("createApp", () => {
 
         expectProblemJson(res, 500);
         expect(res.json().title).toBe("Internal Server Error");
+        expect(res.json().type).toBe(
+          "https://example.pagopa.it/problems/generic-error",
+        );
       } finally {
         await server.close();
       }
     },
   );
+
+  it("applies the shared problem type base URL to adapter errors", async () => {
+    const { server } = createApp();
+
+    try {
+      const validationResponse = await server.inject({
+        method: "GET",
+        url: "/api/v1/widgets/not-a-uuid",
+      });
+      const authenticationResponse = await server.inject({
+        method: "GET",
+        url: `/api/v1/widgets/${ID}/authenticated-summary`,
+      });
+
+      expectProblemJson(validationResponse, 400);
+      expect(validationResponse.json().type).toBe(
+        "https://example.pagopa.it/problems/validation-error",
+      );
+      expectProblemJson(authenticationResponse, 401);
+      expect(authenticationResponse.json().type).toBe(
+        "https://example.pagopa.it/problems/authentication-error",
+      );
+    } finally {
+      await server.close();
+    }
+  });
 
   it("returns 404 for unknown routes", async () => {
     const { server } = createApp();

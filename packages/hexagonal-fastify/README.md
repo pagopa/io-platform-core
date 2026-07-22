@@ -81,30 +81,36 @@ const middlewares = [authenticate, resolveTenant] as const;
 
 const app = Fastify();
 
-mountFastifyRoute(app, {
-  contract: defineRoute({
-    method: "get",
-    operationId: "getUser",
-    path: "/users/{id}", // OpenAPI syntax; converted to Fastify ":id"
-    request: { path: z.object({ id: z.string() }) },
-    response: {
-      200: UserSchema,
-      400: ProblemJson,
-      401: ProblemJson,
-      404: ProblemJson,
-    },
-  }),
-  middlewares,
-  inputMapper: (req, context) => ({
-    actorId: context.actorId,
-    id: req.path.id,
-    tenantId: context.tenantId,
-  }),
-  useCase: async ({ id }) =>
-    id === "1"
-      ? ok({ id: "1", name: "Alice" })
-      : err(new NotFoundError("User", id)),
-});
+mountFastifyRoute(
+  app,
+  {
+    contract: defineRoute({
+      method: "get",
+      operationId: "getUser",
+      path: "/users/{id}", // OpenAPI syntax; converted to Fastify ":id"
+      request: { path: z.object({ id: z.string() }) },
+      response: {
+        200: UserSchema,
+        400: ProblemJson,
+        401: ProblemJson,
+        404: ProblemJson,
+      },
+    }),
+    middlewares,
+    inputMapper: (req, context) => ({
+      actorId: context.actorId,
+      id: req.path.id,
+      tenantId: context.tenantId,
+    }),
+    useCase: async ({ id }) =>
+      id === "1"
+        ? ok({ id: "1", name: "Alice" })
+        : err(new NotFoundError("User", id)),
+  },
+  {
+    typeBaseUrl: "https://example.pagopa.it/problems/",
+  },
+);
 
 await app.listen({ port: 3000 });
 ```

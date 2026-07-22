@@ -11,6 +11,7 @@ export {
   type StatusForKind,
 } from "./errorHttpMetadata.js";
 export {
+  type ErrorMapperConfig,
   type HttpErrorResponse,
   mapErrorToHttpResponse,
   mapErrorToProblemDetails,

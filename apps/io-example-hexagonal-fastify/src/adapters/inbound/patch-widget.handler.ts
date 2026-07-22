@@ -1,7 +1,11 @@
 import type { FastifyInstance } from "fastify";
 
 import { defineRoute } from "@pagopa/hexagonal-core/adapters";
-import { mountFastifyRoute, ProblemJson } from "@pagopa/hexagonal-fastify";
+import {
+  type ErrorResponderConfig,
+  mountFastifyRoute,
+  ProblemJson,
+} from "@pagopa/hexagonal-fastify";
 
 import type { PatchWidgetUseCase } from "../../application/use-cases/patch-widget.use-case.js";
 
@@ -36,14 +40,19 @@ export const patchWidgetContract = defineRoute({
 export const mountPatchWidgetHandler = (
   server: FastifyInstance,
   useCase: PatchWidgetUseCase,
+  config?: ErrorResponderConfig,
 ): void => {
-  mountFastifyRoute(server, {
-    contract: patchWidgetContract,
-    inputMapper: (req) => ({
-      description: req.body.description,
-      id: req.path.id,
-      name: req.body.name,
-    }),
-    useCase,
-  });
+  mountFastifyRoute(
+    server,
+    {
+      contract: patchWidgetContract,
+      inputMapper: (req) => ({
+        description: req.body.description,
+        id: req.path.id,
+        name: req.body.name,
+      }),
+      useCase,
+    },
+    config,
+  );
 };

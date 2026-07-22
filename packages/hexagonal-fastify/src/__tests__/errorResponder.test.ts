@@ -18,7 +18,7 @@ describe("sendErrorResponse", () => {
     const body = res.json();
     expect(body.status).toBe(404);
     expect(body.title).toBe("Not Found");
-    expect(body.type).toContain("not-found");
+    expect(body.type).toBe("about:blank");
 
     await app.close();
   });

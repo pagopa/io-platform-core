@@ -86,6 +86,7 @@ describe("createHttpHandler", () => {
         called = true;
         return reply.code(200).send(output);
       },
+      { typeBaseUrl: "https://errors.example/" },
     );
     app.get("/x", handler);
 
@@ -93,6 +94,7 @@ describe("createHttpHandler", () => {
 
     expect(res.statusCode).toBe(404);
     expect(res.json().title).toBe("Not Found");
+    expect(res.json().type).toBe("https://errors.example/not-found");
     expect(called).toBe(false);
 
     await app.close();

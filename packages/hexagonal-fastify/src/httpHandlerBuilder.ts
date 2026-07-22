@@ -10,7 +10,7 @@ import {
   GenericError,
 } from "@pagopa/hexagonal-core/domain/errors";
 
-import { sendErrorResponse } from "./errorResponder.js";
+import { ErrorResponderConfig, sendErrorResponse } from "./errorResponder.js";
 
 export type { SuccessStatusCode } from "@pagopa/hexagonal-core/adapters";
 
@@ -56,6 +56,7 @@ export type SuccessResponder<O> = (
  * @param useCase The application use case to execute.
  * @param inputValidator Validates a `FastifyRequest` into the use-case input.
  * @param onSuccess Emits the response for a successful use-case output.
+ * @param config Optional error responder configuration.
  * @returns A Fastify handler `(request, reply) => Promise<FastifyReply>`.
  */
 export const createHttpHandler =
@@ -63,6 +64,7 @@ export const createHttpHandler =
     useCase: UseCase<TUseCaseInput, O, E>,
     inputValidator: InputValidator<FastifyRequest, TUseCaseInput>,
     onSuccess: SuccessResponder<O>,
+    config?: ErrorResponderConfig,
   ) =>
   async (
     request: FastifyRequest,
@@ -71,12 +73,12 @@ export const createHttpHandler =
     try {
       const inputResult = await inputValidator(request);
       if (inputResult.isErr()) {
-        return sendErrorResponse(reply, inputResult.error);
+        return sendErrorResponse(reply, inputResult.error, config);
       }
 
       const result = await useCase(inputResult.value);
       if (result.isErr()) {
-        return sendErrorResponse(reply, result.error);
+        return sendErrorResponse(reply, result.error, config);
       }
 
       return onSuccess(result.value, reply);
@@ -84,6 +86,7 @@ export const createHttpHandler =
       return sendErrorResponse(
         reply,
         new GenericError(`Unexpected error in HTTP handler. ${err}`),
+        config,
       );
     }
   };

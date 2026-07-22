@@ -1,7 +1,11 @@
 import type { FastifyInstance } from "fastify";
 
 import { defineRoute } from "@pagopa/hexagonal-core/adapters";
-import { mountFastifyRoute, ProblemJson } from "@pagopa/hexagonal-fastify";
+import {
+  type ErrorResponderConfig,
+  mountFastifyRoute,
+  ProblemJson,
+} from "@pagopa/hexagonal-fastify";
 
 import type { GetWidgetSummaryUseCase } from "../../application/use-cases/get-widget-summary.use-case.js";
 
@@ -35,17 +39,22 @@ export const getAuthenticatedWidgetSummaryContract = defineRoute({
 export const mountAuthenticatedWidgetSummaryHandler = (
   server: FastifyInstance,
   useCase: GetWidgetSummaryUseCase,
+  config?: ErrorResponderConfig,
 ): void => {
-  mountFastifyRoute(server, {
-    contract: getAuthenticatedWidgetSummaryContract,
-    inputMapper: (req) => ({ id: req.path.id }),
-    middlewares: [authenticateRequest],
-    outputMapper: (output) => ({
-      createdAt: new Date(output.createdAtEpochMs).toISOString(),
-      description: output.details,
-      id: output.widgetId,
-      name: output.label,
-    }),
-    useCase,
-  });
+  mountFastifyRoute(
+    server,
+    {
+      contract: getAuthenticatedWidgetSummaryContract,
+      inputMapper: (req) => ({ id: req.path.id }),
+      middlewares: [authenticateRequest],
+      outputMapper: (output) => ({
+        createdAt: new Date(output.createdAtEpochMs).toISOString(),
+        description: output.details,
+        id: output.widgetId,
+        name: output.label,
+      }),
+      useCase,
+    },
+    config,
+  );
 };
