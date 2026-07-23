@@ -348,7 +348,12 @@ export function mountFastifyRoute<
         );
   };
 
-  const handler = createHttpHandlerFromExecution(execute, onSuccess, onError);
+  const handler = createHttpHandlerFromExecution(
+    execute,
+    onSuccess,
+    onError,
+    config,
+  );
 
   server.route({
     handler,

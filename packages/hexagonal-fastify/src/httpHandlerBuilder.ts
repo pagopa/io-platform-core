@@ -18,6 +18,7 @@ export type { SuccessStatusCode } from "@pagopa/hexagonal-core/adapters";
 export type ErrorResponder = (
   reply: FastifyReply,
   error: BaseError,
+  config?: ErrorResponderConfig,
 ) => FastifyReply | Promise<FastifyReply>;
 
 /** Executes a request and returns either the output or a mapped domain error. */
@@ -102,7 +103,9 @@ export const createHttpHandlerFromExecution =
   <O, E extends BaseError>(
     execute: RequestExecution<O, E>,
     onSuccess: SuccessResponder<O>,
-    onError: ErrorResponder = (reply, error) => sendErrorResponse(reply, error),
+    onError: ErrorResponder = (reply, error, config?: ErrorResponderConfig) =>
+      sendErrorResponse(reply, error, config),
+    config?: ErrorResponderConfig,
   ) =>
   async (
     request: FastifyRequest,
@@ -111,7 +114,7 @@ export const createHttpHandlerFromExecution =
     try {
       const result = await execute(request);
       if (result.isErr()) {
-        return onError(reply, result.error);
+        return onError(reply, result.error, config);
       }
 
       return onSuccess(result.value, reply);
@@ -119,6 +122,7 @@ export const createHttpHandlerFromExecution =
       return onError(
         reply,
         new GenericError(`Unexpected error in HTTP handler. ${err}`),
+        config,
       );
     }
   };
