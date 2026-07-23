@@ -16,7 +16,7 @@ import { WidgetSchema } from "../../domain/entities/widget.entity.js";
  * Route contract for creating a widget.
  *
  * The request body is validated by the adapter and successful creations are
- * returned with HTTP 201. Validation and generic failures are documented as
+ * returned with HTTP 201. Validation, conflict and generic failures are documented as
  * problem+json responses.
  */
 export const createWidgetContract = defineRoute({
@@ -25,7 +25,12 @@ export const createWidgetContract = defineRoute({
   operationId: "createWidget",
   path: "/api/v1/widgets",
   request: { body: CreateWidgetSchema },
-  response: { 201: WidgetSchema, 400: ProblemJson, 500: ProblemJson },
+  response: {
+    201: WidgetSchema,
+    400: ProblemJson,
+    409: ProblemJson,
+    500: ProblemJson,
+  },
   summary: "Create a widget",
   tags: ["widgets"],
 });

@@ -20,7 +20,6 @@ describe("createApp", () => {
   const routes = [
     { method: "GET", url: "/api/v1/widgets" },
     { method: "GET", url: `/api/v1/widgets/${ID}` },
-    { method: "POST", payload: { name: "x" }, url: "/api/v1/widgets" },
     {
       method: "PUT",
       payload: { name: "x" },
@@ -75,6 +74,24 @@ describe("createApp", () => {
       expect(authenticationResponse.json().type).toBe(
         "https://example.pagopa.it/problems/authentication-error",
       );
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("maps a duplicate widget to its custom problem type", async () => {
+    const { server } = createApp();
+
+    try {
+      const res = await server.inject({
+        method: "POST",
+        payload: { name: "Existing widget" },
+        url: "/api/v1/widgets",
+      });
+
+      expectProblemJson(res, 409);
+      expect(res.json().title).toBe("Conflict");
+      expect(res.json().type).toMatch(/\/widget-already-exists$/);
     } finally {
       await server.close();
     }
