@@ -2,9 +2,10 @@ import type { Result } from "neverthrow";
 
 import { err, ok } from "neverthrow";
 
-import type { BaseError } from "../../domain/errors/index.js";
 import type { HttpMappedError } from "../error-mapper/errorHttpMetadata.js";
 import type { HttpRequestPayload } from "../validator/httpInputStandardSchemaValidator.js";
+
+import { type BaseError, GenericError } from "../../domain/errors/index.js";
 
 /** Empty context passed to a sequence before its first middleware. */
 export type EmptyHttpMiddlewareContext = Record<never, never>;
@@ -80,7 +81,9 @@ export const executeHttpMiddlewareSequence = async <
 
     for (const key of Object.keys(result.value)) {
       if (Object.prototype.hasOwnProperty.call(context, key)) {
-        throw new Error(`Duplicate middleware context key: ${key}`);
+        return err(
+          new GenericError(`Duplicate middleware context key: ${key}`),
+        );
       }
     }
 

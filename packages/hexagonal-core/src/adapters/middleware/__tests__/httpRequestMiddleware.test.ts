@@ -12,7 +12,10 @@ import type {
   HttpRequestMiddleware,
 } from "../index.js";
 
-import { AuthenticationError } from "../../../domain/errors/index.js";
+import {
+  AuthenticationError,
+  GenericError,
+} from "../../../domain/errors/index.js";
 import {
   executeHttpMiddlewareSequence,
   executeHttpRequestPipeline,
@@ -122,12 +125,16 @@ describe("executeHttpMiddlewareSequence", () => {
     > = async () =>
       ok({ actor: { id: "actor-2" } } as unknown as TenantContext);
 
-    await expect(
-      executeHttpMiddlewareSequence({}, [
-        addActorLocal,
-        disguisedDuplicate,
-      ] as const),
-    ).rejects.toThrow("Duplicate middleware context key: actor");
+    const result = await executeHttpMiddlewareSequence({}, [
+      addActorLocal,
+      disguisedDuplicate,
+    ] as const);
+
+    expect(result.isErr()).toBe(true);
+    expect(result._unsafeUnwrapErr()).toBeInstanceOf(GenericError);
+    expect((result._unsafeUnwrapErr() as GenericError).message).toMatch(
+      /Duplicate middleware context key: actor/,
+    );
   });
 });
 
