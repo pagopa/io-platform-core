@@ -492,7 +492,7 @@ paths:
                       - id
                   clientIp:
                     type: string
-                    minLength: 1
+                    format: ip
                   widgetId:
                     type: string
                     format: uuid
