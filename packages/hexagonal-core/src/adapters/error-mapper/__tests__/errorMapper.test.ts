@@ -93,6 +93,14 @@ describe("mapErrorToProblemDetails", () => {
     expect(result.type).toBe("https://ioapp.it/problems/validation-error");
   });
 
+  it("adds a trailing slash to a custom type base URL when missing", () => {
+    const result = mapErrorToProblemDetails({
+      typeBaseUrl: "https://ioapp.it/problems",
+    })(new ValidationError("Invalid input"));
+
+    expect(result.type).toBe("https://ioapp.it/problems/validation-error");
+  });
+
   it("uses the custom `tag` of a subclass for the problem type", () => {
     class CustomValidationError extends ValidationError {
       override readonly tag = "custom-validation" as const;

@@ -75,7 +75,7 @@ export const mapErrorToProblemDetails =
       status: errorConfig.status,
       title: errorConfig.title,
       type: config?.typeBaseUrl
-        ? `${config.typeBaseUrl}${error.tag}`
+        ? `${config.typeBaseUrl.replace(/\/?$/, "/")}${error.tag}`
         : DEFAULT_TYPE_BASE_URL,
     };
   };
