@@ -1,5 +1,12 @@
 # @pagopa/hexagonal-openapi
 
+## 0.1.2
+
+### Patch Changes
+
+- Updated dependencies [a254a2f]
+  - @pagopa/hexagonal-core@0.5.0
+
 ## 0.1.1
 
 ### Patch Changes

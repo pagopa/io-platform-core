@@ -1,5 +1,16 @@
 # @pagopa/hexagonal-fastify
 
+## 0.3.0
+
+### Minor Changes
+
+- a254a2f: Integrate transport-neutral pre-validation HTTP middleware into `mountFastifyRoute`, running middleware after Fastify parsing and before request-schema validation, and pass the accumulated context to the route's `inputMapper`. Wire optional `ErrorResponderConfig` (including the RFC 7807 problem type base URL) through the top-level route mount so all handlers share the same configuration, defaulting to `about:blank` when omitted. Add `sendContractErrorResponse` to validate mapped errors against the route contract before writing the response.
+
+### Patch Changes
+
+- Updated dependencies [a254a2f]
+  - @pagopa/hexagonal-core@0.5.0
+
 ## 0.2.0
 
 ### Minor Changes
