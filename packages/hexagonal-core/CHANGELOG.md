@@ -4,7 +4,7 @@
 
 ### Minor Changes
 
-- a254a2f: Add transport-neutral pre-validation HTTP middleware as ordered tuples of reusable functions, with typed context propagation, canonical request payloads, contract-aware RFC 7807 error validation, and Fastify route integration. Allow RFC 7807 problem type base URLs to be configured through the top-level Fastify route mount, defaulting to `about:blank` when omitted. Strengthen shared value-object nominal typing with exported runtime `unique symbol` brands passed directly to Zod, keeping schemas assertion-free and deriving public types through inference.
+- a254a2f: Add transport-neutral pre-validation HTTP middleware as ordered tuples of reusable functions, with typed context propagation and canonical `HttpRequestPayload` snapshots. Introduce `executeHttpMiddlewareSequence`, `executeHttpRequestPipeline`, and `createHttpRequestPayloadValidator` so adapters can run middleware before validation and forward the accumulated context to the input mapper. Strengthen shared value-object nominal typing with exported runtime `unique symbol` brands passed directly to Zod, keeping schemas assertion-free and deriving public types through inference. Add contract-aware RFC 7807 helpers (`EnsureErrorResponsePayloads`, `mapErrorToHttpResponseAgainstContract`) that verify declared error response schemas accept and return valid Problem Details. Make the RFC 7807 problem type base URL configurable in the error mapper, defaulting to `about:blank` when omitted.
 
 ## 0.4.0
 
