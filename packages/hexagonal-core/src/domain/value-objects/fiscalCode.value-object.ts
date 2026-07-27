@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+/** Unique symbol used to distinguish fiscal codes from other strings. */
+export const FiscalCodeBrand = Symbol("FiscalCode");
+
 // Italian "codice fiscale" canonical pattern: 6 letters, 2 alnum, a month
 // control letter, 2 alnum (day/sex), province letter, 3 alnum, final check char.
 const cfRegex =
@@ -14,7 +17,7 @@ const cfRegex =
 export const FiscalCodeSchema = z
   .string()
   .regex(cfRegex, "Invalid Fiscal Code")
-  .brand<"FiscalCode">();
+  .brand(FiscalCodeBrand);
 
 /** A syntactically valid Italian fiscal code (branded `string`). */
 export type FiscalCode = z.infer<typeof FiscalCodeSchema>;

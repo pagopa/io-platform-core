@@ -1,4 +1,5 @@
 export {
+  createHttpRequestPayloadValidator,
   createHttpRequestValidator,
   emptyValidator,
   type HttpRequestPayload,

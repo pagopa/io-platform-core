@@ -6,10 +6,14 @@
 // Error mapping is delegated to the core error mapper (never re-implemented).
 export {
   type ErrorResponderConfig,
+  sendContractErrorResponse,
   sendErrorResponse,
 } from "./errorResponder.js";
 export {
   createHttpHandler,
+  createHttpHandlerFromExecution,
+  type ErrorResponder,
+  type RequestExecution,
   type SuccessResponder,
   type SuccessStatusCode,
 } from "./httpHandlerBuilder.js";

@@ -153,6 +153,12 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
         "500":
           description: Internal Server Error
           content:
@@ -359,6 +365,148 @@ paths:
                 $ref: "#/components/schemas/ProblemDetails"
         "500":
           description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+  /api/v1/widgets/{id}/authenticated-summary:
+    get:
+      description: Returns a widget summary after the authentication middleware accepts the request.
+      operationId: getAuthenticatedWidgetSummary
+      summary: Get an authenticated widget summary
+      tags:
+        - widgets
+        - middleware
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: id
+          in: path
+        - schema:
+            type: string
+            minLength: 1
+          required: true
+          name: authorization
+          in: header
+      responses:
+        "200":
+          description: Successful response for getAuthenticatedWidgetSummary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  createdAt:
+                    type: string
+                    format: date-time
+                  description:
+                    type: string
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                    minLength: 1
+                required:
+                  - createdAt
+                  - id
+                  - name
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "500":
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+  /api/v1/widgets/{id}/access:
+    get:
+      description: Returns the caller and client IP resolved by a composed middleware chain.
+      operationId: getWidgetAccess
+      summary: Get widget access context
+      tags:
+        - widgets
+        - middleware
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          required: true
+          name: id
+          in: path
+        - schema:
+            type: string
+            minLength: 1
+          required: true
+          name: authorization
+          in: header
+        - schema:
+            type: string
+            minLength: 1
+          required: false
+          name: x-forwarded-for
+          in: header
+        - schema:
+            type: string
+            pattern: ^[^\s@]+@[^\s@]+\.[^\s@]+$
+          required: true
+          name: x-user-email
+          in: header
+        - schema:
+            type: string
+            minLength: 1
+          required: true
+          name: x-user-id
+          in: header
+      responses:
+        "200":
+          description: Successful response for getWidgetAccess
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  caller:
+                    type: object
+                    properties:
+                      email:
+                        type: string
+                        pattern: ^[^\s@]+@[^\s@]+\.[^\s@]+$
+                      id:
+                        type: string
+                        minLength: 1
+                    required:
+                      - email
+                      - id
+                  clientIp:
+                    type: string
+                    format: ip
+                  widgetId:
+                    type: string
+                    format: uuid
+                required:
+                  - caller
+                  - widgetId
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "401":
+          description: Unauthorized
           content:
             application/problem+json:
               schema:

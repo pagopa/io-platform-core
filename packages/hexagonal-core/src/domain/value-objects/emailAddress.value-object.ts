@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+/** Unique symbol used to distinguish e-mail addresses from other strings. */
+export const EmailAddressBrand = Symbol("EmailAddress");
+
 /**
  * Zod schema for a validated, normalized e-mail address.
  *
@@ -13,7 +16,7 @@ export const EmailAddressSchema = z
   .string()
   .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Invalid email address")
   .transform((v) => v.toLowerCase())
-  .brand<"EmailAddress">();
+  .brand(EmailAddressBrand);
 
 /** A syntactically valid, lower-cased e-mail address (branded `string`). */
 export type EmailAddress = z.infer<typeof EmailAddressSchema>;

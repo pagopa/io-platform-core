@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+/** Unique symbol used to distinguish non-empty strings from plain strings. */
+export const NonEmptyStringBrand = Symbol("NonEmptyString");
+
 /**
  * Zod schema for a string guaranteed to contain at least one character.
  *
@@ -9,7 +12,7 @@ import { z } from "zod";
 export const NonEmptyStringSchema = z
   .string()
   .min(1, "String cannot be empty")
-  .brand<"NonEmptyString">();
+  .brand(NonEmptyStringBrand);
 
 /** A string proven to be non-empty (branded `string`). */
 export type NonEmptyString = z.infer<typeof NonEmptyStringSchema>;

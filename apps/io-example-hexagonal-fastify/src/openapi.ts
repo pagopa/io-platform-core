@@ -7,6 +7,8 @@ import { fileURLToPath } from "node:url";
 import { archiveWidgetContract } from "./adapters/inbound/archive-widget.handler.js";
 import { createWidgetContract } from "./adapters/inbound/create-widget.handler.js";
 import { deleteWidgetContract } from "./adapters/inbound/delete-widget.handler.js";
+import { getAuthenticatedWidgetSummaryContract } from "./adapters/inbound/get-authenticated-widget-summary.handler.js";
+import { getWidgetAccessContract } from "./adapters/inbound/get-widget-access.handler.js";
 import { getWidgetAuditContract } from "./adapters/inbound/get-widget-audit.handler.js";
 import { getWidgetSummaryContract } from "./adapters/inbound/get-widget-summary.handler.js";
 import { getWidgetContract } from "./adapters/inbound/get-widget.handler.js";
@@ -39,6 +41,8 @@ export const widgetApiRoutes: readonly AnyRouteContract[] = [
   replaceWidgetContract,
   patchWidgetContract,
   deleteWidgetContract,
+  getAuthenticatedWidgetSummaryContract,
+  getWidgetAccessContract,
   getWidgetAuditContract,
   getWidgetSummaryContract,
   refreshWidgetContract,

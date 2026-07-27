@@ -13,6 +13,7 @@ export {
 } from "./httpStatus.js";
 export {
   defineRoute,
+  type EnsureErrorResponsePayloads,
   type EnsureResponseCoversErrors,
   type EnsureValidationErrorDeclared,
   type Equals,

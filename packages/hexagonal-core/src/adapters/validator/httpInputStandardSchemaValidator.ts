@@ -11,10 +11,10 @@ import { ValidationError } from "../../domain/errors/index.js";
  * read. Framework adapters map their native request object onto this shape.
  */
 export interface HttpRequestPayload {
-  body?: unknown;
-  headers?: unknown;
-  path?: unknown;
-  query?: unknown;
+  readonly body?: unknown;
+  readonly headers?: unknown;
+  readonly path?: unknown;
+  readonly query?: unknown;
 }
 
 /**
@@ -49,8 +49,19 @@ export const createHttpRequestValidator =
     schema: RestrictToPayloadKeys<T> & T,
     extractPayload: (request: TRequest) => HttpRequestPayload,
   ): InputValidator<TRequest, StandardSchemaV1.InferOutput<T>> =>
-  async (request: TRequest) => {
-    const result = await schema["~standard"].validate(extractPayload(request));
+  async (request: TRequest) =>
+    createHttpRequestPayloadValidator(schema)(extractPayload(request));
+
+/**
+ * Builds a framework-agnostic validator directly from a canonical HTTP
+ * payload. Adapters use this after any transport-neutral middleware has run.
+ */
+export const createHttpRequestPayloadValidator =
+  <T extends StandardSchemaV1<unknown, unknown>>(
+    schema: RestrictToPayloadKeys<T> & T,
+  ): InputValidator<HttpRequestPayload, StandardSchemaV1.InferOutput<T>> =>
+  async (payload: HttpRequestPayload) => {
+    const result = await schema["~standard"].validate(payload);
 
     if (result.issues) {
       return err(validationErrorFromStandardIssues(result.issues));

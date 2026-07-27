@@ -5,13 +5,13 @@ import type { z } from "zod";
 import { GenericError as GenericErrorValue } from "@pagopa/hexagonal-core/domain/errors";
 import { err } from "neverthrow";
 
-import { WidgetIdSchema } from "../../domain/entities/widget-id.entity.js";
+import { WidgetIdPathSchema } from "../../domain/entities/widget-id.entity.js";
 import { PatchWidgetSchema } from "../../domain/entities/widget-mutation.entity.js";
 import { WidgetSchema } from "../../domain/entities/widget.entity.js";
 
 /** Input accepted by the widget patch use case. */
 export type PatchWidgetInput = z.input<typeof PatchWidgetSchema> &
-  z.input<typeof WidgetIdSchema>;
+  z.input<typeof WidgetIdPathSchema>;
 
 /** Use case contract for patching a widget. */
 export type PatchWidgetUseCase = UseCase<

@@ -21,6 +21,9 @@ import type {
  */
 export type ErrorKind = keyof KindToError;
 
+/** Concrete errors that the HTTP mapper can convert to a known status. */
+export type HttpMappedError = KindToError[ErrorKind];
+
 /**
  * Maps an error `kind` to its concrete error-class instance type. This is the
  * single source of truth for the set of domain errors the HTTP layer knows how

@@ -1,8 +1,8 @@
 import { z } from "zod";
 
-import { WidgetSchema } from "./widget.entity.js";
+import { WidgetIdSchema } from "../value-objects/widget-id.value-object.js";
 
 /** Schema for a widget identifier. */
-export const WidgetIdSchema = z.object({
-  id: WidgetSchema.shape.id,
+export const WidgetIdPathSchema = z.object({
+  id: WidgetIdSchema,
 });

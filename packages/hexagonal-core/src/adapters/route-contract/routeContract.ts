@@ -2,6 +2,7 @@ import type { z, ZodObject, ZodType } from "zod";
 
 import type { BaseError } from "../../domain/errors/index.js";
 import type { ErrorKindToStatus } from "../error-mapper/errorHttpMetadata.js";
+import type { ProblemDetails } from "../error-mapper/errorMapper.js";
 import type { AdapterOnlyStatus, SuccessStatusCode } from "./httpStatus.js";
 
 /** HTTP methods supported by a route contract. */
@@ -83,6 +84,18 @@ const isZodTypeEntry = (entry: ResponseEntry): entry is ZodType =>
   "~standard" in entry;
 
 /**
+ * Ensures every declared non-success response can carry the RFC 7807 payload
+ * emitted by the HTTP error mapper. The input check protects the adapter from
+ * rejecting a mapped error; the output check prevents a schema transform from
+ * changing the body into a non-Problem Details shape.
+ */
+export type EnsureErrorResponsePayloads<Resp extends ResponseMap> = [
+  ErrorResponsePayloadIssues<Resp>,
+] extends [never]
+  ? unknown
+  : ErrorResponsePayloadIssues<Resp>;
+
+/**
  * Bidirectional check that collapses to `never` when the response map's error
  * codes do not exactly match the HTTP statuses the use case can produce.
  *
@@ -161,6 +174,11 @@ export type SuccessStatusFromMap<R extends ResponseMap> = Extract<
   SuccessStatusCode
 >;
 
+type AllErrorResponseKeysOf<R extends ResponseMap> = Exclude<
+  Extract<keyof R, number>,
+  SuccessStatusCode
+>;
+
 /**
  * Extracts non-success, non-adapter-only numeric status keys from a response
  * map. These are the "pure domain-error" codes that must correspond 1-to-1 with
@@ -172,6 +190,32 @@ type ErrorResponseKeysOf<R extends ResponseMap> = Exclude<
   Extract<keyof R, number>,
   AdapterOnlyStatus | SuccessStatusCode
 >;
+
+type ErrorResponsePayloadIssue<Status extends number> = Readonly<
+  Record<
+    `ERROR_TS: response ${Status} schema must accept and return RFC 7807 ProblemDetails`,
+    never
+  >
+>;
+
+type ErrorResponsePayloadIssues<R extends ResponseMap> = {
+  [Status in AllErrorResponseKeysOf<R>]: R[Status] extends RedirectEntry
+    ? ErrorResponsePayloadIssue<Status>
+    : SchemaOf<R[Status]> extends infer Schema
+      ? Schema extends ZodType
+        ? [ProblemDetailsForStatus<Status>] extends [z.input<Schema>]
+          ? [z.output<Schema>] extends [ProblemDetails]
+            ? never
+            : ErrorResponsePayloadIssue<Status>
+          : ErrorResponsePayloadIssue<Status>
+        : ErrorResponsePayloadIssue<Status>
+      : ErrorResponsePayloadIssue<Status>;
+}[AllErrorResponseKeysOf<R>];
+
+type ProblemDetailsForStatus<Status extends number> = Omit<
+  ProblemDetails,
+  "status"
+> & { readonly status: Status };
 
 type SchemaOf<E extends ResponseEntry> = E extends ZodType
   ? E

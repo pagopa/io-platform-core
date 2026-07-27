@@ -1,11 +1,15 @@
 import type { FastifyInstance } from "fastify";
 
 import { defineRoute } from "@pagopa/hexagonal-core/adapters";
-import { mountFastifyRoute, ProblemJson } from "@pagopa/hexagonal-fastify";
+import {
+  type ErrorResponderConfig,
+  mountFastifyRoute,
+  ProblemJson,
+} from "@pagopa/hexagonal-fastify";
 
 import type { PatchWidgetUseCase } from "../../application/use-cases/patch-widget.use-case.js";
 
-import { WidgetIdSchema } from "../../domain/entities/widget-id.entity.js";
+import { WidgetIdPathSchema } from "../../domain/entities/widget-id.entity.js";
 import { PatchWidgetSchema } from "../../domain/entities/widget-mutation.entity.js";
 import { WidgetSchema } from "../../domain/entities/widget.entity.js";
 
@@ -21,7 +25,7 @@ export const patchWidgetContract = defineRoute({
   method: "patch",
   operationId: "patchWidget",
   path: "/api/v1/widgets/{id}",
-  request: { body: PatchWidgetSchema, path: WidgetIdSchema },
+  request: { body: PatchWidgetSchema, path: WidgetIdPathSchema },
   response: { 200: WidgetSchema, 400: ProblemJson, 500: ProblemJson },
   summary: "Patch a widget",
   tags: ["widgets"],
@@ -36,14 +40,19 @@ export const patchWidgetContract = defineRoute({
 export const mountPatchWidgetHandler = (
   server: FastifyInstance,
   useCase: PatchWidgetUseCase,
+  config?: ErrorResponderConfig,
 ): void => {
-  mountFastifyRoute(server, {
-    contract: patchWidgetContract,
-    inputMapper: (req) => ({
-      description: req.body.description,
-      id: req.path.id,
-      name: req.body.name,
-    }),
-    useCase,
-  });
+  mountFastifyRoute(
+    server,
+    {
+      contract: patchWidgetContract,
+      inputMapper: (req) => ({
+        description: req.body.description,
+        id: req.path.id,
+        name: req.body.name,
+      }),
+      useCase,
+    },
+    config,
+  );
 };

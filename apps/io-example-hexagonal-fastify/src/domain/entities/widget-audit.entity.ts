@@ -1,12 +1,13 @@
 import { z } from "zod";
 
+import { RequestIdSchema } from "../value-objects/request-id.value-object.js";
 import { WidgetSchema } from "./widget.entity.js";
 
 /** Schema for a single widget audit event in audit responses. */
 const WidgetAuditEventSchema = z.object({
   at: WidgetSchema.shape.createdAt,
   message: z.string(),
-  requestId: z.string().min(1).optional(),
+  requestId: RequestIdSchema.optional(),
   type: z.string().min(1),
 });
 

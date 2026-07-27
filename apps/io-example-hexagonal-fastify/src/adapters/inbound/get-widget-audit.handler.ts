@@ -1,12 +1,16 @@
 import type { FastifyInstance } from "fastify";
 
 import { defineRoute } from "@pagopa/hexagonal-core/adapters";
-import { mountFastifyRoute, ProblemJson } from "@pagopa/hexagonal-fastify";
+import {
+  type ErrorResponderConfig,
+  mountFastifyRoute,
+  ProblemJson,
+} from "@pagopa/hexagonal-fastify";
 
 import type { GetWidgetAuditUseCase } from "../../application/use-cases/get-widget-audit.use-case.js";
 
 import { WidgetAuditSchema } from "../../domain/entities/widget-audit.entity.js";
-import { WidgetIdSchema } from "../../domain/entities/widget-id.entity.js";
+import { WidgetIdPathSchema } from "../../domain/entities/widget-id.entity.js";
 import { RequestIdHeaderSchema } from "./dto/request-id-header.dto.js";
 
 /**
@@ -22,7 +26,7 @@ export const getWidgetAuditContract = defineRoute({
   method: "get",
   operationId: "getWidgetAudit",
   path: "/api/v1/widgets/{id}/audit",
-  request: { headers: RequestIdHeaderSchema, path: WidgetIdSchema },
+  request: { headers: RequestIdHeaderSchema, path: WidgetIdPathSchema },
   response: {
     200: WidgetAuditSchema,
     400: ProblemJson,
@@ -41,13 +45,18 @@ export const getWidgetAuditContract = defineRoute({
 export const mountGetWidgetAuditHandler = (
   server: FastifyInstance,
   useCase: GetWidgetAuditUseCase,
+  config?: ErrorResponderConfig,
 ): void => {
-  mountFastifyRoute(server, {
-    contract: getWidgetAuditContract,
-    inputMapper: (req) => ({
-      id: req.path.id,
-      requestId: req.headers["x-request-id"],
-    }),
-    useCase,
-  });
+  mountFastifyRoute(
+    server,
+    {
+      contract: getWidgetAuditContract,
+      inputMapper: (req) => ({
+        id: req.path.id,
+        requestId: req.headers["x-request-id"],
+      }),
+      useCase,
+    },
+    config,
+  );
 };

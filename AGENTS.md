@@ -64,7 +64,7 @@ and it owns formatting too.
 - `packages/*` — reusable modules. Publishable `hexagonal-core` package plus or cross product shared packages without the `io-` prefix.
   `typescript-config-node` (shared `tsconfig`, internal/`private`).
 - `infra/*` — Terraform IaC (see below).
-- `docs/*` — architecture notes/ADRs. Link user docs from a package `README`, not here.
+
 
 ## Architecture — hexagonal (ports & adapters)
 
@@ -74,7 +74,7 @@ framework-free.
 
 | Layer | Path | Contains |
 |-------|------|----------|
-| Domain | `domain/entities/*.entity.ts`, `domain/ports/**/*.repository.ts` | Entities + port **interfaces** (`IUserProfileRepository`) |
+| Domain | `domain/entities/*.entity.ts`, `domain/value-objects/*.value-object.ts`, `domain/ports/**/*.repository.ts` | Entities, value objects + port **interfaces** (`IUserProfileRepository`) |
 | Application | `application/use-cases/*.use-case.ts` | Business logic as factories: `makeXxxUseCase(deps): UseCase<In,Out,Err>` |
 | Adapters (inbound) | `adapters/inbound/*.handler.ts` + `dto/*.dto.ts` | HTTP/trigger handlers, route contracts; adapter-specific DTOs only when an input/output mapper transforms a shape |
 | Adapters (outbound) | `adapters/outbound/persistence/*.repository.ts` | Port implementations (e.g. in-memory) |
@@ -88,8 +88,20 @@ Tests live next to code in `__tests__/*.test.ts`.
   Error types extend `BaseError` from `@pagopa/hexagonal-core/domain/errors`
   (`NotFoundError`, `ConflictError`, `GenericError`, `ValidationError`).
 - **Validation & types: `zod` v4.** Model value-objects/entities/DTOs as schemas;
-  use **branded types** (`.brand<"EmailAddress">()`). Value objects go in
-  `value-objects/*.value-object.ts` exporting `XxxSchema` + `type Xxx`.
+  define every branded value object with an exported runtime symbol
+  (`export const XxxBrand = Symbol("Xxx")`), pass it to `.brand(XxxBrand)`, and
+  infer the type with `z.infer<typeof XxxSchema>`. Do not use string-literal
+  brands, `declare const` brands, explicit `z.core.$brand` intersections, or
+  schema type assertions. Value objects go in `value-objects/*.value-object.ts`
+  exporting `XxxBrand`, `XxxSchema` and `type Xxx`.
+- **Value-object reuse:** Inbound DTO properties must reuse a compatible value
+  object from `@pagopa/hexagonal-core/domain/value-objects` when available,
+  otherwise reuse or create one under the app's `domain/value-objects/`. Give
+  each cross-layer domain concept its own named/branded value object even when
+  multiple concepts share the same primitive constraints. Generic core schemas
+  may be used directly for values owned exclusively by the adapter. Keep only
+  transport-specific object shapes and mapping contracts in adapter DTO files;
+  value objects are owned by the domain, not the application use-case layer.
 - **Shared DTO schemas live in `domain/entities/`**. Request/response schemas that
   pass unchanged between an inbound adapter and a use case belong with the domain
   model. Adapter-specific shapes (transport headers, mapper outputs) live in
@@ -99,6 +111,10 @@ Tests live next to code in `__tests__/*.test.ts`.
   wire everything explicitly in `createApp.ts`. Repository interfaces are `I`-prefixed.
 - **ESM-only source with explicit `.js` import extensions** (required by `nodenext`),
   e.g. `import { x } from "./user-profile.entity.js"`.
+- **Deployable private apps do not emit declarations.** Set `declaration: false`
+  in their build `tsconfig`; declaration output is for publishable libraries.
+  This also prevents private adapter composition schemas from leaking nominal
+  `unique symbol` implementation details into unused `.d.ts` files.
 
 ### Core packages
 
@@ -106,6 +122,9 @@ Tests live next to code in `__tests__/*.test.ts`.
 - `@pagopa/hexagonal-fastify` — Fastify inbound adapter and route utilities for hexagonal apps.
 - `@pagopa/hexagonal-openapi` — code-first OpenAPI generation and route-contract helpers.
 - `@pagopa/io-platform-typescript-config-node` — shared base `tsconfig` (internal/private).
+
+### Documentation
+- `packages/hexagonal-core/docs/*` — architecture notes/ADRs related to the hexagonal pattern libs. Link user docs from a package `README`, not here.
 
 ## Publishing packages — dual ESM + CJS is mandatory
 

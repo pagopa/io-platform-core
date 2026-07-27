@@ -20,7 +20,6 @@ describe("createApp", () => {
   const routes = [
     { method: "GET", url: "/api/v1/widgets" },
     { method: "GET", url: `/api/v1/widgets/${ID}` },
-    { method: "POST", payload: { name: "x" }, url: "/api/v1/widgets" },
     {
       method: "PUT",
       payload: { name: "x" },
@@ -45,11 +44,58 @@ describe("createApp", () => {
 
         expectProblemJson(res, 500);
         expect(res.json().title).toBe("Internal Server Error");
+        expect(res.json().type).toBe(
+          "https://example.pagopa.it/problems/generic-error",
+        );
       } finally {
         await server.close();
       }
     },
   );
+
+  it("applies the shared problem type base URL to adapter errors", async () => {
+    const { server } = createApp();
+
+    try {
+      const validationResponse = await server.inject({
+        method: "GET",
+        url: "/api/v1/widgets/not-a-uuid",
+      });
+      const authenticationResponse = await server.inject({
+        method: "GET",
+        url: `/api/v1/widgets/${ID}/authenticated-summary`,
+      });
+
+      expectProblemJson(validationResponse, 400);
+      expect(validationResponse.json().type).toBe(
+        "https://example.pagopa.it/problems/validation-error",
+      );
+      expectProblemJson(authenticationResponse, 401);
+      expect(authenticationResponse.json().type).toBe(
+        "https://example.pagopa.it/problems/authentication-error",
+      );
+    } finally {
+      await server.close();
+    }
+  });
+
+  it("maps a duplicate widget to its custom problem type", async () => {
+    const { server } = createApp();
+
+    try {
+      const res = await server.inject({
+        method: "POST",
+        payload: { name: "Existing widget" },
+        url: "/api/v1/widgets",
+      });
+
+      expectProblemJson(res, 409);
+      expect(res.json().title).toBe("Conflict");
+      expect(res.json().type).toMatch(/\/widget-already-exists$/);
+    } finally {
+      await server.close();
+    }
+  });
 
   it("returns 404 for unknown routes", async () => {
     const { server } = createApp();

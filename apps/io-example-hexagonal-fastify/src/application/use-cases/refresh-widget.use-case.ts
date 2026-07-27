@@ -3,6 +3,10 @@ import type { UseCase } from "@pagopa/hexagonal-core/domain/ports";
 
 import { ok } from "neverthrow";
 
+import type { WidgetTaskId } from "../../domain/value-objects/widget-task-id.value-object.js";
+
+import { WidgetTaskIdSchema } from "../../domain/value-objects/widget-task-id.value-object.js";
+
 /**
  * Internal result of enqueueing a widget refresh job.
  *
@@ -10,7 +14,7 @@ import { ok } from "neverthrow";
  * renames it to the public `taskId` and adds the accepted status literal.
  */
 export interface RefreshWidgetEnqueued {
-  jobId: string;
+  jobId: WidgetTaskId;
 }
 
 export interface RefreshWidgetInput {
@@ -24,7 +28,9 @@ export type RefreshWidgetUseCase = UseCase<
 >;
 
 /** Deterministic sample job id used by the example implementation. */
-const SAMPLE_JOB_ID = "22222222-2222-4222-8222-222222222222";
+const SAMPLE_JOB_ID = WidgetTaskIdSchema.parse(
+  "22222222-2222-4222-8222-222222222222",
+);
 
 /**
  * Builds the refresh-widget use case.
