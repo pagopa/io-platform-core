@@ -1,5 +1,11 @@
 # @pagopa/hexagonal-core
 
+## 0.5.1
+
+### Patch Changes
+
+- f5edcf1: Fix: expose explicit schema types for branded value objects to avoid TS2527 for consumers
+
 ## 0.5.0
 
 ### Minor Changes
