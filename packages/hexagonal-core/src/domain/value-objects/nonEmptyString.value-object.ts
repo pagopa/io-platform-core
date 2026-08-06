@@ -9,10 +9,16 @@ export const NonEmptyStringBrand = Symbol("NonEmptyString");
  * Branding the result as `NonEmptyString` prevents a possibly-empty `string`
  * from being passed where a non-empty value is required.
  */
-export const NonEmptyStringSchema = z
+
+export type NonEmptyStringSchemaType = z.core.$ZodBranded<
+  z.ZodString,
+  typeof NonEmptyStringBrand,
+  "out"
+>;
+
+export const NonEmptyStringSchema: NonEmptyStringSchemaType = z
   .string()
   .min(1, "String cannot be empty")
   .brand(NonEmptyStringBrand);
-
 /** A string proven to be non-empty (branded `string`). */
 export type NonEmptyString = z.infer<typeof NonEmptyStringSchema>;
