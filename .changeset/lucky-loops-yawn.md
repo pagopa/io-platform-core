@@ -1,5 +1,4 @@
 ---
-"io-example-hexagonal-fastify": patch
 "@pagopa/hexagonal-core": patch
 ---
 
