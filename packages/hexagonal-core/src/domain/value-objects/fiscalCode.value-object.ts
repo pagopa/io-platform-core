@@ -14,7 +14,13 @@ const cfRegex =
  * Accepts the canonical 16-character format (case-insensitive) and brands the
  * result as `FiscalCode` so it cannot be confused with an arbitrary `string`.
  */
-export const FiscalCodeSchema = z
+export type FiscalCodeSchemaType = z.core.$ZodBranded<
+  z.ZodString,
+  typeof FiscalCodeBrand,
+  "out"
+>;
+
+export const FiscalCodeSchema: FiscalCodeSchemaType = z
   .string()
   .regex(cfRegex, "Invalid Fiscal Code")
   .brand(FiscalCodeBrand);
