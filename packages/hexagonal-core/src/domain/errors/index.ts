@@ -22,7 +22,7 @@ export class BaseError extends Error {
    * The constructor is `protected` so `BaseError` can only be instantiated
    * through one of its concrete subclasses.
    */
-  protected constructor(message: string) {
+  protected constructor(message = "an error occurred") {
     super(message);
 
     this.kind = "BaseError";
@@ -38,8 +38,8 @@ export class AuthenticationError extends BaseError {
   override readonly kind = "AuthenticationError" as const;
   override tag = "authentication-error";
 
-  constructor() {
-    super("Unauthorized: authentication required");
+  constructor(message = "authentication required") {
+    super("Unauthorized: " + message);
   }
 }
 
@@ -52,7 +52,7 @@ export class BadGatewayError extends BaseError {
   override tag = "bad-gateway";
 
   /** @param message Detail describing the upstream failure. */
-  constructor(message: string) {
+  constructor(message = "invalid response from upstream") {
     super("Bad gateway: " + message);
   }
 }
@@ -66,7 +66,7 @@ export class ConflictError extends BaseError {
   override tag = "conflict";
 
   /** @param message Detail describing what conflicted. */
-  constructor(message: string) {
+  constructor(message = "resource conflict") {
     super("Conflict: " + message);
   }
 }
@@ -79,8 +79,8 @@ export class ForbiddenError extends BaseError {
   override readonly kind = "ForbiddenError" as const;
   override tag = "forbidden";
 
-  constructor() {
-    super("Forbidden: you don't have permission to access this resource");
+  constructor(message = "you don't have permission to access this resource") {
+    super("Forbidden: " + message);
   }
 }
 
@@ -93,7 +93,7 @@ export class GatewayTimeoutError extends BaseError {
   override tag = "gateway-timeout";
 
   /** @param message Detail describing the timeout. */
-  constructor(message: string) {
+  constructor(message = "upstream did not respond in time") {
     super("Gateway timeout: " + message);
   }
 }
@@ -107,7 +107,7 @@ export class GenericError extends BaseError {
   override tag = "generic-error";
 
   /** @param message Detail describing the failure. */
-  constructor(message: string) {
+  constructor(message = "an unexpected error occurred") {
     super("Generic error: " + message);
   }
 }
@@ -121,7 +121,7 @@ export class GoneError extends BaseError {
   override tag = "gone";
 
   /** @param message Detail describing the gone resource. */
-  constructor(message: string) {
+  constructor(message = "resource no longer exists") {
     super("Gone: " + message);
   }
 }
@@ -139,7 +139,7 @@ export class NotFoundError extends BaseError {
    * @param entityName Name of the entity type that was not found.
    * @param message Detail describing the lookup (e.g. the missing id).
    */
-  constructor(entityName: string, message: string) {
+  constructor(entityName: string, message = "not found") {
     super("Unable to find " + entityName + ": " + message);
     this.entityName = entityName;
   }
@@ -154,7 +154,7 @@ export class PreconditionFailedError extends BaseError {
   override tag = "precondition-failed";
 
   /** @param message Detail describing the failed precondition. */
-  constructor(message: string) {
+  constructor(message = "precondition not met") {
     super("Precondition failed: " + message);
   }
 }
@@ -168,7 +168,7 @@ export class ServiceUnavailableError extends BaseError {
   override tag = "service-unavailable";
 
   /** @param message Detail describing why the service is unavailable. */
-  constructor(message: string) {
+  constructor(message = "service temporarily unavailable") {
     super("Service unavailable: " + message);
   }
 }
@@ -181,8 +181,9 @@ export class TooManyRequestsError extends BaseError {
   override readonly kind = "TooManyRequestsError" as const;
   override tag = "too-many-requests";
 
-  constructor() {
-    super("Too many requests");
+  /** @param message Detail describing the rate-limit failure. */
+  constructor(message = "rate limit exceeded") {
+    super("Too many requests: " + message);
   }
 }
 
@@ -195,7 +196,7 @@ export class UnprocessableEntityError extends BaseError {
   override tag = "unprocessable-entity";
 
   /** @param message Detail describing why the entity is unprocessable. */
-  constructor(message: string) {
+  constructor(message = "unable to process request") {
     super("Unprocessable entity: " + message);
   }
 }
@@ -208,7 +209,7 @@ export class ValidationError extends BaseError {
   override tag = "validation-error";
 
   /** @param message Detail describing the validation failure. */
-  constructor(message: string) {
+  constructor(message = "validation failed") {
     super("Validation error: " + message);
   }
 }
