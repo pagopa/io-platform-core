@@ -1,5 +1,11 @@
 # @pagopa/hexagonal-core
 
+## 0.6.0
+
+### Minor Changes
+
+- 77f2486: Make `message` parameter optional with sensible defaults across domain error classes and add optional `message` to `TooManyRequestsError`
+
 ## 0.5.1
 
 ### Patch Changes
