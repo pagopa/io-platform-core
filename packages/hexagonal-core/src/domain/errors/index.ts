@@ -17,12 +17,12 @@ export class BaseError extends Error {
   tag: string;
 
   /**
-   * @param message Human-readable description of the failure.
+   * @param message Human-readable description of the failure. Defaults to `"an error occurred"`.
    *
    * The constructor is `protected` so `BaseError` can only be instantiated
    * through one of its concrete subclasses.
    */
-  protected constructor(message: string) {
+  protected constructor(message = "an error occurred") {
     super(message);
 
     this.kind = "BaseError";
@@ -38,8 +38,9 @@ export class AuthenticationError extends BaseError {
   override readonly kind = "AuthenticationError" as const;
   override tag = "authentication-error";
 
-  constructor() {
-    super("Unauthorized: authentication required");
+  /** @param message Optional detail describing the authentication failure. Defaults to `"authentication required"`. */
+  constructor(message = "authentication required") {
+    super("Unauthorized: " + message);
   }
 }
 
@@ -51,8 +52,8 @@ export class BadGatewayError extends BaseError {
   override readonly kind = "BadGatewayError" as const;
   override tag = "bad-gateway";
 
-  /** @param message Detail describing the upstream failure. */
-  constructor(message: string) {
+  /** @param message Optional detail describing the upstream failure. Defaults to `"invalid response from upstream"`. */
+  constructor(message = "invalid response from upstream") {
     super("Bad gateway: " + message);
   }
 }
@@ -65,8 +66,8 @@ export class ConflictError extends BaseError {
   override readonly kind = "ConflictError" as const;
   override tag = "conflict";
 
-  /** @param message Detail describing what conflicted. */
-  constructor(message: string) {
+  /** @param message Optional detail describing what conflicted. Defaults to `"resource conflict"`. */
+  constructor(message = "resource conflict") {
     super("Conflict: " + message);
   }
 }
@@ -79,8 +80,9 @@ export class ForbiddenError extends BaseError {
   override readonly kind = "ForbiddenError" as const;
   override tag = "forbidden";
 
-  constructor() {
-    super("Forbidden: you don't have permission to access this resource");
+  /** @param message Optional detail describing why the action is forbidden. Defaults to `"you don't have permission to access this resource"`. */
+  constructor(message = "you don't have permission to access this resource") {
+    super("Forbidden: " + message);
   }
 }
 
@@ -92,8 +94,8 @@ export class GatewayTimeoutError extends BaseError {
   override readonly kind = "GatewayTimeoutError" as const;
   override tag = "gateway-timeout";
 
-  /** @param message Detail describing the timeout. */
-  constructor(message: string) {
+  /** @param message Optional detail describing the timeout. Defaults to `"upstream did not respond in time"`. */
+  constructor(message = "upstream did not respond in time") {
     super("Gateway timeout: " + message);
   }
 }
@@ -106,8 +108,8 @@ export class GenericError extends BaseError {
   override readonly kind = "GenericError" as const;
   override tag = "generic-error";
 
-  /** @param message Detail describing the failure. */
-  constructor(message: string) {
+  /** @param message Optional detail describing the failure. Defaults to `"an unexpected error occurred"`. */
+  constructor(message = "an unexpected error occurred") {
     super("Generic error: " + message);
   }
 }
@@ -120,8 +122,8 @@ export class GoneError extends BaseError {
   override readonly kind = "GoneError" as const;
   override tag = "gone";
 
-  /** @param message Detail describing the gone resource. */
-  constructor(message: string) {
+  /** @param message Optional detail describing the gone resource. Defaults to `"resource no longer exists"`. */
+  constructor(message = "resource no longer exists") {
     super("Gone: " + message);
   }
 }
@@ -137,9 +139,9 @@ export class NotFoundError extends BaseError {
 
   /**
    * @param entityName Name of the entity type that was not found.
-   * @param message Detail describing the lookup (e.g. the missing id).
+   * @param message Optional detail describing the lookup (e.g. the missing id). Defaults to `"not found"`.
    */
-  constructor(entityName: string, message: string) {
+  constructor(entityName: string, message = "not found") {
     super("Unable to find " + entityName + ": " + message);
     this.entityName = entityName;
   }
@@ -153,8 +155,8 @@ export class PreconditionFailedError extends BaseError {
   override readonly kind = "PreconditionFailedError" as const;
   override tag = "precondition-failed";
 
-  /** @param message Detail describing the failed precondition. */
-  constructor(message: string) {
+  /** @param message Optional detail describing the failed precondition. Defaults to `"precondition not met"`. */
+  constructor(message = "precondition not met") {
     super("Precondition failed: " + message);
   }
 }
@@ -167,8 +169,8 @@ export class ServiceUnavailableError extends BaseError {
   override readonly kind = "ServiceUnavailableError" as const;
   override tag = "service-unavailable";
 
-  /** @param message Detail describing why the service is unavailable. */
-  constructor(message: string) {
+  /** @param message Optional detail describing why the service is unavailable. Defaults to `"service temporarily unavailable"`. */
+  constructor(message = "service temporarily unavailable") {
     super("Service unavailable: " + message);
   }
 }
@@ -181,8 +183,9 @@ export class TooManyRequestsError extends BaseError {
   override readonly kind = "TooManyRequestsError" as const;
   override tag = "too-many-requests";
 
-  constructor() {
-    super("Too many requests");
+  /** @param message Optional detail describing the rate-limit failure. Defaults to `"rate limit exceeded"`. */
+  constructor(message = "rate limit exceeded") {
+    super("Too many requests: " + message);
   }
 }
 
@@ -194,8 +197,8 @@ export class UnprocessableEntityError extends BaseError {
   override readonly kind = "UnprocessableEntityError" as const;
   override tag = "unprocessable-entity";
 
-  /** @param message Detail describing why the entity is unprocessable. */
-  constructor(message: string) {
+  /** @param message Optional detail describing why the entity is unprocessable. Defaults to `"unable to process request"`. */
+  constructor(message = "unable to process request") {
     super("Unprocessable entity: " + message);
   }
 }
@@ -207,8 +210,8 @@ export class ValidationError extends BaseError {
   override readonly kind = "ValidationError" as const;
   override tag = "validation-error";
 
-  /** @param message Detail describing the validation failure. */
-  constructor(message: string) {
+  /** @param message Optional detail describing the validation failure. Defaults to `"validation failed"`. */
+  constructor(message = "validation failed") {
     super("Validation error: " + message);
   }
 }
