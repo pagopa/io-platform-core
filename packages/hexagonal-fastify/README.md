@@ -128,6 +128,10 @@ The route contract must declare every middleware error status. Non-success
 response schemas are checked at compile time and at runtime for RFC 7807
 compatibility; an invalid response falls back to `500`.
 
+## Architecture decisions
+
+- [ADR 0001 — Mapping completo della risposta HTTP](docs/adr/0001-complete-http-response-output-mapper.md)
+
 ## Scripts
 
 | Command              | Description                    |
