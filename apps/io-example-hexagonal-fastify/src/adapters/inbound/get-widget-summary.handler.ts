@@ -39,10 +39,13 @@ export const mountGetWidgetSummaryHandler = (
       contract: getWidgetSummaryContract,
       inputMapper: (req) => ({ id: req.path.id }),
       outputMapper: (output) => ({
-        createdAt: new Date(output.createdAtEpochMs).toISOString(),
-        description: output.details,
-        id: output.widgetId,
-        name: output.label,
+        body: {
+          createdAt: new Date(output.createdAtEpochMs).toISOString(),
+          description: output.details,
+          id: output.widgetId,
+          name: output.label,
+        },
+        status: 200,
       }),
       useCase,
     },

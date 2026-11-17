@@ -4,6 +4,9 @@ info:
 openapi: 3.0.3
 components:
   schemas:
+    WidgetTaskId:
+      type: string
+      format: uuid
     ProblemDetails:
       type: object
       properties:
@@ -352,11 +355,6 @@ paths:
       responses:
         "204":
           description: No Content
-          content:
-            application/json:
-              schema:
-                type: object
-                properties: {}
         "400":
           description: Bad Request
           content:
@@ -492,7 +490,7 @@ paths:
                       - id
                   clientIp:
                     type: string
-                    format: ip
+                    format: ipv4
                   widgetId:
                     type: string
                     format: uuid
@@ -643,6 +641,11 @@ paths:
       responses:
         "202":
           description: Successful response for refreshWidget
+          headers:
+            x-widget-task-id:
+              required: true
+              schema:
+                $ref: "#/components/schemas/WidgetTaskId"
           content:
             application/json:
               schema:
@@ -650,11 +653,9 @@ paths:
                 properties:
                   status:
                     type: string
-                    enum:
-                      - accepted
+                    const: accepted
                   taskId:
-                    type: string
-                    format: uuid
+                    $ref: "#/components/schemas/WidgetTaskId"
                 required:
                   - status
                   - taskId
@@ -687,11 +688,6 @@ paths:
       responses:
         "204":
           description: No Content
-          content:
-            application/json:
-              schema:
-                type: object
-                properties: {}
         "400":
           description: Bad Request
           content:

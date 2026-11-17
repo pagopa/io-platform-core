@@ -48,10 +48,13 @@ export const mountAuthenticatedWidgetSummaryHandler = (
       inputMapper: (req) => ({ id: req.path.id }),
       middlewares: [authenticateRequest],
       outputMapper: (output) => ({
-        createdAt: new Date(output.createdAtEpochMs).toISOString(),
-        description: output.details,
-        id: output.widgetId,
-        name: output.label,
+        body: {
+          createdAt: new Date(output.createdAtEpochMs).toISOString(),
+          description: output.details,
+          id: output.widgetId,
+          name: output.label,
+        },
+        status: 200,
       }),
       useCase,
     },

@@ -34,9 +34,6 @@ export const mountArchiveWidgetHandler = (
     {
       contract: archiveWidgetContract,
       inputMapper: (req) => ({ id: req.path.id }),
-      // The 204 contract strips the body, so the use case's result is discarded
-      // by mapping it to an empty object.
-      outputMapper: () => ({}),
       useCase,
     },
     config,

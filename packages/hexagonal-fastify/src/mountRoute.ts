@@ -1,5 +1,6 @@
 import type {
   ContextualInputMapper,
+  DefaultSuccessOutput,
   EnsureErrorResponsePayloads,
   EnsureHttpMiddlewareSequence,
   EnsureResponseCoversErrors,
@@ -8,12 +9,12 @@ import type {
   HttpMiddlewareErrors,
   HttpMiddlewareSequence,
   HttpRequestPayload,
-  RedirectEntry,
+  ParamObjectSchema,
   ResponseEntry,
   ResponseMap,
   RouteContract,
   RouteRequestSchemas,
-  SuccessSchemaFromMap,
+  SuccessResponseFromMap,
   SuccessStatusFromMap,
   WireRequest,
 } from "@pagopa/hexagonal-core/adapters";
@@ -22,30 +23,31 @@ import type {
   InputValidator,
   UseCase,
 } from "@pagopa/hexagonal-core/domain/ports";
-import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import type { z, ZodType } from "zod";
+import type { FastifyInstance, FastifyRequest } from "fastify";
 
 import {
+  assertResponseCategories,
+  assertSupportedResponseHeaders,
   createHttpRequestPayloadValidator,
   executeHttpRequestPipeline,
+  getEntryHeaders,
   getEntrySchema,
   isNoBodyStatus,
   isRedirectEntry,
   isSuccessStatus,
 } from "@pagopa/hexagonal-core/adapters";
 import { GenericError } from "@pagopa/hexagonal-core/domain/errors";
+import { validateHeaderName, validateHeaderValue } from "node:http";
 import { z as zod } from "zod";
 
 import {
   ErrorResponderConfig,
   sendContractErrorResponse,
-  sendErrorResponse,
 } from "./errorResponder.js";
 import {
   createHttpHandlerFromExecution,
   type ErrorResponder,
   type SuccessResponder,
-  type SuccessStatusCode,
 } from "./httpHandlerBuilder.js";
 import { fastifyExtractPayload } from "./validator/fastifyRequestValidator.js";
 
@@ -57,30 +59,40 @@ const fastifyMethod = {
   put: "PUT",
 } as const;
 
-/** A success entry resolved from a response map: its status and optional schema. */
+type EnsureDeclaredHeaders<R extends ResponseMap, M> =
+  false extends HeaderKeysValid<R, M> ? never : unknown;
+
+type HeaderKeysValid<R extends ResponseMap, M> = M extends { status: infer S }
+  ? S extends SuccessStatusFromMap<R>
+    ? M extends { headers?: infer H }
+      ? H extends unknown
+        ? H extends null | undefined
+          ? true
+          : Exclude<
+                keyof H,
+                Extract<SuccessResponseFromMap<R>, { status: S }> extends {
+                  headers?: infer Allowed;
+                }
+                  ? keyof NonNullable<Allowed>
+                  : never
+              > extends never
+            ? true
+            : false
+        : never
+      : true
+    : false
+  : false;
+
+/** A declared success entry indexed by status. */
 interface ResolvedSuccessEntry {
-  isRedirect: boolean;
-  schema: undefined | ZodType;
-  status: SuccessStatusCode;
+  defaultLocation: string;
+  duplicateHeaders: boolean;
+  entry: ResponseEntry;
+  hasHeaders: boolean;
+  headerNames: Map<string, string>;
+  headerSchema: ParamObjectSchema | undefined;
+  status: number;
 }
-
-/**
- * Body type the use case (or the output mapper) must produce for a contract's
- * success response. A redirect entry carries no body but needs a target URL, so
- * it forces a `string` (used as the `Location` header). Other no-body entries
- * carry no schema, collapsing to `undefined`; otherwise it is the `z.input` of
- * the success schema.
- */
-type SuccessBodyInput<Resp extends ResponseMap> =
-  SuccessEntryOf<Resp> extends RedirectEntry
-    ? string
-    : [SuccessSchemaFromMap<Resp>] extends [never]
-      ? undefined
-      : z.input<SuccessSchemaFromMap<Resp>>;
-
-/** The response-map entry associated with the contract's success status. */
-type SuccessEntryOf<Resp extends ResponseMap> =
-  Resp[SuccessStatusFromMap<Resp>];
 
 /**
  * Builds the Zod schema validated against the decomposed request. Missing parts
@@ -98,112 +110,215 @@ const buildWireSchema = (request: RouteRequestSchemas) =>
 const toFastifyPath = (path: string): string =>
   path.replace(/\{([^{}]+)\}/g, ":$1");
 
-/**
- * Resolves the single success entry of a response map. Both 2xx codes and the
- * supported redirects (`301`/`302`) count as success; a redirect (or any
- * no-body) entry resolves to an `undefined` schema.
- *
- * @throws when the contract declares no success response, or more than one.
- */
-const resolveSuccessEntry = (response: ResponseMap): ResolvedSuccessEntry => {
-  const matches: ResolvedSuccessEntry[] = [];
-
+/** Resolve all successes without selecting one by declaration order. */
+const resolveSuccessEntries = (
+  response: ResponseMap,
+): Map<number, ResolvedSuccessEntry> => {
+  const matches = new Map<number, ResolvedSuccessEntry>();
   for (const [key, entry] of Object.entries(response)) {
     const status = Number(key);
-    if (!isSuccessStatus(status)) continue;
-
-    const typedEntry = entry as ResponseEntry;
-    const redirect = isRedirectEntry(typedEntry);
-    matches.push({
-      isRedirect: redirect,
-      schema: redirect ? undefined : getEntrySchema(typedEntry),
-      status: status as SuccessStatusCode,
-    });
+    if (isSuccessStatus(status)) {
+      const headerSchema = getEntryHeaders(entry);
+      const headerNames = new Map<string, string>();
+      let duplicateHeaders = false;
+      for (const name of Object.keys(headerSchema?.shape ?? {})) {
+        const lower = name.toLowerCase();
+        if (headerNames.has(lower)) duplicateHeaders = true;
+        headerNames.set(lower, name);
+      }
+      matches.set(status, {
+        defaultLocation: headerNames.get("location") ?? "location",
+        duplicateHeaders,
+        entry,
+        hasHeaders: headerSchema !== undefined || isRedirectEntry(entry),
+        headerNames,
+        headerSchema,
+        status,
+      });
+    }
   }
-
-  if (matches.length === 0) {
+  if (matches.size === 0) {
     throw new Error(
-      "mountFastifyRoute: no success entry found in response map. " +
-        "Add a 200/201/202/204/301/302 entry to the contract response.",
+      "mountFastifyRoute: no success entry found in response map.",
     );
   }
-  if (matches.length > 1) {
-    throw new Error(
-      "mountFastifyRoute: multiple success entries found in response map " +
-        `(${matches.map((m) => m.status).join(", ")}). ` +
-        "A contract must declare exactly one success response.",
-    );
-  }
-
-  return matches[0];
+  return matches;
 };
 
-/**
- * Builds the success responder: applies the optional output mapper, then — when
- * a body schema is present and the status carries a body — encodes the result
- * against the success schema inside the mount. Encoding failures surface as a
- * 500 because an output that fails its own contract is a server-side bug.
- *
- * For a redirect entry the mapped value is the target URL: it is written to the
- * `Location` header and the body is stripped. A non-string (or empty) redirect
- * target surfaces as a 500, since an output that violates its own contract is a
- * server-side bug. Other no-body responses skip encoding and strip the body.
- */
-const buildSuccessResponder = <O, R>(
+const normalizeHeaders = (
   entry: ResolvedSuccessEntry,
-  outputMapper?: (output: O) => R,
-  onError: ErrorResponder = (reply, error) => sendErrorResponse(reply, error),
+  raw: unknown,
+  redirect: boolean,
+) => {
+  if (typeof raw !== "object" || raw === null || Array.isArray(raw))
+    return undefined;
+  const inputs: Record<string, unknown> = {};
+  const seen = new Set<string>();
+  for (const [key, value] of Object.entries(raw)) {
+    const lower = key.toLowerCase();
+    if (
+      seen.has(lower) ||
+      (!entry.headerNames.has(lower) && !(redirect && lower === "location"))
+    )
+      return undefined;
+    seen.add(lower);
+    inputs[entry.headerNames.get(lower) ?? "location"] = value;
+  }
+  const hasLocation = entry.headerNames.has("location");
+  const implicitLocation =
+    redirect && !hasLocation ? inputs.location : undefined;
+  if (redirect && !hasLocation) delete inputs.location;
+  return { hasLocation, implicitLocation, inputs };
+};
+
+const decodeHeaders = async (
+  entry: ResolvedSuccessEntry,
+  raw: unknown,
+  redirect: boolean,
+) => {
+  if (entry.duplicateHeaders) return undefined;
+  const normalized = normalizeHeaders(
+    entry,
+    raw === undefined ? {} : raw,
+    redirect,
+  );
+  if (!normalized) return undefined;
+  const { hasLocation, implicitLocation, inputs } = normalized;
+  const schema = entry.headerSchema;
+  let headers: Record<string, unknown> = inputs;
+  if (schema) {
+    const parsed = await schema.safeParseAsync(inputs);
+    if (!parsed.success) return undefined;
+    headers = parsed.data;
+  }
+  if (redirect && !hasLocation) headers.location = implicitLocation;
+  if (redirect) {
+    const location = Object.entries(headers).find(
+      ([key]) => key.toLowerCase() === "location",
+    )?.[1];
+    if (typeof location !== "string" || location.length === 0) return undefined;
+  }
+  const validated: Record<string, number | string | string[]> = {};
+  for (const [key, value] of Object.entries(headers)) {
+    if (value === undefined) continue;
+    if (
+      typeof value !== "string" &&
+      typeof value !== "number" &&
+      !(Array.isArray(value) && value.every((item) => typeof item === "string"))
+    )
+      return undefined;
+    validateHeaderName(key);
+    for (const item of Array.isArray(value) ? value : [value]) {
+      validateHeaderValue(key, String(item));
+    }
+    validated[key] = value;
+  }
+  return validated;
+};
+
+const defaultResponse = (
+  entry: ResolvedSuccessEntry | undefined,
+  output: unknown,
+) => {
+  if (!entry) return undefined;
+  if (isRedirectEntry(entry.entry)) {
+    if (typeof output !== "string" || output.length === 0) return undefined;
+    return {
+      headers: { [entry.defaultLocation]: output },
+      status: entry.status,
+    };
+  }
+  return isNoBodyStatus(entry.status)
+    ? { status: entry.status }
+    : { body: output, status: entry.status };
+};
+
+const clearSuccessHeaders = (
+  reply: Parameters<ErrorResponder>[0],
+  entries: Map<number, ResolvedSuccessEntry>,
+): void => {
+  for (const { entry, headerSchema } of entries.values()) {
+    for (const key of Object.keys(headerSchema?.shape ?? {})) {
+      reply.removeHeader(key);
+    }
+    if (isRedirectEntry(entry)) reply.removeHeader("location");
+  }
+};
+
+/** Validate every success component before mutating the Fastify reply. */
+const buildSuccessResponder = <O>(
+  entries: Map<number, ResolvedSuccessEntry>,
+  outputMapper: ((output: O) => unknown) | undefined,
+  onError: ErrorResponder,
+  committedReplies: WeakSet<Parameters<ErrorResponder>[0]>,
 ): SuccessResponder<O> => {
-  const sendsBody = entry.schema !== undefined && !isNoBodyStatus(entry.status);
-  const schema = entry.schema;
-
-  return async (output: O, reply: FastifyReply): Promise<FastifyReply> => {
-    const mapped = outputMapper ? outputMapper(output) : (output as unknown);
-
-    if (entry.isRedirect) {
-      if (typeof mapped !== "string" || mapped.length === 0) {
-        return onError(
-          reply,
-          new GenericError("Redirect location is missing or not a string."),
+  if (!outputMapper && entries.size !== 1) {
+    throw new Error(
+      "mountFastifyRoute: multiple success entries require an output mapper.",
+    );
+  }
+  const only = entries.size === 1 ? entries.values().next().value : undefined;
+  return async (output, reply) => {
+    const invalid = () =>
+      onError(reply, new GenericError("Output encoding failed."));
+    try {
+      const mapped: unknown = outputMapper
+        ? outputMapper(output)
+        : defaultResponse(only, output);
+      if (!mapped || typeof mapped !== "object" || Array.isArray(mapped))
+        return invalid();
+      const description = mapped as {
+        body?: unknown;
+        headers?: unknown;
+        status?: unknown;
+      };
+      if (typeof description.status !== "number") return invalid();
+      const selected = entries.get(description.status);
+      if (!selected) return invalid();
+      const redirect = isRedirectEntry(selected.entry);
+      const noBody = isNoBodyStatus(selected.status);
+      if (noBody && "body" in description) return invalid();
+      let body: unknown;
+      if (!noBody && !isRedirectEntry(selected.entry)) {
+        if (!("body" in description)) return invalid();
+        const result = await getEntrySchema(selected.entry).safeParseAsync(
+          description.body,
         );
+        if (!result.success) return invalid();
+        body = result.data;
       }
-      return reply.code(entry.status).header("location", mapped).send();
-    }
 
-    if (!sendsBody || schema === undefined) {
-      return reply.code(entry.status).send();
+      if (selected.hasHeaders || description.headers !== undefined) {
+        const validatedHeaders = await decodeHeaders(
+          selected,
+          description.headers,
+          redirect,
+        );
+        if (!validatedHeaders) return invalid();
+        committedReplies.add(reply);
+        reply.code(selected.status);
+        for (const [key, value] of Object.entries(validatedHeaders)) {
+          reply.header(key, value);
+        }
+      } else {
+        committedReplies.add(reply);
+        reply.code(selected.status);
+      }
+      return noBody ? reply.send() : reply.send(body);
+    } catch {
+      if (committedReplies.delete(reply)) clearSuccessHeaders(reply, entries);
+      return invalid();
     }
-
-    const result = await schema["~standard"].validate(mapped);
-    if (result.issues) {
-      return onError(reply, new GenericError("Output encoding failed."));
-    }
-
-    return reply.code(entry.status).send(result.value);
   };
 };
 
 /**
- * Mounts a route contract on a Fastify instance, wiring together request
- * validation, the input mapper, the use case, the optional output mapper and
- * the success status code (derived from the single success key of the
- * contract's response map — a 2xx code or a `301`/`302` redirect).
- *
- * This adapter is **registry-free**: it performs no OpenAPI registration. Pass
- * the same contracts to `buildOpenApiDocument` from `@pagopa/hexagonal-openapi`
- * to generate the spec.
- *
- * Execution flow on success: the use-case output is passed to `outputMapper`
- * (when provided), then the mapped value is encoded against the success schema
- * inside this mount. A redirect response sets the mapped `string` as the
- * `Location` header and strips the body; other no-body responses skip encoding
- * and strip the body.
+ * Mounts a route contract with validated request and success responses.
+ * An explicit output mapper returns a status-discriminated response; the
+ * default is available only for one success without extra required headers.
+ * All response components are validated before the reply is modified.
  *
  * Compile-time guarantees enforced via the parameter types:
- *  1. with an `outputMapper`, its return type MUST equal `z.input` of the
- *     success schema (a `string` Location URL for a redirect, or `undefined`
- *     for a no-body response); without it, the use-case output MUST equal that
- *     type directly;
  *  2. every HTTP status the use case can fail with MUST appear as a key in
  *     `contract.response` (via {@link EnsureResponseCoversErrors});
  *  3. `inputMapper` receives the validated wire request shape derived from
@@ -234,6 +349,7 @@ export function mountFastifyRoute<
   const Resp extends ResponseMap,
   UseCaseInput extends object,
   O,
+  M extends SuccessResponseFromMap<Resp>,
   E extends BaseError = never,
   const Middlewares extends HttpMiddlewareSequence = readonly [],
 >(
@@ -248,7 +364,7 @@ export function mountFastifyRoute<
     ) => UseCaseInput;
     middlewares?: Middlewares &
       NoInfer<EnsureHttpMiddlewareSequence<Middlewares>>;
-    outputMapper: (output: O) => SuccessBodyInput<Resp>;
+    outputMapper: ((output: O) => M) & NoInfer<EnsureDeclaredHeaders<Resp, M>>;
     useCase: NoInfer<
       EnsureResponseCoversErrors<E | HttpMiddlewareErrors<Middlewares>, Resp>
     > &
@@ -275,9 +391,20 @@ export function mountFastifyRoute<
     middlewares?: Middlewares &
       NoInfer<EnsureHttpMiddlewareSequence<Middlewares>>;
     useCase: NoInfer<
-      EnsureResponseCoversErrors<E | HttpMiddlewareErrors<Middlewares>, Resp>
+      ([SuccessStatusFromMap<Resp>] extends [never]
+        ? unknown
+        : [DefaultSuccessOutput<Resp>] extends [never]
+          ? never
+          : unknown) &
+        EnsureResponseCoversErrors<E | HttpMiddlewareErrors<Middlewares>, Resp>
     > &
-      UseCase<UseCaseInput, SuccessBodyInput<Resp>, E>;
+      UseCase<
+        UseCaseInput,
+        [SuccessStatusFromMap<Resp>] extends [never]
+          ? unknown
+          : DefaultSuccessOutput<Resp>,
+        E
+      >;
   },
   config?: ErrorResponderConfig,
 ): void;
@@ -298,12 +425,15 @@ export function mountFastifyRoute<
     ) => UseCaseInput;
     middlewares?: Middlewares &
       NoInfer<EnsureHttpMiddlewareSequence<Middlewares>>;
-    outputMapper?: (output: O) => SuccessBodyInput<Resp>;
+    outputMapper?: (output: O) => SuccessResponseFromMap<Resp>;
     useCase: UseCase<UseCaseInput, O, E>;
   },
   config?: ErrorResponderConfig,
 ): void {
-  const successEntry = resolveSuccessEntry(spec.contract.response);
+  assertSupportedResponseHeaders(spec.contract.response);
+  assertResponseCategories(spec.contract.response);
+  const successEntries = resolveSuccessEntries(spec.contract.response);
+  const committedReplies = new WeakSet<Parameters<ErrorResponder>[0]>();
 
   const wire = buildWireSchema(spec.contract.request);
 
@@ -314,10 +444,11 @@ export function mountFastifyRoute<
   const onError: ErrorResponder = (reply, error) =>
     sendContractErrorResponse(reply, error, spec.contract.response, config);
 
-  const onSuccess = buildSuccessResponder<O, SuccessBodyInput<Resp>>(
-    successEntry,
+  const onSuccess = buildSuccessResponder<O>(
+    successEntries,
     spec.outputMapper,
     onError,
+    committedReplies,
   );
 
   const execute = (request: FastifyRequest) => {
@@ -356,6 +487,12 @@ export function mountFastifyRoute<
   );
 
   server.route({
+    errorHandler: (error, _request, reply) => {
+      if (committedReplies.delete(reply))
+        clearSuccessHeaders(reply, successEntries);
+      if (!("serialization" in error)) return reply.send(error);
+      return onError(reply, new GenericError("Output encoding failed."));
+    },
     handler,
     method: fastifyMethod[spec.contract.method],
     url: toFastifyPath(spec.contract.path),
