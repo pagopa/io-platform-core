@@ -47,8 +47,8 @@ describe("buildOpenApiDocument", () => {
     ],
   });
 
-  it("emits an OpenAPI 3.1 document", () => {
-    expect(doc.openapi).toBe("3.1.0");
+  it("emits an OpenAPI 3.0.3 document", () => {
+    expect(doc.openapi).toBe("3.0.3");
   });
 
   it("registers the route path", () => {

@@ -1,7 +1,7 @@
 // Public entry point for `@pagopa/hexagonal-openapi`.
 //
 // Exposes the code-first OpenAPI toolkit: the route registry (the single home
-// for OpenAPI registry state) and the OpenAPI 3.1 generator + YAML serializer.
+// for OpenAPI registry state) and the OpenAPI 3.0 generator + YAML serializer.
 //
 // `defineRoute`, `RouteContract`, `ResponseMap`, `WireRequest`, … live in
 // `@pagopa/hexagonal-core/adapters`; import them from there. Importing this
