@@ -1,5 +1,13 @@
 # io-example-hexagonal-fastify
 
+## 0.0.5
+
+### Patch Changes
+
+- 464f288: Downgrade OpenAPI generator to be compatible with APIM OpenAPI v3.0.x
+- Updated dependencies [464f288]
+  - @pagopa/hexagonal-openapi@0.1.4
+
 ## 0.0.4
 
 ### Patch Changes
