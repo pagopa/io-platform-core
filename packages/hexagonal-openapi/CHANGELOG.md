@@ -1,5 +1,11 @@
 # @pagopa/hexagonal-openapi
 
+## 0.1.4
+
+### Patch Changes
+
+- 464f288: Downgrade OpenAPI generator to be compatible with APIM OpenAPI v3.0.x
+
 ## 0.1.3
 
 ### Patch Changes
