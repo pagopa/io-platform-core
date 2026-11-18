@@ -50,7 +50,7 @@ export const widgetApiRoutes: readonly AnyRouteContract[] = [
 ];
 
 /**
- * Builds the OpenAPI 3.1 document for the widget API.
+ * Builds the OpenAPI 3.0.3 document for the widget API.
  *
  * The document version is read from the workspace `package.json` so that
  * the generated spec stays aligned with the application version.

@@ -2,7 +2,7 @@
 
 Code-first OpenAPI toolkit for the IO platform. Declare HTTP routes as
 framework-agnostic **contracts** built from [Zod](https://zod.dev) schemas, then
-generate an OpenAPI 3.1 document from them. Framework adapters (e.g.
+generate an OpenAPI 3.0.3 document from them. Framework adapters (e.g.
 `@pagopa/hexagonal-fastify`) consume the contract types but never generate the
 spec; pass the same contracts to this package to produce the OpenAPI document.
 
@@ -29,7 +29,7 @@ pnpm add @pagopa/hexagonal-openapi zod
   project that only mounts routes keeps the minimal contract. `defineRoute`
   stays strict either way — properties not declared on the (possibly augmented)
   contract are a compile-time error.
-- **Generator** — `buildOpenApiDocument` produces an OpenAPI 3.1 document from a
+- **Generator** — `buildOpenApiDocument` produces an OpenAPI 3.0.3 document from a
   list of route contracts. Schemas carrying `.meta({ id })` are auto-registered
   as reusable components and referenced via `$ref`.
 - **Component escape hatch** — `registerComponents` gives you the underlying
@@ -125,7 +125,7 @@ if (result.kind === "check-failed") {
 
 ### `buildOpenApiDocument(options: GenerateOptions)`
 
-Builds an OpenAPI 3.1 document from route contracts.
+Builds an OpenAPI 3.0.3 document from route contracts for compatibility with Azure API Management.
 
 ```ts
 interface GenerateOptions {
@@ -135,7 +135,7 @@ interface GenerateOptions {
 }
 ```
 
-- `document` — top-level metadata (`info`, `servers`, …). `openapi: "3.1.0"` is
+- `document` — top-level metadata (`info`, `servers`, …). `openapi: "3.0.3"` is
   set automatically.
 - `routes` — the route contracts to expose.
 - `registerComponents` — optional hook to register extra components on the

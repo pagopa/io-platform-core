@@ -3,7 +3,7 @@
 Private example app demonstrating the registry-free / OpenAPI-free hexagonal Fastify adapter with the `widgets` resource. Most use cases return "Not Implemented" until real domain behavior is added; the summary and middleware examples are intentionally executable.
 
 The public API contract is also consumed by `@pagopa/hexagonal-openapi` to
-produce a committed OpenAPI 3.1 spec.
+produce a committed OpenAPI 3.0.3 spec.
 
 ## Run
 
@@ -65,7 +65,7 @@ the resolved context in the response.
 
 ## OpenAPI generation
 
-The OpenAPI 3.1 spec is generated from the same route contracts used to mount
+The OpenAPI 3.0.3 spec is generated from the same route contracts used to mount
 the Fastify handlers, so the documentation and the runtime contract never drift.
 
 ```sh

@@ -12,7 +12,7 @@ import type {
 
 import {
   extendZodWithOpenApi,
-  OpenApiGeneratorV31,
+  OpenApiGeneratorV3,
   OpenAPIRegistry,
 } from "@asteasolutions/zod-to-openapi";
 import {
@@ -44,22 +44,22 @@ export interface GenerateOptions {
   routes: readonly AnyRouteContract[];
 }
 
-/** Top-level config accepted by the v3.1 generator (excluding `openapi`). */
+/** Top-level config accepted by the v3.0 generator (excluding `openapi`). */
 type OpenApiTopLevelConfig = Omit<
-  Parameters<OpenApiGeneratorV31["generateDocument"]>[0],
+  Parameters<OpenApiGeneratorV3["generateDocument"]>[0],
   "openapi"
 >;
 
 /**
- * Builds an OpenAPI 3.1 document from a list of route contracts plus top-level
+ * Builds an OpenAPI 3.0.3 document from a list of route contracts plus top-level
  * metadata. Pure function: the same input always yields the same output.
  *
  * @param options Document metadata, routes and optional named schemas.
- * @returns The generated OpenAPI 3.1 document.
+ * @returns The generated OpenAPI 3.0.3 document.
  */
 export const buildOpenApiDocument = (
   options: GenerateOptions,
-): ReturnType<OpenApiGeneratorV31["generateDocument"]> => {
+): ReturnType<OpenApiGeneratorV3["generateDocument"]> => {
   const registry = new OpenAPIRegistry();
 
   // Optional escape hatch for advanced registration (security schemes, …).
@@ -72,11 +72,11 @@ export const buildOpenApiDocument = (
     registry.registerPath(toRouteConfig(contract));
   }
 
-  return new OpenApiGeneratorV31(registry.definitions, {
+  return new OpenApiGeneratorV3(registry.definitions, {
     unionPreferredType: "oneOf",
   }).generateDocument({
-    openapi: "3.1.0",
     ...options.document,
+    openapi: "3.0.3",
   });
 };
 
