@@ -1,7 +1,7 @@
-openapi: 3.1.0
 info:
   title: IO Example Hexagonal Fastify API
   version: 0.0.4
+openapi: 3.0.3
 components:
   schemas:
     ProblemDetails:
@@ -704,4 +704,3 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
-webhooks: {}
