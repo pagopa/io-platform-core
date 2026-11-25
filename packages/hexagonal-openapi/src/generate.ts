@@ -56,7 +56,7 @@ type OpenApiTopLevelConfig = Omit<
 >;
 
 const rewriteRequestRefs = (
-  document: ReturnType<OpenApiGeneratorV31["generateDocument"]>,
+  document: ReturnType<OpenApiGeneratorV3["generateDocument"]>,
   rewrite: (value: unknown) => unknown,
 ): void => {
   if (document.components?.parameters)
@@ -88,7 +88,7 @@ const rewriteRequestRefs = (
 
 /** Preserve request input components when a named response has a different output. */
 const separateResponseComponents = (
-  document: ReturnType<OpenApiGeneratorV31["generateDocument"]>,
+  document: ReturnType<OpenApiGeneratorV3["generateDocument"]>,
   definitions: OpenAPIRegistry["definitions"],
 ): void => {
   const schemas = document.components?.schemas;
@@ -216,7 +216,7 @@ export const buildOpenApiDocument = (
     registry.registerPath(toRouteConfig(contract, registry, reservedNames));
   }
 
-  return new OpenApiGeneratorV3(registry.definitions, {
+  const document = new OpenApiGeneratorV3(registry.definitions, {
     unionPreferredType: "oneOf",
   }).generateDocument({
     ...options.document,
