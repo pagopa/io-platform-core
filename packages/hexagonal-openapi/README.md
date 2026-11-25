@@ -42,10 +42,7 @@ pnpm add @pagopa/hexagonal-openapi zod
 
 ```ts
 import { defineRoute, ProblemJson } from "@pagopa/hexagonal-core/adapters";
-import {
-  buildOpenApiDocument,
-  openApiToYaml,
-} from "@pagopa/hexagonal-openapi";
+import { buildOpenApiDocument, openApiToYaml } from "@pagopa/hexagonal-openapi";
 import { z } from "zod";
 
 const UserSchema = z.object({ id: z.string(), name: z.string() }).meta({
@@ -71,13 +68,54 @@ const document = buildOpenApiDocument({
 console.log(openApiToYaml(document));
 ```
 
+### Response headers and body-less responses
+
+Response wrappers accept `headers: z.object({ ... })`. Reuse the same named,
+symbol-branded value-object schema in the use case, body and header; `.meta({
+id: "TaskId" })` makes it a reusable OpenAPI component. The Fastify adapter
+validates the mapper's values and sends the decoded output.
+
+Success body and header documentation is generated from Zod's **output** JSON
+Schema, without executing the decoder or synchronous optionality probes. Request
+schemas continue to describe decoder input. When a named schema has different
+input and output representations, requests use an automatically named `Input`
+component and responses retain the canonical name. A pipe ending in a
+representable schema (including an async transform followed by `.pipe(...)`)
+documents that final schema, not the input constraints. The final schema is also
+checked by Zod at runtime. An opaque `.transform(...)` has no introspectable
+output schema: document generation fails with the operation and status rather
+than publishing the input schema. Use the existing value object itself as the
+pipe's final schema when transformation is needed. Zod JSON Schema cannot express
+arbitrary refinement functions or infer the image of a transform; documented
+constraints are the representable output schema, not a proof that every described
+value is reachable. Optionality follows Zod's output schema representation.
+
+Output documentation omits redundant built-in format patterns, implicit safe
+integer limits, and the default object-stripping policy. Explicit regexes,
+numeric bounds, strict objects, and catchall schemas remain documented. These
+choices affect the OpenAPI representation only; Zod still validates and decodes
+the original schemas at runtime.
+
+Supported redirect statuses (301, 302, 303, 307 and 308) must use redirect
+entries such as `{ description: "Moved", redirect: true, headers: z.object({ Location: z.string().min(1) }) }`;
+redirect entries cannot be used with other statuses. Location is always documented
+as required and nonempty, even when omitted from the declared headers. Responses
+with status `204` and redirects have no OpenAPI content. Plain Zod schemas remain
+shorthand for responses without custom headers.
+Custom header declarations apply only to success responses. Error response
+headers come from the existing RFC 7807 mapper and cannot be declared in a
+response wrapper.
+
 ### Registering additional components
 
 Use `registerComponents` when you need to register security schemes, parameters,
 or schemas that are not reachable from any route response:
 
 ```ts
-import { buildOpenApiDocument, OpenAPIRegistry } from "@pagopa/hexagonal-openapi";
+import {
+  buildOpenApiDocument,
+  OpenAPIRegistry,
+} from "@pagopa/hexagonal-openapi";
 
 const document = buildOpenApiDocument({
   document: {
@@ -165,7 +203,7 @@ type WriteResult =
 ### `collectNamedSchemas(root: ZodType): readonly ZodType[]`
 
 Recursively collects every Zod schema that carries `.meta({ id })` from a schema
- tree. Useful with `registerComponents` to register named components explicitly.
+tree. Useful with `registerComponents` to register named components explicitly.
 
 ### `readSchemaId(schema: ZodType): string | undefined`
 

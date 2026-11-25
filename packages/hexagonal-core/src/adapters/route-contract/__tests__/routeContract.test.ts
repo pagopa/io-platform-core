@@ -4,13 +4,18 @@ import { z } from "zod";
 import { AuthenticationError } from "../../../domain/errors/index.js";
 import { ProblemJson } from "../../http-responses/problemDetails.schema.js";
 import {
+  type DefaultSuccessOutput,
   defineRoute,
   type EnsureErrorResponsePayloads,
   type EnsureResponseCoversErrors,
+  type EnsureValidationErrorDeclared,
+  type Equals,
   getEntryDescription,
   getEntrySchema,
   isRedirectEntry,
   type RedirectEntry,
+  type SuccessResponseFromMap,
+  type SuccessStatusFromMap,
 } from "../routeContract.js";
 
 describe("isRedirectEntry", () => {
@@ -89,6 +94,87 @@ describe("defineRoute", () => {
 });
 
 describe("route response type guards", () => {
+  it("normalizes quoted numeric success and error keys without widening", () => {
+    const body = z.string();
+    const response = {
+      "200": body,
+      "302": { description: "Moved", redirect: true as const },
+      "400": ProblemJson,
+      "401": ProblemJson,
+    };
+    expect(response["401"]).toBe(ProblemJson);
+    type Assert<T extends true> = T;
+    const statuses: Assert<
+      Equals<SuccessStatusFromMap<typeof response>, 200 | 302>
+    > = true;
+    const noDefault: Assert<
+      Equals<DefaultSuccessOutput<typeof response>, never>
+    > = true;
+    const defaultBody: Assert<
+      Equals<DefaultSuccessOutput<{ "200": typeof body }>, string>
+    > = true;
+    const coverage: EnsureResponseCoversErrors<
+      AuthenticationError,
+      typeof response
+    > = {};
+    const validation: EnsureValidationErrorDeclared<
+      { query: z.ZodObject },
+      typeof response
+    > = {};
+    const valid: SuccessResponseFromMap<typeof response> = {
+      headers: { location: "/ok" },
+      status: 302,
+    };
+    // @ts-expect-error body and status remain correlated
+    const invalid: SuccessResponseFromMap<typeof response> = {
+      body: "bad",
+      status: 302,
+    };
+    type InvalidError = EnsureErrorResponsePayloads<{ "401": typeof body }>;
+    // @ts-expect-error quoted error schemas must accept Problem Details
+    const invalidError: InvalidError = {};
+    const invalidRoute = () =>
+      // @ts-expect-error quoted redirects require redirect entries
+      defineRoute({
+        method: "get",
+        path: "/invalid",
+        request: {},
+        response: { "200": body, "302": body },
+      });
+    expect([
+      statuses,
+      noDefault,
+      defaultBody,
+      coverage,
+      validation,
+      valid,
+      invalid,
+      invalidError,
+    ]).toHaveLength(8);
+    expect(invalidRoute).toThrow(/redirect status category/);
+  });
+
+  it("rejects noncanonical numeric status keys at definition", () => {
+    const invalidRoute = () =>
+      // @ts-expect-error noncanonical numeric keys cannot be used as statuses
+      defineRoute({
+        method: "get",
+        path: "/noncanonical",
+        request: {},
+        response: { 200: z.string(), "0302": z.string() },
+      });
+    expect(invalidRoute).toThrow(/redirect status category/);
+    const noncanonicalSuccess = () =>
+      // @ts-expect-error noncanonical success keys are rejected even when the category matches
+      defineRoute({
+        method: "get",
+        path: "/noncanonical-success",
+        request: {},
+        response: { "0200": z.string() },
+      });
+    expect(noncanonicalSuccess).not.toThrow();
+  });
+
   it("requires every mapped error status to be declared", () => {
     type MissingAuthenticationResponse = EnsureResponseCoversErrors<
       AuthenticationError,

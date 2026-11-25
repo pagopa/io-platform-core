@@ -5,6 +5,12 @@ import type { ErrorKindToStatus } from "../error-mapper/errorHttpMetadata.js";
 import type { ProblemDetails } from "../error-mapper/errorMapper.js";
 import type { AdapterOnlyStatus, SuccessStatusCode } from "./httpStatus.js";
 
+import {
+  isRedirectStatus,
+  isSuccessStatus,
+  REDIRECT_STATUS_CODES,
+} from "./httpStatus.js";
+
 /** HTTP methods supported by a route contract. */
 export type HttpMethod = "delete" | "get" | "patch" | "post" | "put";
 
@@ -14,18 +20,10 @@ export type HttpMethod = "delete" | "get" | "patch" | "post" | "put";
  */
 export type ParamObjectSchema = ZodObject;
 
-/**
- * A redirect response entry (3xx). Carries no body; only a description and
- * optional response headers (e.g. `Location`). Use `redirect: true` as the
- * discriminant so the type system can distinguish it from schema-bearing
- * entries. Headers are expressed as raw OpenAPI schema objects.
- */
+/** A body-less redirect. Location is required even when not declared explicitly. */
 export interface RedirectEntry {
   description: string;
-  headers?: Record<
-    string,
-    { description?: string; schema: Record<string, unknown> }
-  >;
+  headers?: ParamObjectSchema;
   redirect: true;
 }
 
@@ -37,7 +35,7 @@ export interface RedirectEntry {
 export type ResponseEntry =
   | RedirectEntry
   | ZodType
-  | { description?: string; schema: ZodType };
+  | { description?: string; headers?: ParamObjectSchema; schema: ZodType };
 
 /** Returns true when the entry is a 3xx redirect (no body). */
 export const isRedirectEntry = (entry: ResponseEntry): entry is RedirectEntry =>
@@ -77,23 +75,94 @@ export const getEntryDescription = (
 ): string | undefined =>
   isZodTypeEntry(entry) ? undefined : entry.description;
 
+/** Returns the Zod response-header schema, if one is declared. */
+export const getEntryHeaders = (
+  entry: ResponseEntry,
+): ParamObjectSchema | undefined =>
+  isZodTypeEntry(entry) ? undefined : entry.headers;
+
+/** Reject response header declarations that the error mapper cannot honor. */
+export const assertSupportedResponseHeaders = (response: ResponseMap): void => {
+  for (const [status, entry] of Object.entries(response)) {
+    if (!isSuccessStatus(Number(status)) && getEntryHeaders(entry)) {
+      throw new Error(`Response ${status} cannot declare error headers.`);
+    }
+  }
+};
+
+/** Reject mismatches between redirect status codes and redirect entries. */
+export const assertResponseCategories = (response: ResponseMap): void => {
+  for (const [status, entry] of Object.entries(response)) {
+    if (isRedirectStatus(Number(status)) !== isRedirectEntry(entry)) {
+      throw new Error(
+        `Response ${status} must match its redirect status category.`,
+      );
+    }
+  }
+};
+
 const isZodTypeEntry = (entry: ResponseEntry): entry is ZodType =>
   entry !== null &&
   entry !== undefined &&
   (typeof entry === "object" || typeof entry === "function") &&
   "~standard" in entry;
 
+/** Default mapping is only available for one success without extra required headers. */
+export type DefaultSuccessOutput<R extends ResponseMap> = [
+  SuccessStatusFromMap<R>,
+] extends [never]
+  ? never
+  : true extends IsUnion<SuccessStatusFromMap<R>>
+    ? never
+    : SuccessStatusFromMap<R> extends infer S extends SuccessStatusFromMap<R>
+      ? EntryAt<R, S> extends RedirectEntry
+        ? Exclude<
+            RequiredKeys<HeaderInput<EntryAt<R, S>>>,
+            LocationKeys<HeaderInput<EntryAt<R, S>>>
+          > extends never
+          ? [LocationKeys<HeaderInput<EntryAt<R, S>>>] extends [never]
+            ? string
+            : HeaderInput<EntryAt<R, S>>[LocationKeys<
+                HeaderInput<EntryAt<R, S>>
+              >] &
+                string
+          : never
+        : RequiredKeys<HeaderInput<EntryAt<R, S>>> extends never
+          ? S extends 204
+            ? unknown
+            : z.input<SchemaOf<EntryAt<R, S>>>
+          : never
+      : never;
 /**
  * Ensures every declared non-success response can carry the RFC 7807 payload
  * emitted by the HTTP error mapper. The input check protects the adapter from
  * rejecting a mapped error; the output check prevents a schema transform from
  * changing the body into a non-Problem Details shape.
  */
-export type EnsureErrorResponsePayloads<Resp extends ResponseMap> = [
+export type EnsureErrorResponsePayloads<Resp extends ResponseMap> = ([
   ErrorResponsePayloadIssues<Resp>,
 ] extends [never]
   ? unknown
-  : ErrorResponsePayloadIssues<Resp>;
+  : ErrorResponsePayloadIssues<Resp>) &
+  EnsureResponseCategories<Resp> &
+  EnsureSupportedResponseHeaders<Resp>;
+/** Enforce the same status/entry categories used at runtime. */
+export type EnsureResponseCategories<R extends ResponseMap> =
+  number extends keyof R
+    ? unknown
+    : {
+          [S in StatusKeys<R>]: [NumericStatus<S>] extends [never]
+            ? S
+            : NumericStatus<S> extends (typeof REDIRECT_STATUS_CODES)[number]
+              ? Exclude<R[S], RedirectEntry> extends never
+                ? never
+                : S
+              : Extract<R[S], RedirectEntry> extends never
+                ? never
+                : S;
+        }[StatusKeys<R>] extends never
+      ? unknown
+      : never;
 
 /**
  * Bidirectional check that collapses to `never` when the response map's error
@@ -112,7 +181,7 @@ export type EnsureResponseCoversErrors<
   ? [ErrorResponseKeysOf<Resp>] extends [never]
     ? unknown
     : never
-  : [ErrorKindToStatus<E["kind"]>] extends [keyof Resp]
+  : [ErrorKindToStatus<E["kind"]>] extends [NumericStatus<StatusKeys<Resp>>]
     ? [ErrorResponseKeysOf<Resp>] extends [ErrorKindToStatus<E["kind"]>]
       ? unknown
       : never
@@ -155,12 +224,25 @@ export interface RouteRequestSchemas {
   query?: ParamObjectSchema;
 }
 
+/** Mapper response descriptions, correlated by the declared success status. */
+export type SuccessResponseFromMap<R extends ResponseMap> = {
+  [S in SuccessStatusFromMap<R>]: (EntryAt<R, S> extends RedirectEntry
+    ? { body?: never; headers: RedirectHeaders<HeaderInput<EntryAt<R, S>>> }
+    : S extends 204
+      ? HeaderPart<HeaderInput<EntryAt<R, S>>> & { body?: never }
+      : HeaderPart<HeaderInput<EntryAt<R, S>>> & {
+          body: z.input<SchemaOf<EntryAt<R, S>>>;
+        }) & {
+    status: S;
+  };
+}[SuccessStatusFromMap<R>];
+
 /**
  * Extracts the Zod success schema from a {@link ResponseMap}, i.e. the schema
  * associated with the 2xx status key.
  */
 export type SuccessSchemaFromMap<R extends ResponseMap> = SchemaOf<
-  R[SuccessStatusFromMap<R>]
+  EntryAt<R, SuccessStatusFromMap<R>>
 >;
 
 /**
@@ -170,14 +252,36 @@ export type SuccessSchemaFromMap<R extends ResponseMap> = SchemaOf<
  * outcome. The success status set is defined once in {@link SuccessStatusCode}.
  */
 export type SuccessStatusFromMap<R extends ResponseMap> = Extract<
-  keyof R,
+  NumericStatus<StatusKeys<R>>,
   SuccessStatusCode
 >;
 
 type AllErrorResponseKeysOf<R extends ResponseMap> = Exclude<
-  Extract<keyof R, number>,
-  SuccessStatusCode
+  StatusKeys<R>,
+  `${SuccessStatusCode}` | SuccessStatusCode
 >;
+
+type DeclaresHeaders<E> = E extends unknown
+  ? "headers" extends keyof E
+    ? true
+    : false
+  : never;
+
+type EnsureSupportedResponseHeaders<R extends ResponseMap> =
+  number extends keyof R
+    ? unknown
+    : {
+          [S in AllErrorResponseKeysOf<R>]: true extends DeclaresHeaders<R[S]>
+            ? `ERROR_TS: response ${S} cannot declare error headers`
+            : never;
+        }[AllErrorResponseKeysOf<R>] extends never
+      ? unknown
+      : never;
+
+type EntryAt<R extends ResponseMap, S extends number> = R[Extract<
+  keyof R,
+  `${S}` | S
+>];
 
 /**
  * Extracts non-success, non-adapter-only numeric status keys from a response
@@ -187,7 +291,7 @@ type AllErrorResponseKeysOf<R extends ResponseMap> = Exclude<
  * request validation regardless of what the use case declares.
  */
 type ErrorResponseKeysOf<R extends ResponseMap> = Exclude<
-  Extract<keyof R, number>,
+  NumericStatus<StatusKeys<R>>,
   AdapterOnlyStatus | SuccessStatusCode
 >;
 
@@ -200,28 +304,86 @@ type ErrorResponsePayloadIssue<Status extends number> = Readonly<
 
 type ErrorResponsePayloadIssues<R extends ResponseMap> = {
   [Status in AllErrorResponseKeysOf<R>]: R[Status] extends RedirectEntry
-    ? ErrorResponsePayloadIssue<Status>
+    ? ErrorResponsePayloadIssue<NumericStatus<Status>>
     : SchemaOf<R[Status]> extends infer Schema
       ? Schema extends ZodType
-        ? [ProblemDetailsForStatus<Status>] extends [z.input<Schema>]
+        ? [ProblemDetailsForStatus<NumericStatus<Status>>] extends [
+            z.input<Schema>,
+          ]
           ? [z.output<Schema>] extends [ProblemDetails]
             ? never
-            : ErrorResponsePayloadIssue<Status>
-          : ErrorResponsePayloadIssue<Status>
-        : ErrorResponsePayloadIssue<Status>
-      : ErrorResponsePayloadIssue<Status>;
+            : ErrorResponsePayloadIssue<NumericStatus<Status>>
+          : ErrorResponsePayloadIssue<NumericStatus<Status>>
+        : ErrorResponsePayloadIssue<NumericStatus<Status>>
+      : ErrorResponsePayloadIssue<NumericStatus<Status>>;
 }[AllErrorResponseKeysOf<R>];
+
+type HeaderInput<E> = E extends { headers: infer H extends ZodObject }
+  ? {
+      [K in keyof z.input<H>]: K extends keyof H["shape"]
+        ? H["shape"][K] extends ZodType
+          ? HeaderValue<H["shape"][K]>
+          : z.input<H>[K]
+        : z.input<H>[K];
+    }
+  : Record<never, never>;
+
+type HeaderPart<H> = keyof H extends never
+  ? { headers?: never }
+  : Record<never, never> extends H
+    ? { headers?: H }
+    : { headers: H };
+type HeaderValue<S extends ZodType> =
+  NonNullable<z.output<S>> extends { [z.$brand]: unknown }
+    ? z.output<S> extends z.input<S>
+      ? z.output<S>
+      : z.input<S>
+    : z.input<S>;
+
+type IsUnion<T, Whole = T> = T extends Whole
+  ? [Whole] extends [T]
+    ? false
+    : true
+  : never;
+
+type LocationKeys<H> = {
+  [K in keyof H]: K extends string
+    ? Lowercase<K> extends "location"
+      ? K
+      : never
+    : never;
+}[keyof H];
+
+type NumericStatus<K> = K extends number
+  ? K
+  : K extends `${infer N extends number}`
+    ? number extends N
+      ? never
+      : K extends `${N}`
+        ? N
+        : never
+    : never;
 
 type ProblemDetailsForStatus<Status extends number> = Omit<
   ProblemDetails,
   "status"
 > & { readonly status: Status };
 
+type RedirectHeaders<H> = [LocationKeys<H>] extends [never]
+  ? H & { location: string }
+  : H & { [K in LocationKeys<H>]-?: H[K] };
+
+type RequiredKeys<T> = {
+  [K in keyof T]-?: Record<never, never> extends Pick<T, K> ? never : K;
+}[keyof T];
+
 type SchemaOf<E extends ResponseEntry> = E extends ZodType
   ? E
   : E extends { schema: infer S extends ZodType }
     ? S
     : never;
+
+type StatusKeys<R extends ResponseMap> = Extract<keyof R, `${number}` | number>;
 
 /**
  * Identity helper that preserves the literal types of method, path and the
@@ -240,8 +402,15 @@ export const defineRoute = <
   Req extends RouteRequestSchemas,
   const Resp extends ResponseMap,
 >(
-  contract: RouteContract<Req, Resp>,
-): RouteContract<Req, Resp> => contract;
+  contract: NoInfer<
+    EnsureResponseCategories<Resp> & EnsureSupportedResponseHeaders<Resp>
+  > &
+    RouteContract<Req, Resp>,
+): RouteContract<Req, Resp> => {
+  assertSupportedResponseHeaders(contract.response);
+  assertResponseCategories(contract.response);
+  return contract;
+};
 
 /**
  * Type-level guard meant to be intersected into the `contract` parameter of a
@@ -260,7 +429,7 @@ export type EnsureValidationErrorDeclared<
   Req extends RouteRequestSchemas,
   Resp extends ResponseMap,
 > = [HasRequestValidation<Req>] extends [true]
-  ? [AdapterOnlyStatus] extends [keyof Resp]
+  ? [AdapterOnlyStatus] extends [NumericStatus<StatusKeys<Resp>>]
     ? unknown
     : MissingValidationErrorResponse
   : unknown;
@@ -286,12 +455,12 @@ export interface MissingValidationErrorResponse {
   readonly "add a 400 (ValidationError) response entry to this contract": never;
 }
 
-/** Convenience: the type the use case must return for a given contract. */
+/** Use-case output accepted by the default mapper for this contract. */
 export type UseCaseOutputOf<
   C extends RouteContract<RouteRequestSchemas, ResponseMap>,
 > =
   C extends RouteContract<RouteRequestSchemas, infer R>
-    ? z.input<SuccessSchemaFromMap<R>>
+    ? DefaultSuccessOutput<R>
     : never;
 
 /**

@@ -17,7 +17,6 @@ import {
   ValidationError,
 } from "../index.js";
 
-// eslint-disable-next-line max-lines-per-function
 describe("domain errors", () => {
   it.each([
     {

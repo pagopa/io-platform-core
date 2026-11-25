@@ -4,7 +4,11 @@ import { z } from "zod";
 export const WidgetTaskIdBrand = Symbol("WidgetTaskId");
 
 /** UUID identifying an asynchronous widget refresh task. */
-export const WidgetTaskIdSchema = z.string().uuid().brand(WidgetTaskIdBrand);
+export const WidgetTaskIdSchema = z
+  .string()
+  .uuid()
+  .brand(WidgetTaskIdBrand)
+  .meta({ id: "WidgetTaskId" });
 
 /** Validated widget refresh task identifier. */
 export type WidgetTaskId = z.infer<typeof WidgetTaskIdSchema>;

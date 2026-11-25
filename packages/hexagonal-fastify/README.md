@@ -21,14 +21,16 @@ pnpm add @pagopa/hexagonal-fastify @pagopa/hexagonal-core fastify zod neverthrow
 
 - `createHttpHandler` — turns a `UseCase` + input validator + success responder
   into a Fastify handler, replying with `application/problem+json` on errors.
-- `mountFastifyRoute` — mounts a `defineRoute` contract on a Fastify instance,
-  deriving validation, the single success status and response encoding from the
-  contract. Both 2xx codes and `301`/`302` redirects count as success; a
-  contract declaring more than one success response is rejected at mount time.
-  An optional `outputMapper` maps the use-case output to the success schema's
-  input before encoding; redirect / no-body (`204`) responses strip the body.
+- `mountFastifyRoute` — mounts a `defineRoute` contract and validates request
+  and success responses. An `outputMapper` returns a status-discriminated
+  `{ status, body, headers }` description inferred from the declared responses.
+  Multiple success statuses and required custom headers require a mapper. With
+  one success and no additional required headers, the default uses the use-case
+  output as the body, ignores it for `204`, or uses a string as redirect Location.
   Optional `middlewares` run after Fastify parsing and before request-schema
   validation; their append-only context is passed to `inputMapper`.
+  Custom response-header schemas are supported on success responses only;
+  error headers remain owned by the RFC 7807 mapper.
 - `createFastifyRequestValidator` / `fastifyExtractPayload` — bind the core
   Standard Schema validator to `FastifyRequest` (`path` from `request.params`).
 - `sendErrorResponse` — write a domain error as RFC 7807 problem+json (delegates
@@ -188,6 +190,66 @@ await app.listen({ port: 3000 });
 
 A request to `/users/1` returns `200` with the validated user; `/users/999`
 returns `404` with an `application/problem+json` body.
+
+The middleware receives a readonly canonical snapshot containing only `body`,
+`headers`, `path` and `query`. It runs before the request schemas, and an error
+short-circuits the remaining middleware, validation, mapper and use case. The
+ordered tuple is checked statically: each middleware's required context must be
+available and context keys cannot be replaced. A stored sequence uses
+`as const`; a tuple literal passed directly as `middlewares` does not need it.
+The route contract must declare every middleware error status. Non-success
+response schemas are checked at compile time and at runtime for RFC 7807
+compatibility; an invalid response falls back to `500`.
+
+### Success responses and headers
+
+Declare response headers with a Zod object on the response wrapper. The mapper
+returns schema **input** values; the adapter validates the selected status,
+body and headers and sends the transformed schema **output** values. A contract
+violation returns an RFC 7807 `500` before success status or headers are set.
+For a branded value-object header whose output is compatible with its input,
+the mapper must supply the branded value, not an arbitrary primitive. The same
+domain-owned schema can be reused by the use case, the response body and the
+header. Runtime validation still protects against forged values or bypassed
+TypeScript checks. Schemas that transform between different input and output
+types retain their Zod input type for the mapper. The OpenAPI generator documents
+representable output schemas and reports opaque transforms; see its
+[response-header documentation](../hexagonal-openapi/README.md#response-headers-and-body-less-responses).
+
+```ts
+const contract = defineRoute({
+  method: "post",
+  path: "/jobs",
+  request: {},
+  response: {
+    200: z.object({ id: z.string() }),
+    202: {
+      schema: z.object({ taskId: z.string() }),
+      headers: z.object({ "x-job-id": z.string() }),
+    },
+  },
+});
+
+mountFastifyRoute(app, {
+  contract,
+  inputMapper: () => ({}),
+  useCase: async () => ok({ jobId: "job-1" }),
+  outputMapper: (output) => ({
+    status: 202,
+    body: { taskId: output.jobId },
+    headers: { "x-job-id": output.jobId },
+  }),
+});
+```
+
+For `204` and redirects omit `body`. A redirect entry uses `redirect: true` and
+requires a nonempty string Location on the wire. An explicit mapper supplies
+the declared Location schema's input type, which may transform into that string;
+without a declared schema the input is a string. The default redirect accepts
+only a nonempty string use-case output and still validates it against the
+declared schema. Header names are matched without case at runtime. Optional
+custom headers do not prevent the single-success default. Plain Zod body
+schemas remain supported as response entries.
 
 ## Architecture decisions
 

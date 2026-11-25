@@ -13,7 +13,10 @@ export const EmailAddressBrand = Symbol("EmailAddress");
  *     `EmailAddress` is expected.
  */
 export type EmailAddressSchemaType = z.core.$ZodBranded<
-  z.ZodPipe<z.ZodString, z.ZodTransform<string, string>>,
+  z.ZodPipe<
+    z.ZodPipe<z.ZodString, z.ZodTransform<string, string>>,
+    z.ZodString
+  >,
   typeof EmailAddressBrand,
   "out"
 >;
@@ -22,6 +25,7 @@ export const EmailAddressSchema: EmailAddressSchemaType = z
   .string()
   .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Invalid email address")
   .transform((v) => v.toLowerCase())
+  .pipe(z.string().regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/))
   .brand(EmailAddressBrand);
 
 /** A syntactically valid, lower-cased e-mail address (branded `string`). */

@@ -310,3 +310,6 @@ terraform.rc
 
 # Agent scratch / task-tracking workspace
 .tmp/
+.github/agents/
+.omp/
+docs/agents/
